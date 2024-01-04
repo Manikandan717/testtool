@@ -85,9 +85,16 @@ export const registerUser = (userData) => dispatch =>{
 export const loginUser = userData => dispatch => {
     axios
     .post(`${apiUrl}/login`, userData)
-    .then(res=>{
-         // Save to localStorage
- 
+    // .then(res=>{
+    //     const { token }  = res.data;
+    //     localStorage.setItem("jwtToken", token);
+    //     setAuthToken(token);
+    //     const decoded = jwt_decode(token);
+    //     dispatch(setCurrentUser(decoded));
+    // })
+   .then(res => {
+    // Save to localStorage
+    if (res && res.data) {
         // Set token to localStorage
         const { token }  = res.data;
         localStorage.setItem("jwtToken", token);
@@ -97,7 +104,11 @@ export const loginUser = userData => dispatch => {
         const decoded = jwt_decode(token);
         // Set current user
         dispatch(setCurrentUser(decoded));
-    })
+    } else {
+        // Handle unexpected response structure
+        console.error('Unexpected response structure:', res);
+    }
+})
     .catch(err =>
         dispatch({
           type: GET_ERRORS,
