@@ -84,7 +84,7 @@ export const registerUser = (userData) => dispatch =>{
  
 export const loginUser = userData => dispatch => {
     axios
-    .post(`${apiUrl}/login`, userData)
+    .post(`/login`, userData)
     // .then(res=>{
     //     const { token }  = res.data;
     //     localStorage.setItem("jwtToken", token);
