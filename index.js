@@ -31,6 +31,9 @@ import Team from './models/addteam.model.js';
 import Status from './models/status.model.js';
 import AddTeam from './models/addteam.model.js';
 import moment from 'moment';
+
+let isListening = false;  // Declare isListening variable
+
 const app = express();
 const port = process.env.PORT || 5000;
 dotenv.config();
@@ -39,14 +42,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const URI = process.env.ATLAS_URI;
-
 mongoose.connect(URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }, err => {
   if (err) throw err;
-  console.log('Connected to MongoDB Atlas !!!')
-})
+  console.log('Connected to MongoDB Atlas !!!');
+});
+
+const server = app.listen(port, () => {
+  isListening = true;
+  console.log(`Server running on port ${port}`);
+});
 
 app.use(cors());
 app.use(express.json({ limit: '5000mb' })); // adjust the limit as needed
@@ -56,7 +63,6 @@ app.use(express.urlencoded({ limit: '5000mb', extended: false })); // adjust the
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
-
 // user.js route
 dotenv.config();
 const HOST = process.env.SMTP_HOST;
@@ -65,10 +71,6 @@ const USER = process.env.SMTP_USER;
 const PASS = process.env.SMTP_PASS;
 
 const determineRoleFromDesignation = (designation) => {
-  // Your logic to determine the role based on the designation
-  // For example, if designation is "DEV", return "admin"
-  // If designation is "SUPERADMIN", return "superadmin"
-  // Otherwise, return "analyst"
 
   const adminDesignations = ["PROJECT MANAGER"];
   const superAdminDesignation = "SUPERADMIN";
@@ -280,219 +282,7 @@ app.get("/last-login", async (req, res) => {
 });
 
 
- app.post("/forget", (req, res) => {
-    const { email } = req.body;
-    var transporter = nodemailer.createTransport({
-        host: HOST,
-        port:PORT,
-        auth: {
-          user: USER,
-          pass: PASS
-        },tls: {
-                    rejectUnauthorized: false
-                },
-      });
-  
-    crypto.randomBytes(32, (err, buffer) => {
-      if (err) {
-        console.log(err);
-      }
-      const token = buffer.toString("hex");
-      User.findOne({ email }).then((user) => {
-        if (!user) {
-          return res.status(404).json("User Not Found in the Database");
-        }
-        user.resetToken = token;
-        user.expireToken = Date.now() + 300000;
-        user
-          .save()
-          .then(() => {
-            transporter.sendMail({
-                to: user.email,
-                from: "Team Developers <coder@objectways.com>",
-                subject: "Password Reset Request 🔑",
-                html: `
-                        <div class="es-wrapper-color">
-            <!--[if gte mso 9]>
-                <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
-                    <v:fill type="tile" color="#07023c"></v:fill>
-                </v:background>
-            <![endif]-->
-            <table class="es-wrapper" width="100%" cellspacing="0" cellpadding="0">
-                <tbody>
-                    <tr>
-                        <td class="esd-email-paddings" valign="top">
-                            <table class="es-content esd-header-popover" cellspacing="0" cellpadding="0" align="center">
-                                <tbody>
-                                    <tr>
-                                        <td class="esd-stripe" align="center">
-                                            <table class="es-content-body" style="background-color: #ffffff; background-image: url(https://tlr.stripocdn.email/content/guids/CABINET_0e8fbb6adcc56c06fbd3358455fdeb41/images/vector_0Ia.png); background-repeat: no-repeat; background-position: center center;" width="600" cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" background="https://tlr.stripocdn.email/content/guids/CABINET_0e8fbb6adcc56c06fbd3358455fdeb41/images/vector_0Ia.png">
-                                                <tbody>
-                                                    <tr>
-                                                        <td class="esd-structure es-p20t es-p10b es-p20r es-p20l" align="left">
-                                                            <table cellpadding="0" cellspacing="0" width="100%">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td width="560" class="es-m-p0r esd-container-frame" align="top" align="center">
-                                                                            <table cellpadding="0" cellspacing="0" width="100%">
-                                                                                <tbody>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-block-image" style="font-size: 0px;"><img src="https://demo.stripocdn.email/content/guids/1666ada9-0df7-4d86-bab9-abd9cfb40541/images/objectways1.png" alt="Logo" style="display: block;" title="Logo" height="55"></td>
-                                                                                    </tr>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="esd-structure es-p30t es-p30b es-p20r es-p20l" align="left">
-                                                            <table width="100%" cellspacing="0" cellpadding="0">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td class="es-m-p0r es-m-p20b esd-container-frame" width="560" align="top" align="center">
-                                                                            <table width="100%" cellspacing="0" cellpadding="0">
-                                                                                <tbody>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-block-text">
-                                                                                            <h1>&nbsp;We got a request to reset your&nbsp;password</h1>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-block-image es-p15t es-p10b" style="font-size: 0px;"><img class="adapt-img" src="https://tlr.stripocdn.email/content/guids/CABINET_dee64413d6f071746857ca8c0f13d696/images/852converted_1x3.png" alt style="display: block;" height="300"></td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-block-text es-p10t es-p10b">
-                                                                                            <p>&nbsp;Forgot your password? No problem - it happens to everyone!</p>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-block-button es-p15t es-p15b" style="padding: 0;margin: 0;padding-top: 15px;padding-bottom: 15px;" ><span class="es-button-border" style="border-style: solid solid solid solid;border-color: #26C6DA #26C6DA #26C6DA #26C6DA;background: #26C6DA;border-width: 4px 4px 4px 4px;display: inline-block;border-radius: 10px;width: auto;"><a href="http://localhost:3000/authentication/reset/${token}" class="es-button" target="_blank" style="font-weight: normal;-webkit-text-size-adjust: none;-ms-text-size-adjust: none;mso-line-height-rule: exactly;text-decoration: none !important;color: #ffffff;font-size: 20px;border-style: solid;border-color: #26C6DA;border-width: 10px 25px 10px 30px;display: inline-block;background: #26C6DA;border-radius: 10px;font-family: arial, 'helvetica neue', helvetica, sans-serif;font-style: normal;line-height: 120%;width: auto;text-align: center;mso-style-priority: 100 !important;"> Reset Your Password</a></span></td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-block-text es-p10t es-p10b">
-                                                                                            <p>If you ignore this message, your password won't be changed.</p>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table cellpadding="0" cellspacing="0" class="es-content" align="center">
-                                <tbody>
-                                    <tr>
-                                        <td class="esd-stripe" align="center">
-                                            <table bgcolor="#10054D" class="es-content-body" align="center" cellpadding="0" cellspacing="0" width="600" style="background-color: #10054d;">
-                                                <tbody>
-                                                    <tr>
-                                                        <td class="esd-structure es-p35t es-p35b es-p20r es-p20l" align="left" background="https://tlr.stripocdn.email/content/guids/CABINET_0e8fbb6adcc56c06fbd3358455fdeb41/images/vector_sSY.png" style="background-image: url(https://tlr.stripocdn.email/content/guids/CABINET_0e8fbb6adcc56c06fbd3358455fdeb41/images/vector_sSY.png); background-repeat: no-repeat; background-position: left center;">
-                                                            <!--[if mso]><table width="560" cellpadding="0" cellspacing="0"><tr><td width="69" valign="top"><![endif]-->
-                                                            <table cellpadding="0" cellspacing="0" class="es-left" align="left">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td width="69" class="es-m-p20b esd-container-frame" align="left">
-                                                                            <table cellpadding="0" cellspacing="0" width="100%">
-                                                                                <tbody>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-block-image es-m-txt-l" style="font-size: 0px;"><a target="_blank" href="https://viewstripo.email"><img src="https://tlr.stripocdn.email/content/guids/CABINET_dee64413d6f071746857ca8c0f13d696/images/group_118_lFL.png" alt style="display: block;" width="69"></a></td>
-                                                                                    </tr>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                            <!--[if mso]></td><td width="20"></td><td width="471" valign="top"><![endif]-->
-                                                            <table cellpadding="0" cellspacing="0" class="es-right" align="right">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td width="471" align="left" class="esd-container-frame">
-                                                                            <table cellpadding="0" cellspacing="0" width="100%">
-                                                                                <tbody>
-                                                                                    <tr>
-                                                                                        <td align="left" class="esd-block-text">
-                                                                                            <h3 style="color: #ffffff;"><b>Here to help.</b></h3>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td align="left" class="esd-block-text es-p10t es-p5b">
-                                                                                            <p style="color: #ffffff;">Have a question? Just mail : coder@objectways.com.</p>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                            <!--[if mso]></td></tr></table><![endif]-->
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table cellpadding="0" cellspacing="0" class="esd-footer-popover es-footer" align="center">
-                                <tbody>
-                                    <tr>
-                                        <td class="esd-stripe" align="center">
-                                            <table class="es-footer-body" align="center" cellpadding="0" cellspacing="0" width="600" style="background-color: transparent;">
-                                                <tbody>
-                                                    <tr>
-                                                        <td class="esd-structure es-p20" align="left">
-                                                            <table cellpadding="0" cellspacing="0" width="100%">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td width="560" class="esd-container-frame" align="center" valign="top">
-                                                                            <table cellpadding="0" cellspacing="0" width="100%">
-                                                                                <tbody>
-                                                                                    <tr>
-                                                                                        <td align="center" class="esd-empty-container" style="display: none;"></td>
-                                                                                    </tr>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-                        `,
-            });
-            res.json({ message: "check your email" });
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500).json({ message: "Internal server error" });
-          });
-      });
-    });
-  });
+
 
   app.post("/reset", (req, res) => {
   const newPass = req.body.password;
@@ -637,58 +427,6 @@ app.get('/analyst', async (req, res) => {
     .then(analyst=>res.json(analyst))
     .catch(err=>res.status(400).json('Error:'+err))
 })
-
-//Add new Analyst Data
-
-// router.route('/add').post((req,res)=>{
-//     // const data = req.body
-//     const name = req.body.name
-//     const team = req.body.team
-//     const empId = req.body.empId
-//     const projectName = req.body.projectName
-//     const managerTask = req.body.managerTask
-//     const dateTask = req.body.dateTask
-//     // const week = req.body.week
-//     // const createdAt = req.body.createdAt
-//     const newData = new Analyst({name,team,empId,TotalTime,ActiveTime,EntityTime})
-
-//     newData.save()
-//     .then(()=>res.json('Data Saved!!!'))
-//     .catch((err)=>res.status(400).json('Error:'+err))
-// })
-
-// API to fetch project names
-// router.route('/api/projectNames').get(async (req, res) => {
-//   try {
-//     const projectNames = await Analyst.distinct('projectName');
-//     res.json(projectNames);
-//   } catch (error) {
-//     console.error('Error fetching project names:', error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
-
-// // API to fetch task-wise data for a specific project
-// router.route('/api/taskwise/:projectName').get(async (req, res) => {
-//   const projectName = req.params.projectName;
-
-//   try {
-//     const taskWiseData = await Analyst.aggregate([
-//       { $match: { projectName: projectName } },
-//       {
-//         $group: {
-//           _id: '$task',
-//           count: { $sum: 1 },
-//         },
-//       },
-//     ]);
-
-//     res.json(taskWiseData);
-//   } catch (error) {
-//     console.error('Error fetching task-wise data:', error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
 
 // Fetch distinct project names
 app.get('/projectNames', async (req, res) => {
@@ -1131,17 +869,47 @@ try {
 }
 });
 
-// app.use(express.static(path.join(__dirname, 'client/build')))
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, '/client/build', 'index.html'));
+
+
+app.use(express.static(path.join(__dirname, 'client/build')))
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, '/client/build', 'index.html'));
+});
+
+// app.use(express.static(path.join(__dirname, 'public')));
+
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 // });
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(port, () => {
-  console.log(`Server Running On Port : ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server Running On Port : ${port}`);
+// });
+export const handler = async (event, context) => {
+  try {
+    return {
+      
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Credentials": true,
+        "Access-Control-Allow-Methods": "POST, OPTIONS, GET, PUT, DELETE",
+        "Access-Control-Allow-Headers": "Content-Type"
+      },
+      body: JSON.stringify({
+        message: isListening ? 'Server running on Lambda' : 'Failed to start server',
+        status: isListening ? 'Connected to MongoDB Atlas' : 'Failed to connect to MongoDB Atlas'
+      }),
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: 'Internal server error',
+        status: 'Failed to connect to MongoDB Atlas',
+        error: error.message
+      }),
+    };
+  }
+};

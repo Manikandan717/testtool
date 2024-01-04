@@ -58,26 +58,27 @@ function App() {
   const role = useSelector(state=>state.auth.user.role);
   // console.log(role);
   useEffect(() => {
-    if (localStorage.jwtToken) {
-      // Set auth token header auth
-      const token = localStorage.jwtToken;
-      setAuthToken(token);
-      // Decode token and get user info and exp
-      const decoded = jwt_decode(token);
-      // Set user and isAuthenticated
-      store.dispatch(setCurrentUser(decoded));
-      // Check for expired token
-      const currentTime = Date.now() / 1000; // to get in milliseconds
-      if (decoded.exp < currentTime) {
-        // Logout user
-        store.dispatch(logoutUser());
+    // if (localStorage.jwtToken) {
+    //   // Set auth token header auth
+    //   const token = localStorage.jwtToken;
+    //   setAuthToken(token);
+    //   // Decode token and get user info and exp
+    //   const decoded = jwt_decode(token);
+    //   // Set user and isAuthenticated
+    //   store.dispatch(setCurrentUser(decoded));
+    //   // Check for expired token
+    //   const currentTime = Date.now() / 1000; // to get in milliseconds
+    //   if (decoded.exp < currentTime) {
+    //     // Logout user
+    //     store.dispatch(logoutUser());
 
-        // Redirect to login
-        // window.location.href = "/sign-in";
-        window.location.href = "/authentication/sign-in"
-      }
-    }
-  }, []);
+    //     // Redirect to login
+    //     // window.location.href = "/sign-in";
+    //     window.location.href = "/authentication/sign-in"
+    //   }
+    // }
+  }, 
+  []);
 
   const getRoutes = (allRoutes) =>
     allRoutes.map((route) => {
