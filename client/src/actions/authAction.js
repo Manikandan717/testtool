@@ -84,31 +84,31 @@ export const registerUser = (userData) => dispatch =>{
  
 export const loginUser = userData => dispatch => {
     axios
-    .post(`/login`, userData)
-    // .then(res=>{
-    //     const { token }  = res.data;
-    //     localStorage.setItem("jwtToken", token);
-    //     setAuthToken(token);
-    //     const decoded = jwt_decode(token);
-    //     dispatch(setCurrentUser(decoded));
-    // })
-   .then(res => {
-    // Save to localStorage
-    if (res && res.data) {
-        // Set token to localStorage
+    .post(`${apiUrl}/login`, userData)
+    .then(res=>{
         const { token }  = res.data;
         localStorage.setItem("jwtToken", token);
-        // Set token to Auth header
         setAuthToken(token);
-        // Decode token to get user data
         const decoded = jwt_decode(token);
-        // Set current user
         dispatch(setCurrentUser(decoded));
-    } else {
-        // Handle unexpected response structure
-        console.error('Unexpected response structure:', res);
-    }
-})
+    })
+//    .then(res => {
+//     // Save to localStorage
+//     if (res && res.data) {
+//         // Set token to localStorage
+//         const { token }  = res.data;
+//         localStorage.setItem("jwtToken", token);
+//         // Set token to Auth header
+//         setAuthToken(token);
+//         // Decode token to get user data
+//         const decoded = jwt_decode(token);
+//         // Set current user
+//         dispatch(setCurrentUser(decoded));
+//     } else {
+//         // Handle unexpected response structure
+//         console.error('Unexpected response structure:', res);
+//     }
+// })
     .catch(err =>
         dispatch({
           type: GET_ERRORS,
