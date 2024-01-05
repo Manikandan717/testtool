@@ -32,7 +32,6 @@ import Status from './models/status.model.js';
 import AddTeam from './models/addteam.model.js';
 import moment from 'moment';
 
-
 let isListening = false;  // Declare isListening variable
 
 const app = express();
@@ -886,53 +885,16 @@ app.get("*", (req, res) => {
 // app.listen(port, () => {
 //   console.log(`Server Running On Port : ${port}`);
 // });
-
-
 export const handler = async (event, context) => {
   try {
-    const headers = event.headers || {};
-    const tokenHeader = headers.authorization || headers.Authorization;
-
-    if (!tokenHeader) {
-      return {
-        statusCode: 401,
-        headers: {
-          "Access-Control-Allow-Origin": "http://localhost:3000",
-          "Access-Control-Allow-Credentials": true,
-          "Access-Control-Allow-Methods": "POST, OPTIONS, GET, PUT, DELETE",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-        body: JSON.stringify({ error: 'Unauthorized - Missing Authorization header' }),
-      };
-    }
-
-    const token = tokenHeader.split(' ')[1];
-
-    if (!token) {
-      return {
-        statusCode: 401,
-        headers: {
-          "Access-Control-Allow-Origin": "http://localhost:3000",
-          "Access-Control-Allow-Credentials": true,
-          "Access-Control-Allow-Methods": "POST, OPTIONS, GET, PUT, DELETE",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-        body: JSON.stringify({ error: 'Unauthorized - Malformed Authorization header' }),
-      };
-    }
-
-    const decoded = jwt.verify(token, 'key');
-    console.log('Decoded token:', decoded);
-
-    // Your existing code here...
-
     return {
+      
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "http://localhost:3000",
         "Access-Control-Allow-Credentials": true,
         "Access-Control-Allow-Methods": "POST, OPTIONS, GET, PUT, DELETE",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type"
       },
       body: JSON.stringify({
         message: isListening ? 'Server running on Lambda' : 'Failed to start server',
@@ -940,20 +902,14 @@ export const handler = async (event, context) => {
       }),
     };
   } catch (error) {
-    console.error('Error verifying token:', error);
+    console.error(error);
     return {
-      statusCode: 401,
-      headers: {
-        "Access-Control-Allow-Origin": "http://localhost:3000",
-        "Access-Control-Allow-Credentials": true,
-        "Access-Control-Allow-Methods": "POST, OPTIONS, GET, PUT, DELETE",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-      body: JSON.stringify({ error: 'Unauthorized' }),
+      statusCode: 500,
+      body: JSON.stringify({
+        message: 'Internal server error',
+        status: 'Failed to connect to MongoDB Atlas',
+        error: error.message
+      }),
     };
   }
 };
-
-
-
-
