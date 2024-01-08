@@ -60,7 +60,7 @@ function App() {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/get-token`, {
+        const response = await fetch(`https://nrihk0ehs5.execute-api.us-east-1.amazonaws.com/prod/Emp/get-token`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

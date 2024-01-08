@@ -4,7 +4,7 @@ import jwt_decode from 'jwt-decode';
 import {GET_ERRORS,SET_CURRENT_USER,USER_LOADING} from  './types';
 import axios from 'axios';
  
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const apiUrl = process.env.REACT_APP_API_URL || 'https://nrihk0ehs5.execute-api.us-east-1.amazonaws.com/prod/Emp';
 export const registerUser = (userData) => dispatch =>{
     axios.post(`${apiUrl}/register`,userData)
     .then(res=> window.location = '/authentication/sign-in')
