@@ -2,18 +2,28 @@ import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import DeleteIcon from '@mui/icons-material/Delete'; // Assuming you're using Material-UI
 // import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@material-ui/core/DialogActions';
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { ToastContainer, toast } from "react-toastify";
 import MDInput from "components/MDInput";
+import IconButton from "@mui/material/IconButton";
 import * as React from "react";
+import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 // import IconButton from "@material-ui/core/IconButton";
 // import FormControl from "@mui/material/FormControl";
 // import Select from "@mui/material/Select";
 import { useState, useEffect, useMemo } from "react";
+import Button from '@material-ui/core/Button';
 import "react-datepicker/dist/react-datepicker.css";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -44,6 +54,8 @@ function AdminReport() {
   const [empName, setEmpName] = useState(null);
   const [teamList, setTeamList] = useState(null);
   const [report, setReport] = useState([]);
+  const [selectedUserData, setSelectedUserData] = useState(null);
+  const [isDialogOpen, setDialogOpen] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -170,14 +182,33 @@ function AdminReport() {
     });
     // console.log(name);
   };
+  const openDialog = (userData) => {
+    setSelectedUserData(userData);
+    setDialogOpen(true);
+  };
 
+  // Function to handle closing the dialog
+  const closeDialog = () => {
+    setSelectedUserData(null);
+    setDialogOpen(false);
+  };
+  const handleDelete = (_id) => {
+    // Perform the deletion in MongoDB using the _id
+    axios.delete(`${apiUrl}/delete/usertask/${_id}`).then((response) => {
+      // Handle success, e.g., refetch the data
+      allReport()
+      toast.success('Successfully deleted.');
+    }).catch((error) => {
+      // Handle error
+      toast.error('Error deleting the record.');
+    });
+  };
   // tabel report
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
     {
       field: "date",
       headerName: "Date",
-      // type: 'date',
       width: 100,
       editable: false,
       flex: 1,
@@ -196,72 +227,73 @@ function AdminReport() {
       editable: false,
       flex: 1,
     },
-
     {
       field: "projectName",
       headerName: "Project Name",
-      // type: 'time',
       width: 150,
       editable: false,
       flex: 1,
     },
     {
-      field: "task",
-      headerName: "Task",
-      // type: 'number',
-      width: 200,
+      field: "taskCount",
+      headerName: "Task Count",
+      width: 120,
       editable: false,
-      flex: 1.5,
+      renderCell: (params) => (
+        <Typography sx={{ fontSize: 15, textAlign: "center" }}>
+          {params.row.sessionOne.length}
+        </Typography>
+      ),
+      align: "center",
     },
     {
       field: "managerTask",
       headerName: "Project Manager",
-      // type: 'number',
       width: 150,
       editable: false,
       flex: 1,
     },
     {
-      field: "sessionOne",
-      headerName: "Hours",
-      // type: 'number',
-      width: 150,
+      field: "totalHours",
+      headerName: "Total Hours",
+      width: 140,
       editable: false,
-      flex: 1,
+      renderCell: (params) => (
+        <Typography sx={{ fontSize: 15, textAlign: "center" }}>
+          {calculateTotalHours(params.row.sessionOne)}
+        </Typography>
+      ),
+      align: "center",
     },
-    // {
-    //   field: "sessionTwo",
-    //   headerName: "Session Two",
-    //   // type: 'number',
-    //   width: 150,
-    //   editable: false,
-    //   flex: 1,
-    // },
-    // {
-    //   field: "others",
-    //   headerName: "Others",
-    //   // type: 'number',
-    //   width: 150,
-    //   editable: false,
-    //   flex: 1,
-    // },
-    // {
-    //   field: "comments",
-    //   headerName: "Comments",
-    //   // type: 'number',
-    //   width: 150,
-    //   editable: false,
-    //   flex: 1,
-    // },
-    // {
-    //   field: "total",
-    //   headerName: "Toltal Hours",
-    //   // type: 'number',
-    //   width: 150,
-    //   editable: false,
-    //   flex: 1,
-    // },
+    {
+      field: "view",
+      headerName: "View",
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (params) => (
+        <IconButton style={{ color: "#2196f3", textAlign: "center" }} onClick={() => openDialog(params.row)}>
+          <VisibilityIcon />
+        </IconButton>
+      ),
+    },
+    {
+      field: 'delete',
+      headerName: 'Delete',
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (params) => (
+        <IconButton
+          style={{ color: 'red' }}
+          onClick={() => handleDelete(params.row._id)}
+        >
+          <DeleteIcon />
+        </IconButton>
+      ),
+    },
   ];
+  
   const row = useMemo(
     () =>
       report.map((item, index) => ({
@@ -303,7 +335,19 @@ function AdminReport() {
   const handlePopperClose = () => {
     setPopperOpen(false);
   };
-
+  const calculateTotalHours = (sessionOne) => {
+    let totalMinutes = 0;
+  
+    sessionOne.forEach((task) => {
+      const [hours, minutes] = task.sessionOne.split(":");
+      totalMinutes += parseInt(hours) * 60 + parseInt(minutes);
+    });
+  
+    const hours = Math.floor(totalMinutes / 60);
+    const remainingMinutes = totalMinutes % 60;
+  
+    return `${hours}:${remainingMinutes < 10 ? "0" : ""}${remainingMinutes}`;
+  };
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -466,6 +510,109 @@ function AdminReport() {
           </Box>
         </Card>
       </Grid>
+      <Dialog open={isDialogOpen} onClose={closeDialog} maxWidth="lg">
+  <DialogTitle
+    style={{
+      background: "#2196f3",
+      color: "white",
+      fontSize: "1.2rem",
+      padding: "20px",
+    }}
+  >
+    {"Task List"}
+  </DialogTitle>
+  <DialogContent>
+    {selectedUserData && (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Typography
+          style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}
+        >
+          <strong style={{ fontSize: "18px" }}>
+            Project Name:
+          </strong>{" "}
+          {selectedUserData.projectName}
+        </Typography>
+        <div
+          style={{
+            maxHeight: "300px", // Set a fixed height for the scrollable area
+            overflow: "auto",  // Enable scrolling
+            marginTop: "10px",
+          }}
+        >
+          <table
+            style={{
+              width: "600px",
+              borderCollapse: "collapse",
+              fontSize: "1rem",
+            }}
+          >
+            <thead>
+              <tr>
+                <th
+                  style={{
+                    padding: "8px",
+                    border: "1px solid #ccc",
+                    borderRadius: "8px",
+                    minWidth: "150px",
+                  }}
+                >
+                  Task Name
+                </th>
+                <th
+                  style={{
+                    padding: "8px",
+                    border: "1px solid #ccc",
+                    borderRadius: "8px",
+                    minWidth: "150px",
+                  }}
+                >
+                  Total Hours
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {selectedUserData.sessionOne.map((session, index) => (
+                <tr key={index}>
+                  <td
+                    style={{
+                      padding: "8px",
+                      border: "1px solid #ccc",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {session.task}
+                  </td>
+                  <td
+                    style={{
+                      padding: "8px",
+                      border: "1px solid #ccc",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                    }}
+                  >
+                    {session.sessionOne}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={closeDialog} color="primary">
+      Cancel
+    </Button>
+  </DialogActions>
+</Dialog>
+
       <Grid item xs={12} mb={10}>
         {/* <IconButton  onClick={openDrawer} color="primary" aria-label="Filter">
       <FilterListIcon />
@@ -555,6 +702,7 @@ function AdminReport() {
                               display: "flex",
                               marginLeft: "auto",
                               alignItems: "center",
+                              padding: "10px"
                             }}
                           >
                             <MDButton
@@ -562,7 +710,7 @@ function AdminReport() {
                               variant="outlined"
                               color="error"
                               size="small"
-                              style={{ marginRight: "13px", marginTop: "15px" }}
+                              style={{ marginRight: "13px" }}
                               onClick={allReport}
                             >
                               &nbsp;All Report
@@ -613,6 +761,7 @@ function AdminReport() {
         </MDBox>
       </Grid>
       {/* <Footer /> */}
+      <ToastContainer />
     </DashboardLayout>
   );
 }

@@ -1,49 +1,43 @@
 import mongoose from "mongoose";
 import moment from 'moment';
 
-const Schema = mongoose.Schema
+const Schema = mongoose.Schema;
 
-const analystSchema = new Schema({
-    name: String,
-    team: {
-        type: String,
-        required: true
-      },
-    empId: String,
- sessionOne: String,
-      // sessionOne: Number,
-      // sessionTwo: Number,
-      // others: Number,
-      // comments: String,
-      // total: Number,
-
-  projectName: {
-    type: String,
-    required: true
-  },
-  // sessionMinute: {
-  //   type: String,
-  //   required: true
-  // },
+const taskSchema = new Schema({
   task: {
     type: String,
-    required: true
+    required: true,
+  },
+  sessionOne: {
+    type: String,
+    required: true,
+  },
+});
+
+const analystSchema = new Schema({
+  name: String,
+  team: {
+    type: String,
+    required: true,
+  },
+  empId: String,
+  projectName: {
+    type: String,
+    required: true,
   },
   managerTask: {
     type: String,
-    required: true
+    required: true,
   },
   dateTask: {
     type: Date,
-    required: true
+    required: true,
   },
-    // TotalTime: Number,
-    // ActiveTime: Number,
-    // EntityTime: Number,
-    week:{type: Number, default:()=>moment().format("W")},
-    createdAt:{type:Date,default:()=>moment().format('M D YYYY')}
-})
+  sessionOne: [taskSchema], // Update to an array of tasks
+  week: { type: Number, default: () => moment().format("W") },
+  createdAt: { type: Date, default: () => moment().format('M D YYYY') },
+});
 
-const Analyst = mongoose.model('Analyst',analystSchema)
+const Analyst = mongoose.model('AnalystTask', analystSchema);
 
 export default Analyst;

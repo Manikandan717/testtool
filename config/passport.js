@@ -1,56 +1,33 @@
-// import { JwtStrategy } from 'passport-jwt'
-// import { ExtractJwt } from 'passport-jwt'
-// import mongoose from 'mongoose'
-// import User from '../models/user.model.js'
-// import Key from '../config/key.js';
-// // import passport from 'passport';
-// const User = mongoose.model("users")
-// const opts = {};
-// opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-// opts.secretOrKey = Key.secretOrKey;
-
-// const pass = passport =>{
-//     passport.use(
-//         new JwtStrategy(opts,(jwt_payload, done)=>{
-//             User.findById(jwt_payload.id)
-//             .then(user=>{
-//                 if(user){
-//                     return done(null, false);
-//                 }
-//                 return done(null, false);
-//             })
-//             .catch(err=>console.log(err));
-//         })
-//     )
-// }
-
-import { JwtStrategy } from 'passport-jwt';
-import { ExtractJwt } from 'passport-jwt';
-import mongoose from 'mongoose';
-import User from '../models/user.model.js';
-import Key from '../config/key.js';
+// passport.js
 import passport from 'passport';
+import passportJwt from 'passport-jwt';
+import Key from './config/key.js';  // Replace with your actual secret key
+import User from './models/User.js';  // Import your User model
 
-const opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = Key.secretOrKey;
+const JwtStrategy = passportJwt.Strategy;
+const ExtractJwt = passportJwt.ExtractJwt;
 
-const pass = (passport) => {
-    passport.use(
-        new JwtStrategy(opts, (jwt_payload, done) => {
-            User.findById(jwt_payload.id)
-                .then(user => {
-                    if (user) {
-                        // If user is found, return the user
-                        return done(null, user);
-                    } else {
-                        // If user is not found, return false
-                        return done(null, false);
-                    }
-                })
-                .catch(err => console.log(err));
-        })
-    );
+const options = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: Key.key,  // Replace with your actual secret key
 };
 
-export default pass;
+passport.use(
+  new JwtStrategy(options, (jwtPayload, done) => {
+    // Check if the user exists in the database based on jwtPayload
+    // You can query your database to get user details using jwtPayload.sub (user id)
+
+    // Example:
+    User.findById(jwtPayload.sub)
+      .then(user => {
+        if (user) {
+          return done(null, user);
+        } else {
+          return done(null, false);
+        }
+      })
+      .catch(err => done(err, false));
+  })
+);
+
+export default passport;

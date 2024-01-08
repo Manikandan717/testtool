@@ -1,8 +1,8 @@
-
+// errorReducer.js
 import { GET_ERRORS } from "actions/types";
- 
+
 const initialState = {};
- 
+
 // Give your function a name (e.g., errorReducer)
 export function errorReducer(state = initialState, action) {
   switch (action.type) {
@@ -12,5 +12,5 @@ export function errorReducer(state = initialState, action) {
       return state;
   }
 }
- 
+
 export default errorReducer;
