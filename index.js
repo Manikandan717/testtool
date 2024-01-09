@@ -1,3 +1,5 @@
+'use strict';
+
 import express, { json } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -36,7 +38,7 @@ import Key from "./config/key.js";
 import jwtStrategy from "passport-jwt";
 import extractJwt from "passport-jwt"; // Replace with your actual secret key
 import moment from "moment";
-
+const { app } = require('./handler');
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "5000mb" })); // adjust the limit as needed
