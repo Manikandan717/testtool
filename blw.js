@@ -20,7 +20,7 @@ import loginValidate from "./validation/login.js";
 import registerValidate from "./validation/register.js";
 import LastLogin from "./models/LastLogin.js";
 import User from "./models/user.model.js";
-import Employee from "./models/excelUpload.js";
+import Employee from "./models/excelUpload.js"; 
 import Analyst from './models/analyst.model.js'
 import Billing from './models/billing.model.js'
 import Attendance from './models/attendance.model.js';
@@ -36,9 +36,16 @@ import Key from './config/key.js';
 import jwtStrategy from 'passport-jwt';
 import extractJwt from 'passport-jwt';  // Replace with your actual secret key
 import moment from 'moment';
-import awsServerlessExpressMiddleware from 'aws-serverless-express/middleware.js';
-
 const app = express();
+const port = process.env.PORT || 5000;
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const URI = process.env.ATLAS_URI;
+
+
 app.use(cors());
 app.use(express.json({ limit: '5000mb' })); // adjust the limit as needed
 app.use(cookieParser());
@@ -46,44 +53,10 @@ app.use(express.urlencoded({ limit: '5000mb', extended: false })); // adjust the
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
-app.use(awsServerlessExpressMiddleware.eventContext())
 
-// Applying middleware for api gateway
-app.use((req, res, next) => {
-  console.log(req?.apiGateway?.event)
-  let proxy_path = req?.apiGateway?.event?.pathParameters?.proxy
-  let request_method = req?.apiGateway?.event?.requestContext?.http?.method
-  let request_headers = req?.apiGateway?.event?.headers
-  console.log(proxy_path,"proxy_path......", request_method)
-  if (proxy_path){
-    req.url = "/"+proxy_path;
-  }
-  if(request_method){
-    req.method = request_method;
-  }
-  if(request_headers){
-    Object.assign(req.headers, request_headers);
-  }
-  if (req.method === 'OPTIONS') {
-    // Set CORS headers
-    res.header('Access-Control-Allow-Origin', '*'); // Replace '*' with your allowed origin
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    // Respond to the OPTIONS request
-    res.status(200).send();
-  } else {
-    next();
-  }
-});
-dotenv.config();
 
-const HOST = process.env.SMTP_HOST;
-const PORT = process.env.SMTP_PORT;
-const USER = process.env.SMTP_USER;
-const PASS = process.env.SMTP_PASS;
-
-await mongoose.connect(process.env.ATLAS_URI, {
+mongoose.connect(URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }, err => {
@@ -131,8 +104,224 @@ const authenticateToken = (req, res, next) => {
   })(req, res, next);
 };
 
+// For Routing Purpose
+// import User from './routes/user.js'
+// import Analyst from './routes/analyst.js'
+// import Attendance from './routes/attendance.js';
+// import Billing from './routes/billing.js'
+// import Team from './routes/team.js'
+// import Task from './routes/task.js'
+// import AllEmployee from './routes/allEmployees.js'
+// For Routers
+// app.use('/authentication/user', User);
+// app.use('/analyst', Analyst);
+// app.use('/emp-attendance', Attendance);
+// app.use('/billing', Billing);
+// app.use('/team', Team);
+// app.use('/create', Task);
+// app.use('/allemp', AllEmployee);
+// app.post('/api/saveAttendance', async (req, res) => {
+//     try {
+//       const { checkInTime } = req.body;
+
+//       // Format check-in time using moment.js with explicit format
+//       const formattedCheckInTime = moment(checkInTime, 'hh:mm a').format('hh:mm a');
+
+//       // Save check-in time to MongoDB
+//       const attendance = new Attendance({
+//         checkInTime: formattedCheckInTime,
+//       });
+
+//       await attendance.save();
+
+//       res.status(201).json({ message: 'Check-in time saved successfully' });
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ message: 'Internal server error' });
+//     }
+//   });
+
+//   // Endpoint to save check-out time
+//   app.post('/api/saveCheckout', async (req, res) => {
+//     try {
+//       const { checkOutTime } = req.body;
+
+//       // Format check-out time using moment.js with explicit format
+//       const formattedCheckOutTime = moment(checkOutTime, 'hh:mm a').format('hh:mm a');
+
+//       // Save check-out time to MongoDB
+//       const attendance = new Attendance({
+//         checkOutTime: formattedCheckOutTime,
+//       });
+
+//       await attendance.save();
+
+//       res.status(201).json({ message: 'Checkout time saved successfully' });
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ message: 'Internal server error' });
+//     }
+//   });
+
+// Endpoint to get the latest attendance data
+// app.get('/api/getAttendance', async (req, res) => {
+//     try {
+//       const latestAttendance = await Attendance.findOne({}, {}, { sort: { 'checkinTime': -1 } });
+
+//       if (latestAttendance) {
+//         res.status(200).json({
+//           checkinTime: moment(latestAttendance.checkinTime).format(),
+//           checkoutTime: latestAttendance.checkoutTime ? moment(latestAttendance.checkoutTime).format() : null,
+//         });
+//       } else {
+//         res.status(404).json({ message: 'No attendance data found' });
+//       }
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ message: 'Internal server error' });
+//     }
+//   });
+
+// MongoDB Schema
+// const employeeSchema = new mongoose.Schema({
+//   emp_id: String,
+//   emp_name: String,
+//   department: String,
+//   email_id: String,
+//   doj: String, // Assuming DOJ is a date field
+//   gender: String,
+//   dob: String, // Assuming DOB is a date field
+//   status: String,
+//   confirmation_date: String, // Assuming Confirmation Date is a date field
+//   age_range: String,
+//   manager_id: String,
+//   manager_name: String,
+//   phone_no: String,
+//   blood_group: String,
+//   employment_status: String,
+//   pan_no: String,
+//   uan_no: String,
+//   marital_status: String,
+//   bank_ac_no: String,
+//   nationality: String,
+//   age: String,
+//   current_access_card_no: String,
+//   residential_status: String,
+//   location: String,
+//   designation: String,
+//   grade: String,
+//   shift: String,
+// });
+
+// const Employee = mongoose.model('Employee', employeeSchema);
+
+// app.post('/api/uploadData', async (req, res) => {
+//   try {
+//     const data = req.body;
+
+//     // Extract email IDs from the incoming data
+//     const emailIds = data.map(employeeData => employeeData.email_id);
+
+//     // Find existing employees with the extracted email IDs
+//     const existingEmployees = await Employee.find({ email_id: { $in: emailIds } });
+
+//     // Create a map of existing employees for quick access
+//     const existingEmployeeMap = new Map(existingEmployees.map(emp => [emp.email_id, emp]));
+
+//     // Prepare an array for bulk insertion
+//     const bulkInsertData = [];
+
+//     for (const employeeData of data) {
+//       const existingEmployee = existingEmployeeMap.get(employeeData.email_id);
+
+//       if (existingEmployee) {
+//         // Merge existing employee data with the new data
+//         const mergedData = { ...existingEmployee.toObject(), ...employeeData };
+//         bulkInsertData.push({ updateOne: { filter: { _id: existingEmployee._id }, update: mergedData } });
+//       } else {
+//         // If no existing employee, create a new one
+//         bulkInsertData.push({ insertOne: { document: employeeData } });
+//       }
+//     }
+
+//     // Use insertMany for bulk insertion and updating
+//     await Employee.bulkWrite(bulkInsertData);
+
+//     res.status(200).json({ message: 'Data saved to MongoDB' });
+//   } catch (error) {
+//     console.error('Error saving data to MongoDB', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+// // API to fetch data from MongoDB
+// app.get('/api/fetchData', async (req, res) => {
+//   try {
+//     const employees = await Employee.find({});
+//     const columns = Object.keys(Employee.schema.paths).filter((col) => col !== '_id');
+//     const rows = employees.map((emp) => ({ ...emp.toObject(), id: emp._id }));
+
+//     res.status(200).json({ columns, rows });
+//   } catch (error) {
+//     console.error('Error fetching data from MongoDB', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+// // API to add employee to MongoDB
+// app.post('/api/addEmployee', async (req, res) => {
+//   try {
+//     const newEmployeeData = req.body;
+//     const newEmployee = new Employee(newEmployeeData);
+//     await newEmployee.save();
+
+//     res.status(200).json({ message: 'Employee added successfully' });
+//   } catch (error) {
+//     console.error('Error adding employee to MongoDB', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+// // API to delete employee from MongoDB
+// app.delete('/api/deleteEmployee/:id', async (req, res) => {
+//   const { id } = req.params;
+
+//   try {
+//     await Employee.findByIdAndDelete(id);
+//     res.status(200).json({ message: 'Employee deleted successfully' });
+//   } catch (error) {
+//     console.error('Error deleting employee from MongoDB', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+// // API to update employee in MongoDB
+// app.put('/api/updateEmployee/:id', async (req, res) => {
+//   const { id } = req.params;
+//   const updatedEmployeeData = req.body;
+
+//   try {
+//     await Employee.findByIdAndUpdate(id, updatedEmployeeData);
+//     res.status(200).json({ message: 'Employee updated successfully' });
+//   } catch (error) {
+//     console.error('Error updating employee in MongoDB', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+//    For build
+// app.use(express.static(path.join(__dirname, 'client/build')))
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, '/client/build', 'index.html'));
+// });
+
+
+
 
 // user.js route
+dotenv.config();
+const HOST = process.env.SMTP_HOST;
+const PORT = process.env.SMTP_PORT;
+const USER = process.env.SMTP_USER;
+const PASS = process.env.SMTP_PASS;
 
 const determineRoleFromDesignation = (designation) => {
   // Your logic to determine the role based on the designation
@@ -332,7 +521,7 @@ app.post("/login", async (req, res) => {
 });
 
 
-app.get("/users", (req, res) => {
+  app.get("/users", (req, res) => {
   User.find({}, "name")
     .sort([["name", 1]])
     .then((user) => res.json(user))
@@ -356,38 +545,38 @@ app.get("/last-login", async (req, res) => {
 });
 
 
-app.post("/forget", (req, res) => {
-  const { email } = req.body;
-  var transporter = nodemailer.createTransport({
-    host: HOST,
-    port: PORT,
-    auth: {
-      user: USER,
-      pass: PASS
-    }, tls: {
-      rejectUnauthorized: false
-    },
-  });
-
-  crypto.randomBytes(32, (err, buffer) => {
-    if (err) {
-      console.log(err);
-    }
-    const token = buffer.toString("hex");
-    User.findOne({ email }).then((user) => {
-      if (!user) {
-        return res.status(404).json("User Not Found in the Database");
+ app.post("/forget", (req, res) => {
+    const { email } = req.body;
+    var transporter = nodemailer.createTransport({
+        host: HOST,
+        port:PORT,
+        auth: {
+          user: USER,
+          pass: PASS
+        },tls: {
+                    rejectUnauthorized: false
+                },
+      });
+  
+    crypto.randomBytes(32, (err, buffer) => {
+      if (err) {
+        console.log(err);
       }
-      user.resetToken = token;
-      user.expireToken = Date.now() + 300000;
-      user
-        .save()
-        .then(() => {
-          transporter.sendMail({
-            to: user.email,
-            from: "Team Developers <coder@objectways.com>",
-            subject: "Password Reset Request 🔑",
-            html: `
+      const token = buffer.toString("hex");
+      User.findOne({ email }).then((user) => {
+        if (!user) {
+          return res.status(404).json("User Not Found in the Database");
+        }
+        user.resetToken = token;
+        user.expireToken = Date.now() + 300000;
+        user
+          .save()
+          .then(() => {
+            transporter.sendMail({
+                to: user.email,
+                from: "Team Developers <coder@objectways.com>",
+                subject: "Password Reset Request 🔑",
+                html: `
                         <div class="es-wrapper-color">
             <!--[if gte mso 9]>
                 <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
@@ -559,18 +748,18 @@ app.post("/forget", (req, res) => {
             </table>
         </div>
                         `,
+            });
+            res.json({ message: "check your email" });
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).json({ message: "Internal server error" });
           });
-          res.json({ message: "check your email" });
-        })
-        .catch((err) => {
-          console.log(err);
-          res.status(500).json({ message: "Internal server error" });
-        });
+      });
     });
   });
-});
 
-app.post("/reset", (req, res) => {
+  app.post("/reset", (req, res) => {
   const newPass = req.body.password;
   const email = req.body.email;
   const sendToken = req.body.token;
@@ -709,14 +898,14 @@ app.put('/updateEmployee/:id', async (req, res) => {
 // analyst.js route
 app.get('/analyst', async (req, res) => {
 
-  Analyst.find()
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('Error:' + err))
+    Analyst.find()
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('Error:'+err))
 })
 app.delete('/delete/usertask/:id', async (req, res) => {
   try {
     // Find the task by ID and delete it
-    const result = await Analyst.findByIdAndDelete(req.params.id);
+    const result = await  Analyst.findByIdAndDelete(req.params.id);
 
     if (!result) {
       return res.status(404).json({ message: 'Record not found' });
@@ -745,7 +934,7 @@ app.get('/projectNames', async (req, res) => {
   try {
     const { team } = req.query;
     let query = team ? { team } : {};
-
+    
     const projects = await Analyst.distinct('projectName', query);
     res.json(projects);
   } catch (error) {
@@ -800,10 +989,10 @@ app.get('/fetch/taskwise', async (req, res) => {
 
 
 
-app.post('/add', (req, res) => {
+app.post('/add', (req,res)=>{
   const userData = req.body;
   const newData = new Analyst(userData);
-  console.log(userData)
+console.log(userData)
   newData.save()
     .then(() => {
       console.log('Data Saved!!!');
@@ -815,150 +1004,150 @@ app.post('/add', (req, res) => {
     });
 });
 
-app.get('/fetch/src/:min/:max', (req, res) => {
-  const min = req.params.min
-  const max = req.params.max
-  const qur = { week: { '$gte': min, '$lte': max } }
+app.get('/fetch/src/:min/:max', (req,res)=>{
+    const min = req.params.min
+    const max = req.params.max
+    const qur = {week:{'$gte':min,'$lte':max} }
 
-  Analyst.find(qur)
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err))
+    Analyst.find(qur)
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('err'+err))
 })
 
 //Fetch individual user Data for users
 
-app.get('/fetch/user-data/', (req, res) => {
-  const sDate = req.query.sDate
-  const eDate = req.query.eDate
-  const empId = req.query.empId
-  const team = req.query.team
+app.get('/fetch/user-data/', (req,res)=>{
+    const sDate = req.query.sDate
+    const eDate = req.query.eDate
+    const empId = req.query.empId
+    const team = req.query.team
 
-  Analyst.find({ empId: empId, team: team, createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) } })
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err))
+    Analyst.find({empId:empId,team:team,createdAt:{$gte:new Date(sDate),$lte: new Date(eDate)}})
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('err'+err))
 })
-app.get('/fetch/userdata/', (req, res) => {
+app.get('/fetch/userdata/', (req,res)=>{
 
-  const empId = req.query.empId
+    const empId = req.query.empId
 
 
-  Analyst.find({ empId: empId })
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err))
+    Analyst.find({empId:empId})
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('err'+err)) 
 })
 
 //Fetch report of user particular team
 
-app.get('/fetch/report/', (req, res) => {
-  const sDate = req.query.sDate
-  const eDate = req.query.eDate
-  const name = req.query.name
-  const team = req.query.team
+app.get('/fetch/report/', (req,res)=>{
+    const sDate = req.query.sDate
+    const eDate = req.query.eDate
+    const name = req.query.name
+    const team = req.query.team
 
-  Analyst.find({ name: name, team: team, createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) } })
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err))
+    Analyst.find({name:name,team:team,createdAt:{$gte:new Date(sDate),$lte: new Date(eDate)}})
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('err'+err))
 })
 
 
 //Fetch report by team
 
-app.get('/fetch/report/team/', (req, res) => {
-  const sDate = req.query.sDate
-  const eDate = req.query.eDate
-  const team = req.query.team
+app.get('/fetch/report/team/', (req,res)=>{
+    const sDate = req.query.sDate
+    const eDate = req.query.eDate
+    const team = req.query.team
 
-  Analyst.find({ team: team, createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) } })
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err))
+    Analyst.find({team:team,createdAt:{$gte:new Date(sDate),$lte: new Date(eDate)}})
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('err'+err))
 })
 
 //Fetch report by user 
-app.get('/fetch/report/user/', (req, res) => {
-  const sDate = req.query.sDate
-  const eDate = req.query.eDate
-  const name = req.query.name
+app.get('/fetch/report/user/',(req,res)=>{
+    const sDate = req.query.sDate
+    const eDate = req.query.eDate
+    const name = req.query.name
 
-  Analyst.find({ name: name, createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) } })
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err))
+    Analyst.find({name:name,createdAt:{$gte:new Date(sDate),$lte: new Date(eDate)}})
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('err'+err))
 })
 
 //Fetch Report by date
-app.get('/fetch/report/date/', (req, res) => {
-  const sDate = req.query.sDate
-  const eDate = req.query.eDate
+app.get('/fetch/report/date/', (req,res)=>{
+    const sDate = req.query.sDate
+    const eDate = req.query.eDate
 
-  Analyst.find({ createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) } })
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err))
+    Analyst.find({createdAt:{$gte:new Date(sDate),$lte: new Date(eDate)}})
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('err'+err))
 })
 app.get('/fetch/user-data/', (req, res) => {
-  const empId = req.params.empId;
-  const sDate = req.query.sDate;
-  const eDate = req.query.eDate;
-  const team = req.query.team;
+    const empId = req.params.empId;
+    const sDate = req.query.sDate;
+    const eDate = req.query.eDate;
+    const team = req.query.team;
 
-  const query = {
-    empId: empId,
-    team: team,
-    createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) }
-  };
+    const query = {
+        empId: empId,
+        team: team,
+        createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) }
+    };
 
-  Analyst.find(query)
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('err' + err));
+    Analyst.find(query)
+        .then(analyst => res.json(analyst))
+        .catch(err => res.status(400).json('err' + err));
 });
 
 
-app.get('/fetch', (req, res) => {
-  Analyst.find(req.query)
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('Error:' + err))
+app.get('/fetch', (req,res)=>{
+    Analyst.find(req.query)
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('Error:'+err))
 })
-app.delete('/del', (req, res) => {
-  Analyst.deleteMany()
-    .then(() => res.json('Exercise Deleted!!!!'))
-    .catch(err => res.status(400).json('Error:' + err))
+app.delete('/del', (req,res)=>{
+    Analyst.deleteMany()
+    .then(()=>res.json('Exercise Deleted!!!!'))
+    .catch(err=>res.status(400).json('Error:'+err))
 })
-app.get('/count', (req, res) => {
-  const sDate = req.query.sDate
-  const team = req.query.team
-  const fdate = new Date(sDate);
+app.get('/count', (req,res)=>{
+    const sDate = req.query.sDate
+    const team = req.query.team
+    const fdate = new Date(sDate);
 
-  Analyst.count({ team: team, createdAt: { $gte: new Date(sDate) } })
-    .then(analyst => res.json(analyst))
-    .catch(err => res.status(400).json('Error:' + err))
+    Analyst.count({team:team,createdAt:{$gte: new Date(sDate)}})
+    .then(analyst=>res.json(analyst))
+    .catch(err=>res.status(400).json('Error:'+err))
 })
 
-app.get('/fetch/one', (req, res) => {
-  const date = req.query.createdAt
-  const empId = "710"
-  Analyst.find({ empId: empId, createdAt: { $gte: new Date(date) } })
-    .then(analyst => {
-      if (analyst) {
-        return res.status(404).json({ emailnotfound: 'Already Your file has been submitted please try to Submit tomorrow' })
-      }
-      return null
+app.get('/fetch/one', (req,res)=>{
+    const date = req.query.createdAt
+    const empId = "710"
+    Analyst.find({empId:empId,createdAt:{$gte:new Date(date)}})
+    .then(analyst=>{
+        if(analyst){
+            return res.status(404).json({emailnotfound: 'Already Your file has been submitted please try to Submit tomorrow'})
+        }
+        return null
     })
-    .catch(err => res.status(400).json('Error:' + err))
+    .catch(err=>res.status(400).json('Error:'+err))
 })
 
 
 // billing routes
 
 //Find All Data in Billing
-app.get('/billing', (req, res) => {
+app.get('/billing', (req,res)=>{
   const empId = req.query.empId;
-  Billing.find({ empId: empId }).sort([["reportDate", 1]])
-    .then(billing => res.json(billing))
-    .catch(err => res.status(400).json('Error:' + err))
+  Billing.find({ empId: empId }).sort([["reportDate",1]])
+  .then(billing=>res.json(billing))
+  .catch(err=> res.status(400).json('Error:'+err))
 })
 // //Find All Data in Billing
-app.get('/admin', (req, res) => {
-  Billing.find().sort([["reportDate", 1]])
-    .then(billing => res.json(billing))
-    .catch(err => res.status(400).json('Error:' + err))
+app.get('/admin', (req,res)=>{
+  Billing.find().sort([["reportDate",1]])
+  .then(billing=>res.json(billing))
+  .catch(err=> res.status(400).json('Error:'+err))
 })
 // Assuming you have a route like this in your Express app
 app.get('/projectStatus', async (req, res) => {
@@ -1016,56 +1205,56 @@ app.get('/api/status1CountByProject', async (req, res) => {
 });
 
 //Find by Id
-app.get('/billing/:id', (req, res) => {
+app.get('/billing/:id', (req,res)=>{
   Billing.findById(req.params.id)
-    .then(billing => res.json(billing))
-    .catch(err => res.status(400).json('Error:' + err))
+  .then(billing=>res.json(billing))
+  .catch(err=> res.status(400).json('Error:'+err))
 })
 
 //Add new Billing Data 
-app.post('/new', (req, res) => {
+app.post('/new', (req,res)=>{
   const name = req.body
   const newData = new Billing(name)
   console.log(name)
   newData.save()
-    .then(() => res.json('Data Saved Successfully !!!'))
-    .catch(err => res.status(400).json('Error:' + err))
+  .then(()=>res.json('Data Saved Successfully !!!'))
+  .catch(err=>res.status(400).json('Error:'+err))
 })
 
 // edit Billing Data
-app.post('/update/:id', (req, res) => {
+app.post('/update/:id', (req,res)=>{
   const data = req.body
-  Billing.findByIdAndUpdate(req.params.id, data)
-    .then(() => res.json('Updated'))
-    .catch(err => res.status(400).json('Error:' + err))
+ Billing.findByIdAndUpdate(req.params.id,data)
+ .then(()=>res.json('Updated'))
+ .catch(err=>res.status(400).json('Error:'+err))
 })
 
 //Delete Billing Data By Id
-app.delete('/billing/:id', (req, res) => {
+app.delete('/billing/:id', (req,res)=>{
   Billing.findByIdAndDelete(req.params.id)
-    .then(() => res.json('Exercise Has been Deleted '))
-    .catch(err => res.status(400).json('Error:' + err))
+  .then(()=>res.json('Exercise Has been Deleted '))
+  .catch(err=>res.status(400).json('Error:'+err))
 })
 
 //Find Billing Data By date 
-app.get('/fetch/date/', (req, res) => {
+app.get('/fetch/date/', (req,res)=>{
   const sDate = new Date(req.query.sDate)
   const eDate = new Date(req.query.eDate)
 
-  Billing.find({ reportDate: { $gte: sDate, $lte: eDate } })
-    .then(billing => res.json(billing))
-    .catch(err => res.status(400).json('err' + err))
+  Billing.find({reportDate:{$gte:sDate,$lte:eDate}})
+  .then(billing=>res.json(billing))
+  .catch(err=>res.status(400).json('err'+err))
 })
 
 //Find Billing Data by Date & team
-app.get('/fetch/report/', (req, res) => {
+app.get('/fetch/report/', (req,res)=>{
   const sDate = new Date(req.query.sDate)
   const eDate = new Date(req.query.eDate)
   const team = req.query.team
 
-  Billing.find({ team: team, reportDate: { $gte: sDate, $lte: eDate } })
-    .then(billing => res.json(billing))
-    .catch(err => res.status(400).json('err' + err))
+  Billing.find({team:team,reportDate:{$gte:sDate,$lte:eDate}})
+  .then(billing=>res.json(billing))
+  .catch(err=>res.status(400).json('err'+err))
 })
 
 
@@ -1107,7 +1296,7 @@ app.get('/compareData', async (req, res) => {
 app.post('/att', async (req, res) => {
   try {
     const { name, empId, checkInTime, checkOutTime, total } = req.body;
-
+    
     // Capture the current date
     const currentDate = new Date();
 
@@ -1143,51 +1332,51 @@ app.get('/fetch/att-data/', (req, res) => {
 //add task
 app.get('/fetch/task-data', (req, res) => {
   Task.find()
-    .then((task) => res.json(task))
-    .catch((err) => res.status(400).json('Error:' + err));
+  .then((task) => res.json(task))
+  .catch((err) => res.status(400).json('Error:' + err));
 });
 
 
 app.post('/task/new', async (req, res) => {
-  try {
-    const { createTask } = req.body;
+try {
+  const { createTask } = req.body;
+  
 
-
-    const newTask = new Task({
+  const newTask = new Task({
       createTask,
-    });
+  });
 
-    await newTask.save();
-    res.json('Task Added!!!');
-  } catch (error) {
-    res.status(400).json('Error:' + error);
-  }
+  await newTask.save();
+  res.json('Task Added!!!');
+} catch (error) {
+  res.status(400).json('Error:' + error);
+}
 });
 
 
 
 //add manager
 app.get('/fetch/manager-data', (req, res) => {
-  Manager.find()
-    .then((manager) => res.json(manager))
-    .catch((err) => res.status(400).json('Error:' + err));
+Manager.find()
+.then((manager) => res.json(manager))
+.catch((err) => res.status(400).json('Error:' + err));
 });
 
 
 app.post('/add-manager/new', async (req, res) => {
-  try {
-    const { createManager } = req.body;
+try {
+const { createManager } = req.body;
 
 
-    const newManager = new Manager({
-      createManager,
-    });
+const newManager = new Manager({
+  createManager,
+});
 
-    await newManager.save();
-    res.json('Manager Added!!!');
-  } catch (error) {
-    res.status(400).json('Error:' + error);
-  }
+await newManager.save();
+res.json('Manager Added!!!');
+} catch (error) {
+res.status(400).json('Error:' + error);
+}
 });
 
 
@@ -1195,25 +1384,25 @@ app.post('/add-manager/new', async (req, res) => {
 
 //add team
 app.get('/fetch/addteam-data', (req, res) => {
-  AddTeam.find()
-    .then((addteam) => res.json(addteam))
-    .catch((err) => res.status(400).json('Error:' + err));
+AddTeam.find()
+.then((addteam) => res.json(addteam))
+.catch((err) => res.status(400).json('Error:' + err));
 });
 
 app.post('/add-team/new', async (req, res) => {
-  try {
-    const { createTeam } = req.body;
+try {
+const { createTeam } = req.body;
 
 
-    const newTeam = new AddTeam({
-      createTeam,
-    });
+const newTeam = new AddTeam({
+    createTeam,
+});
 
-    await newTeam.save();
-    res.json('Team Added!!!');
-  } catch (error) {
-    res.status(400).json('Error:' + error);
-  }
+await newTeam.save();
+res.json('Team Added!!!');
+} catch (error) {
+res.status(400).json('Error:' + error);
+}
 });
 
 
@@ -1221,26 +1410,26 @@ app.post('/add-team/new', async (req, res) => {
 
 //add status
 app.get('/fetch/status-data', (req, res) => {
-  Status.find()
-    .then((status) => res.json(status))
-    .catch((err) => res.status(400).json('Error:' + err));
+Status.find()
+.then((status) => res.json(status))
+.catch((err) => res.status(400).json('Error:' + err));
 });
 
 
 app.post('/add-status/new', async (req, res) => {
-  try {
-    const { createStatus } = req.body;
+try {
+const { createStatus } = req.body;
 
 
-    const newStatus = new Status({
-      createStatus,
-    });
+const newStatus = new Status({
+  createStatus,
+});
 
-    await newStatus.save();
-    res.json('Status Added!!!');
-  } catch (error) {
-    res.status(400).json('Error:' + error);
-  }
+await newStatus.save();
+res.json('Status Added!!!');
+} catch (error) {
+res.status(400).json('Error:' + error);
+}
 });
 
 
@@ -1248,36 +1437,47 @@ app.post('/add-status/new', async (req, res) => {
 //delete funtions
 // Delete task
 app.delete('/delete/task/:id', async (req, res) => {
-  try {
-    const taskId = req.params.id;
-    await Task.findByIdAndDelete(taskId);
-    res.json('Task Deleted!!!');
-  } catch (error) {
-    res.status(400).json('Error:' + error);
-  }
+try {
+  const taskId = req.params.id;
+  await Task.findByIdAndDelete(taskId);
+  res.json('Task Deleted!!!');
+} catch (error) {
+  res.status(400).json('Error:' + error);
+}
 });
 
 // Delete manager
 app.delete('/delete/manager/:id', async (req, res) => {
-  try {
-    const managerId = req.params.id;
-    await Manager.findByIdAndDelete(managerId);
-    res.json('Manager Deleted!!!');
-  } catch (error) {
-    res.status(400).json('Error:' + error);
-  }
+try {
+  const managerId = req.params.id;
+  await Manager.findByIdAndDelete(managerId);
+  res.json('Manager Deleted!!!');
+} catch (error) {
+  res.status(400).json('Error:' + error);
+}
 });
 
 // Delete team
 app.delete('/delete/team/:id', async (req, res) => {
-  try {
-    const teamId = req.params.id;
-    await AddTeam.findByIdAndDelete(teamId);
-    res.json('Team Deleted!!!');
-  } catch (error) {
-    res.status(400).json('Error:' + error);
-  }
+try {
+  const teamId = req.params.id;
+  await AddTeam.findByIdAndDelete(teamId);
+  res.json('Team Deleted!!!');
+} catch (error) {
+  res.status(400).json('Error:' + error);
+}
 });
+
+app.use(express.static(path.join(__dirname, 'client/build')))
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, '/client/build', 'index.html'));
+});
+
+// app.use(express.static(path.join(__dirname, 'public')));
+
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// });
 
 app.get('/get-token', authenticateToken, (req, res) => {
   // Access user details through req.user
@@ -1287,53 +1487,7 @@ app.get('/get-token', authenticateToken, (req, res) => {
   res.json({ token: req.token });
 });
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
 
-// app.use(express.static(path.join(__dirname, 'client/build')))
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, '/client/build', 'index.html'));
-// });
-
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-// });
-
-export default app;
-
-
-
-
-
-// import express from 'express';
-// import awsServerlessExpressMiddleware from 'aws-serverless-express/middleware.js';
-
-// const app = express();
-// app.use(awsServerlessExpressMiddleware.eventContext())
-// const logPath = (req, res, next) => {
-//   console.log(req?.apiGateway?.event)
-//   let proxy_path = req?.apiGateway?.event?.pathParameters?.proxy
-//   console.log(proxy_path,"proxy_path......")
-//   if (proxy_path){
-//     req.url = "/"+proxy_path;
-//   }
-//   next();
-// };
-
-// // Applying middleware globally
-// app.use(logPath);
-
-// app.get('/', (req, res) => {
-//   res.send('Hello from Lambda!');
-// });
-
-// app.get('/login', (req, res) => {
-//   res.send('This is get login endpoint');
-// });
-// app.get('/internal', (req, res) => {
-//   res.send('This is get internal endpoint');
-// });
-
-// export default app;
+app.listen(port, () => {
+  console.log(`Server Running On Port : ${port}`);
+});
