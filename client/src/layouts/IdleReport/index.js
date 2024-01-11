@@ -475,7 +475,7 @@ const TaskWiseBarChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('/compareData');
+        const response = await axios.get(`${apiUrl}/compareData`);
         setComparisonData(response.data);
       } catch (error) {
         console.error('Error fetching comparison data:', error);
