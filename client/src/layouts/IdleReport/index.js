@@ -28,20 +28,20 @@ import WorkIcon from '@mui/icons-material/Work';
 import * as XLSX from 'xlsx';
 import GroupIcon from '@mui/icons-material/Group';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
- 
- 
+
+
 const TaskWiseBarChart = () => {
-  const apiUrl = process.env.REACT_APP_API_URL ||'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+  const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   const getCurrentMonthStartDate = () => {
     const currentDate = new Date();
     return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   };
- 
+
   const getCurrentMonthEndDate = () => {
     const currentDate = new Date();
     return new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
   };
- 
+
   const [startDate, setStartDate] = useState(getCurrentMonthStartDate());
   const [endDate, setEndDate] = useState(getCurrentMonthEndDate());
   const [projectNames, setProjectNames] = useState([]);
@@ -52,16 +52,16 @@ const TaskWiseBarChart = () => {
     labels: [],
     datasets: [],
   });
- 
+
   const [tableData, setTableData] = useState([]);
   const [showTable, setShowTable] = useState(false);
- 
+
   // New state variables
   const [idleNonBillableCount, setIdleNonBillableCount] = useState(0);
   const [idleBillableCount, setIdleBillableCount] = useState(0);
   const [productionCount, setProductionCount] = useState(0);
   const [teamProjects, setTeamProjects] = useState([]);
- 
+
   // New state variable for Pie Chart
   const [pieChartData, setPieChartData] = useState({
     labels: ['Idle - Non Billable', 'Idle - Billable', 'Production'],
@@ -73,8 +73,8 @@ const TaskWiseBarChart = () => {
       },
     ],
   });
- 
- 
+
+
   const [teams, setTeams] = useState([]);
   useEffect(() => {
     const fetchTeams = async () => {
@@ -85,10 +85,10 @@ const TaskWiseBarChart = () => {
         console.error('Error fetching teams:', error);
       }
     };
- 
+
     fetchTeams();
   }, []);
- 
+
   useEffect(() => {
     const fetchAllProjectNames = async () => {
       try {
@@ -98,11 +98,11 @@ const TaskWiseBarChart = () => {
         console.error('Error fetching all project names:', error);
       }
     };
- 
+
     fetchAllProjectNames();
   }, []);
- 
- 
+
+
   const handleFetchProjectsForTeam = async (team) => {
     try {
       const response = await axios.get(`${apiUrl}/projectNames?team=${team}`);
@@ -112,7 +112,7 @@ const TaskWiseBarChart = () => {
       console.error(`Error fetching projects for ${team} team:`, error);
     }
   };
- 
+
   const handleTeamChange = async (event, newTeam) => {
     setSelectedTeam(newTeam);
     try {
@@ -121,8 +121,8 @@ const TaskWiseBarChart = () => {
       console.error('Error fetching projects for the team:', error);
     }
   };
- 
- 
+
+
   // useEffect(() => {
   //   const fetchProjectNames = async () => {
   //     try {
@@ -133,25 +133,25 @@ const TaskWiseBarChart = () => {
   //       console.error('Error fetching project names:', error);
   //     }
   //   };
- 
+
   //   fetchProjectNames();
   // }, []);
- 
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
- 
+
   useEffect(() => {
     const fetchPieChartData = () => {
       const total = idleNonBillableCount + idleBillableCount + productionCount;
- 
+
       const percentages = [
         (idleNonBillableCount / total) * 100,
         (idleBillableCount / total) * 100,
         (productionCount / total) * 100,
       ];
- 
+
       setPieChartData((prevData) => ({
         ...prevData,
         datasets: [
@@ -163,10 +163,10 @@ const TaskWiseBarChart = () => {
         ],
       }));
     };
- 
+
     fetchPieChartData();
   }, [idleNonBillableCount, idleBillableCount, productionCount]);
- 
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -181,9 +181,9 @@ const TaskWiseBarChart = () => {
           setProductionCount(0);
           return;
         }
- 
+
         let response;
- 
+
         if (selectedProject && selectedTeam) {
           // Fetch data for a specific project and team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
@@ -212,17 +212,17 @@ const TaskWiseBarChart = () => {
             },
           });
         }
- 
+
         const data = response.data;
- 
+
         const uniqueDates = [...new Set(data.map((item) => item._id.date))];
         const formattedDates = uniqueDates.map(date => {
           const formattedDate = new Date(date);
           return formattedDate.getDate(); // Only get the day part
         });
- 
+
         const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
- 
+
         const datasets = uniqueTasks.map((task) => {
           const taskData = data.filter((item) => item._id.task === task);
           return {
@@ -237,15 +237,15 @@ const TaskWiseBarChart = () => {
             backgroundColor: getRandomColor(),
           };
         });
- 
+
         let idleNonBillableCount = 0;
         let idleBillableCount = 0;
         let productionCount = 0;
- 
+
         datasets.forEach((dataset) => {
           const task = dataset.label.toLowerCase();
           const count = dataset.data.reduce((sum, value) => sum + value, 0);
- 
+
           if (task.includes('idle') && task.includes('non billable')) {
             idleNonBillableCount += count;
           } else if (task.includes('idle') && task.includes('billable')) {
@@ -254,36 +254,36 @@ const TaskWiseBarChart = () => {
             productionCount += count;
           }
         });
- 
+
         setIdleNonBillableCount(idleNonBillableCount);
         setIdleBillableCount(idleBillableCount);
         setProductionCount(productionCount);
- 
+
         setChartData({
           labels: formattedDates,
           datasets: datasets,
         });
- 
+
         const tableData = uniqueTasks.map((task, index) => ({
           id: index + 1,
           task: task,
           count: datasets[index].data.reduce((sum, value) => sum + value, 0),
           // Include count property in the tableData
         }));
- 
+
         setTableData(tableData);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
- 
+
     fetchData();
   }, [startDate, endDate, selectedProject, selectedTeam]);
- 
+
   const handleProjectChange = (event) => {
     setSelectedProject(event.target.value);
   };
- 
+
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -292,14 +292,14 @@ const TaskWiseBarChart = () => {
     }
     return color;
   };
- 
+
   const exportChartDataToExcel = async () => {
     try {
       if (!selectedProject) {
         console.error('No project selected for export');
         return;
       }
- 
+
       const response = await axios.get(`${apiUrl}/fetch/taskwise`, {
         params: {
           sDate: startDate.toISOString().split('T')[0],
@@ -307,24 +307,24 @@ const TaskWiseBarChart = () => {
           projectName: selectedProject,
         },
       });
- 
+
       const data = response.data;
- 
+
       if (data.length === 0) {
         console.error('No data available for export');
         return;
       }
- 
+
       const wb = XLSX.utils.book_new();
- 
+
       const uniqueDates = [...new Set(data.map((item) => item._id.date))];
       const formattedDates = uniqueDates.map(date => {
         const formattedDate = new Date(date);
         return formattedDate.getDate(); // Only get the day part
       });
- 
+
       const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
- 
+
       const datasets = uniqueTasks.map((task) => {
         const taskData = data.filter((item) => item._id.task === task);
         return {
@@ -338,27 +338,27 @@ const TaskWiseBarChart = () => {
           }),
         };
       });
- 
+
       const wsData = [['Task', ...formattedDates]];
- 
+
       datasets.forEach((dataset) => {
         const row = [dataset.label, ...dataset.data];
         wsData.push(row);
       });
- 
+
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       XLSX.utils.book_append_sheet(wb, ws, selectedProject);
- 
+
       XLSX.writeFile(wb, 'TaskWiseUserCount.xlsx');
     } catch (error) {
       console.error('Error exporting data:', error);
     }
   };
- 
+
   const handleViewTable = () => {
     setShowTable(!showTable);
   };
- 
+
   const [pieChartData1, setPieChartData1] = useState({
     labels: [],
     datasets: [
@@ -369,19 +369,19 @@ const TaskWiseBarChart = () => {
       },
     ],
   });
- 
+
   useEffect(() => {
     const fetchProjectStatusData = async () => {
       try {
         const response = await axios.get(`${apiUrl}/projectStatus`);
         const projectStatusData = response.data;
- 
+
         // Aggregate counts for the same status1 values
         const aggregatedData = aggregateStatus1Data(projectStatusData);
- 
+
         // Calculate the total count
         const totalCount = aggregatedData.reduce((sum, item) => sum + item.count, 0);
- 
+
         // Update pie chart data with percentages
         const percentages = aggregatedData.map((item) => (item.count / totalCount) * 100);
         setPieChartData1((prevData) => ({
@@ -390,7 +390,7 @@ const TaskWiseBarChart = () => {
           datasets: [
             {
               data: percentages,
-             
+              
             backgroundColor: ['#435671', '#90C1F2' ],
             hoverBackgroundColor: ['#435671', '#90C1F2' ],
             },
@@ -400,14 +400,14 @@ const TaskWiseBarChart = () => {
         console.error('Error fetching project status data:', error);
       }
     };
- 
+
     fetchProjectStatusData();
   }, [apiUrl]);
- 
+
   // Function to aggregate counts for the same status1 values
   const aggregateStatus1Data = (data) => {
     const status1Map = new Map();
- 
+
     data.forEach((item) => {
       const { status1, count } = item;
       if (status1Map.has(status1)) {
@@ -416,13 +416,13 @@ const TaskWiseBarChart = () => {
         status1Map.set(status1, count);
       }
     });
- 
+
     return Array.from(status1Map.entries()).map(([status1, count]) => ({ status1, count }));
   };
- 
- 
+
+
   const [status1CountByProject, setStatus1CountByProject] = useState([]);
- 
+
   useEffect(() => {
     const fetchStatus1CountByProject = async () => {
       try {
@@ -432,17 +432,17 @@ const TaskWiseBarChart = () => {
         console.error('Error fetching status1 count by project:', error);
       }
     };
- 
+
     fetchStatus1CountByProject();
   }, []);
- 
+
   const aggregateStatus1Counts = (projects) => {
     const status1Map = new Map();
- 
+
     projects.forEach((project) => {
       project.status1Counts.forEach((status1Count) => {
         const { status1, count } = status1Count;
- 
+
         if (status1Map.has(status1)) {
           status1Map.set(status1, status1Map.get(status1) + count);
         } else {
@@ -450,18 +450,18 @@ const TaskWiseBarChart = () => {
         }
       });
     });
- 
+
     return Array.from(status1Map.entries()).map(([status1, count]) => ({
       status1,
       count,
     }));
   };
- 
+
   const columns = [
     { field: 'status1', headerName: 'Status1', flex: 1 },
     { field: 'count', headerName: 'Count', flex: 1 },
   ];
- 
+
   const rows = aggregateStatus1Counts(status1CountByProject).map((row, index) => ({
     id: index, // Use the index as the id (you may need a better strategy depending on your data)
     ...row,
@@ -471,7 +471,7 @@ const TaskWiseBarChart = () => {
     presentEmployees: 0,
     absentEmployees: 0,
   });
- 
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -481,17 +481,17 @@ const TaskWiseBarChart = () => {
         console.error('Error fetching comparison data:', error);
       }
     };
- 
+
     fetchData();
   }, []);
- 
+
   const { totalEmployees, presentEmployees, absentEmployees } = comparisonData;
- 
+
   // Calculate percentage for the doughnut chart
   const total = presentEmployees + absentEmployees;
   const presentPercentage = ((idleBillableCount + idleNonBillableCount + productionCount) / totalEmployees) * 100;
   const absentPercentage = ((totalEmployees - (idleBillableCount + idleNonBillableCount + productionCount)) / totalEmployees) * 100;
- 
+  
   // Prepare data for the Doughnut chart
   const doughnutChartData = {
     labels: ['Present Employees', 'Absent Employees'],
@@ -520,7 +520,7 @@ const TaskWiseBarChart = () => {
     reversedData.reverse();
     return reversedData;
   }, [data]);
- 
+
   const statusIcons = {
     "POC": <SelfImprovementIcon />,
     "NOT-Started": <SelfImprovementIcon />,
@@ -665,7 +665,7 @@ const TaskWiseBarChart = () => {
             </Grid>
           </Box>
         </Grid>
- 
+
         <Grid item xs={12} md={3}>
           <Card sx={{ width: "100%", height: "100%" }}>
             <CardActionArea>
@@ -689,7 +689,7 @@ const TaskWiseBarChart = () => {
             </CardActionArea>
           </Card>
         </Grid>
- 
+
         <Grid item xs={12} md={3}>
           <Card sx={{ width: "100%", height: "100%" }}>
             <CardActionArea>
@@ -718,7 +718,7 @@ const TaskWiseBarChart = () => {
             </CardActionArea>
           </Card>
         </Grid>
- 
+
         {/* ... (rest of your code) */}
         <Grid item xs={12} md={3}>
           <Card sx={{ width: "100%", height: "100%" }}>
@@ -768,7 +768,7 @@ const TaskWiseBarChart = () => {
             </CardActionArea>
           </Card>
         </Grid>
- 
+
         <Grid item xs={12} md={4}>
           <Card style={{ width: "100%", margin: "0 auto" }}>
             <CardHeader
@@ -801,7 +801,7 @@ const TaskWiseBarChart = () => {
             </CardContent>
           </Card>
         </Grid>
- 
+
          {/* Doughnut Chart */}
          <Grid item xs={12} md={4}>
           <Card style={{ width: "100%", margin: "0 auto" }}>
@@ -813,7 +813,7 @@ const TaskWiseBarChart = () => {
             <CardContent>
               <Doughnut
                 data={doughnutChartData}
-                width={30}
+                width={30} 
                 height={30}
                 options={{
                   plugins: {
@@ -833,7 +833,7 @@ const TaskWiseBarChart = () => {
             </CardContent>
           </Card>
         </Grid>
- 
+
         <Grid item xs={12} md={4}>
           <Card style={{ width: "100%", margin: "0 auto" }}>
             <CardHeader
@@ -853,7 +853,7 @@ const TaskWiseBarChart = () => {
                             const value = context.formattedValue || "";
                             const index = context.dataIndex;
                             const count = pieChartData1.datasets[0].data[index];
- 
+
                             return `${label}: ${value}%`;
                           },
                         },
@@ -865,7 +865,7 @@ const TaskWiseBarChart = () => {
             </CardContent>
           </Card>
         </Grid>
- 
+
         {/* DataGrid table */}
         <Grid item xs={12} md={6}>
           <Card>
@@ -904,7 +904,7 @@ const TaskWiseBarChart = () => {
             </CardContent>
           </Card>
         </Grid>
- 
+
         <Grid item xs={12} md={6}>
           <Card>
             <CardHeader title={<h3 style={{ fontSize: "17px" }}>Latest project report</h3>}/>
@@ -927,7 +927,7 @@ const TaskWiseBarChart = () => {
             </CardContent>
           </Card>
         </Grid>
- 
+
         <Grid item xs={12} md={12}>
           <Card>
             <CardHeader
@@ -959,9 +959,10 @@ const TaskWiseBarChart = () => {
             </CardContent>
           </Card>
         </Grid>
+          
       </Grid>
     </DashboardLayout>
   );
 };
- 
+
 export default TaskWiseBarChart;
