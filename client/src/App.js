@@ -86,7 +86,7 @@ function App() {
           }
         } else {
           // Handle case where token is not present in localStorage
-          console.error('Token not found in localStorage');
+          // console.error('Token not found in localStorage');
         }
       } catch (error) {
         console.error('Error fetching token:', error);

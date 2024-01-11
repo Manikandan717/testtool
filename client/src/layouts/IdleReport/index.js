@@ -426,7 +426,7 @@ const TaskWiseBarChart = () => {
   useEffect(() => {
     const fetchStatus1CountByProject = async () => {
       try {
-        const response = await axios.get('/api/status1CountByProject');
+        const response = await axios.get(`${apiUrl}/api/status1CountByProject`);
         setStatus1CountByProject(response.data);
       } catch (error) {
         console.error('Error fetching status1 count by project:', error);

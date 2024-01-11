@@ -20,21 +20,15 @@ export const loginUser = (userData) => dispatch => {
   axios
   .post(`${apiUrl}/login`, userData)
   .then(res => {
-      // Save to localStorage
       const { token }  = res.data;
-
       // Log the token in the console
-      console.log('Frontend Token:', token);
-
+      // console.log('Frontend Token:', token);
       // Set token to localStorage
       localStorage.setItem("jwtToken", token);
-
       // Set token to Auth header
       setAuthToken(token);
-
       // Decode token to get user data
       const decoded = jwt_decode(token);
-
       // Set current user
       dispatch(setCurrentUser(decoded));
   })
