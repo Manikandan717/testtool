@@ -106,7 +106,7 @@ const TaskWiseBarChart = () => {
   const handleFetchProjectsForTeam = async (team) => {
     try {
       const response = await axios.get(`${apiUrl}/projectNames?team=${team}`);
-      console.log(`Projects for ${team} Team Response:`, response.data);
+      // console.log(`Projects for ${team} Team Response:`, response.data);
       setTeamProjects(response.data);
     } catch (error) {
       console.error(`Error fetching projects for ${team} team:`, error);
