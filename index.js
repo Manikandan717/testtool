@@ -346,7 +346,7 @@ app.post("/login", async (req, res) => {
           } else {
             return res
               .status(400)
-              .json({ passwordIncorrect: "Password Incorrect" });
+              .json({ passwordIncorrect: "Password is Incorrect" });
           }
         });
       });
@@ -382,7 +382,7 @@ app.get("/last-login", async (req, res) => {
 });
 
 
-app.post("/forget", (req, res) => {
+app.post("authentication/user/forget", (req, res) => {
   const { email } = req.body;
   var transporter = nodemailer.createTransport({
     host: HOST,
@@ -965,7 +965,7 @@ app.get('/fetch/one', (req, res) => {
   Analyst.find({ empId: empId, createdAt: { $gte: new Date(date) } })
     .then(analyst => {
       if (analyst) {
-        return res.status(404).json({ emailnotfound: 'Already Your file has been submitted please try to Submit tomorrow' })
+        return res.status(404).json({ emailNotFound: 'Already Your file has been submitted please try to Submit tomorrow' })
       }
       return null
     })

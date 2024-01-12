@@ -58,8 +58,8 @@ const Basic = function (props) {
       setErr({
         email: props.errors.email,
         password: props.errors.password,
-        emailIncorrect: props.errors.emailnotfound,
-        passwordIncorrect: props.errors.passwordinCorrect,
+        emailIncorrect: props.errors.emailNotFound,
+        passwordIncorrect: props.errors.passwordIncorrect,
       });
     }
     if (
