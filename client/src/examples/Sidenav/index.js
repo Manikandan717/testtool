@@ -27,7 +27,7 @@ function Sidenav({ color, brand, brandName, routes, roles, ...rest }) {
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode } = controller;
   const location = useLocation(); // Use useLocation
   const collapseName = location.pathname.replace("/", ""); // Define collapseName
-  const [quote, setQuote] = useState({});
+  // const [quote, setQuote] = useState({});
   let textColor = "white";
 
   if (transparentSidenav || (whiteSidenav && !darkMode)) {
@@ -40,19 +40,19 @@ function Sidenav({ color, brand, brandName, routes, roles, ...rest }) {
   const isSidebarOpen = !miniSidenav;
   const closeSidenav = () => setMiniSidenav(dispatch, true);
 
-  const quotes = () => {
-    axios.get('')
-      .then((res) => {
-        setQuote(res.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching quote:", error);
-      });
-  };
+  // const quotes = () => {
+  //   axios.get('')
+  //     .then((res) => {
+  //       setQuote(res.data);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching quote:", error);
+  //     });
+  // };
 
-  useEffect(() => {
-    quotes();
-  }, []);
+  // useEffect(() => {
+  //   quotes();
+  // }, []);
 
   useEffect(() => {
     function handleMiniSidenav() {
@@ -161,12 +161,12 @@ function Sidenav({ color, brand, brandName, routes, roles, ...rest }) {
       <MDBox mt={2} textAlign="center">
         <MDBox mb={0.5}></MDBox>
       </MDBox>
-      <MDBox mt={1} display="flex" flexDirection="column" textAlign="center">
+      {/* <MDBox mt={1} display="flex" flexDirection="column" textAlign="center">
         <MDTypography sx={{ whiteSpace: "pre-wrap" }} mt={1} mb={2} variant="h6" color="text">
           {quote.content}
           <br />
         </MDTypography>
-      </MDBox>
+      </MDBox> */}
 
       <MDBox position="absolute" bottom={0} right={0} p={2}>
         <IconButton onClick={isSidebarOpen ? closeSidenav : openSidenav}>
