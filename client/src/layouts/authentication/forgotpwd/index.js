@@ -12,7 +12,6 @@ import {ToastContainer, toast} from 'react-toastify';
 // Images
 import bgImage from "assets/images/bg-reset-cover.jpeg";
 
-
 function Reset() {
   const initialValues = {
     email: "",
