@@ -113,7 +113,7 @@ function Cover(props) {
             textAlign="center"
           >
             <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-              Join The Force
+             Sign UP
             </MDTypography>
             <MDTypography display="block" variant="button" color="white" my={1}>
               Enter your email and password to register
@@ -253,7 +253,7 @@ function Cover(props) {
                   color="info"
                   fullWidth
                 >
-                  sign in
+                  submit
                 </MDButton>
               </MDBox>
               <MDBox mt={3} mb={1} textAlign="center">
