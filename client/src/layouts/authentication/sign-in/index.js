@@ -134,7 +134,7 @@ const Basic = function (props) {
           textAlign="center"
         >
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-          Sign In
+            Jump In
           </MDTypography>
         </MDBox>
 
@@ -147,13 +147,13 @@ const Basic = function (props) {
                 value={values.email}
                 onChange={handleInputChange}
                 helperText={
-                  <span style={{ color: red ? 'red' : 'inherit' }}>
+                  <span style={{ color: (err.email || err.emailIncorrect) ? 'red' : 'blue' }}>
                     {err.email || err.emailIncorrect}
                   </span>
                 }
                 name="email"
                 fullWidth
-                error={red}
+                error={err.email || err.emailIncorrect ? true : false}
               />
             </MDBox>
             <MDBox mb={2}>
@@ -164,7 +164,7 @@ const Basic = function (props) {
                 value={values.password}
                 type={showPassword ? "text" : "password"}
                 onChange={handleInputChange}
-                error={red}
+                error={err.password || err.passwordIncorrect ? true : false}
                 helperText={
                   <span style={{ color: red ? 'red' : 'inherit' }}>
                     {err.password || err.passwordIncorrect}
@@ -189,7 +189,7 @@ const Basic = function (props) {
 
             <MDBox mt={2} mb={1}>
               <MDButton variant="gradient" type="submit" color="info" fullWidth>
-                submit
+                sign in
               </MDButton>
             </MDBox>
             <MDBox mt={1} mb={1} textAlign="center">
