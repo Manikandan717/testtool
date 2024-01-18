@@ -113,7 +113,7 @@ function Cover(props) {
             textAlign="center"
           >
             <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-             Sign UP
+             Sign up
             </MDTypography>
             <MDTypography display="block" variant="button" color="white" my={1}>
               Enter your email and password to register
@@ -137,29 +137,21 @@ function Cover(props) {
                   fullWidth
                 />
               </MDBox>
-              <MDBox
-                mt={2}
-                mb={2}
-                display="flex"
-                justifycontent="space-evenly"
-                alignItems="center"
-              >
-                <MDBox mb={2}>
-                  <MDInput
-                    type="text"
-                    value={values.empid}
-                    onChange={handleInputChange}
-                    // helperText={err.empId}
-                    helperText={
-                      <span style={{ color: err.empId ? "red" : "inherit" }}>
-                        {err.empId}
-                      </span>
-                    }
-                    name="empid"
-                    label="Employee Number"
-                    fullWidth
-                  />
-                </MDBox>
+              <MDBox mb={2}>
+                <MDInput
+              type="text"
+              value={values.empid}
+              onChange={handleInputChange}
+              // helperText={err.empId}
+              helperText={
+                <span style={{ color: (err.empId) ? 'red' : 'inherit' }}>
+                  {err.empId}
+                </span>
+              }
+              name="empid"
+              label="Employee Number"
+                  fullWidth
+                />
               </MDBox>
               <MDBox mb={2}>
                 <MDInput

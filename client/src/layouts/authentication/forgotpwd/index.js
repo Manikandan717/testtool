@@ -13,6 +13,8 @@ import {ToastContainer, toast} from 'react-toastify';
 import bgImage from "assets/images/bg-reset-cover.jpeg";
 
 function Reset() {
+  const img =
+    "https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80";
   const initialValues = {
     email: "",
   };
@@ -43,7 +45,7 @@ function Reset() {
   };
 
   return (
-    <CoverLayout coverHeight="50vh" image={bgImage}>
+    <CoverLayout coverHeight="50vh" image={img}>
       <Card>
         <MDBox
           variant="gradient"
