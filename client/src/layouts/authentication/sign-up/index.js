@@ -37,10 +37,11 @@ function Cover(props) {
     password: "",
     password2: "",
     emailAlready: "",
-    emailNotFound:"",
+    emailNotFound: "",
   });
   const [red, setRed] = useState(false);
- const img="https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80"
+  const img =
+    "https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80";
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
@@ -49,7 +50,7 @@ function Cover(props) {
     const { name, value } = e.target;
     setValues({
       ...values,
-      
+
       [name]: value,
     });
   };
@@ -77,11 +78,9 @@ function Cover(props) {
       err.password2 &&
       err.emailNotFound &&
       err.emailAlready !== ""
-      
     ) {
       setRed(true);
     }
-    
   }, [props.errors]);
 
   // const [show, setShow] = useState(false);
@@ -97,8 +96,6 @@ function Cover(props) {
     };
     // console.log(userData);
     props.registerUser(userData);
-
-  
   };
   return (
     <>
@@ -130,7 +127,12 @@ function Cover(props) {
                   label="Full Name"
                   value={values.name}
                   onChange={handleInputChange}
-                  helperText={err.name}
+                  // helperText={err.name}
+                  helperText={
+                    <span style={{ color: err.name ? "red" : "inherit" }}>
+                      {err.name}
+                    </span>
+                  }
                   name="name"
                   fullWidth
                 />
@@ -142,43 +144,22 @@ function Cover(props) {
                 justifycontent="space-evenly"
                 alignItems="center"
               >
-                <Grid container spacing={2}>
-                  <Grid item xs={1} md={7}>
-                    <MDInput
-                      type="text"
-                      value={values.empid}
-                      onChange={handleInputChange}
-                      helperText={err.empId}
-                      name="empid"
-                      label="Employee Number"
-                    />
-                  </Grid>
-                  <Grid item xs={1} md={3}>
-                    <div>
-                      <FormControl>
-                        <InputLabel htmlFor="grouped-native-select">
-                          Role
-                        </InputLabel>
-                        <Select
-                          native
-                          id="grouped-native-select"
-                          label="Role"
-                          name="role"
-                          value={values.role}
-                          onChange={handleInputChange}
-                          // sx={{ Width: 300 }}
-                          style={{ width: "130px" }}
-                        >
-                          <option aria-label="None" />
-                          <option value="analyst">Analyst</option>
-                          {/* <option value="Project Manager">Project Manager</option>*/}
-                          <option value="admin">Admin</option>
-                        </Select>
-                        <FormHelperText>{err.role}</FormHelperText>
-                      </FormControl>
-                    </div>
-                  </Grid>
-                </Grid>
+                <MDBox mb={2}>
+                  <MDInput
+                    type="text"
+                    value={values.empid}
+                    onChange={handleInputChange}
+                    // helperText={err.empId}
+                    helperText={
+                      <span style={{ color: err.empId ? "red" : "inherit" }}>
+                        {err.empId}
+                      </span>
+                    }
+                    name="empid"
+                    label="Employee Number"
+                    fullWidth
+                  />
+                </MDBox>
               </MDBox>
               <MDBox mb={2}>
                 <MDInput
@@ -186,7 +167,19 @@ function Cover(props) {
                   value={values.email}
                   onChange={handleInputChange}
                   name="email"
-                  helperText={err.email || err.emailAlready || err.emailNotFound}
+                  // helperText={err.email || err.emailAlready || err.emailNotFound}
+                  helperText={
+                    <span
+                      style={{
+                        color:
+                          err.email || err.emailAlready || err.emailNotFound
+                            ? "red"
+                            : "inherit",
+                      }}
+                    >
+                      {err.email || err.emailAlready || err.emailNotFound}
+                    </span>
+                  }
                   label="Email"
                   fullWidth
                 />
@@ -200,7 +193,12 @@ function Cover(props) {
                   type={showPassword ? "text" : "password"}
                   onChange={handleInputChange}
                   error={red}
-                  helperText={err.password}
+                  // helperText={err.password}
+                  helperText={
+                    <span style={{ color: err.password ? "red" : "inherit" }}>
+                      {err.password}
+                    </span>
+                  }
                   fullWidth
                   InputProps={{
                     endAdornment: (
@@ -226,7 +224,12 @@ function Cover(props) {
                   type={showPassword ? "text" : "password"}
                   onChange={handleInputChange}
                   error={red}
-                  helperText={err.password2}
+                  // helperText={err.password2}
+                  helperText={
+                    <span style={{ color: err.password2 ? "red" : "inherit" }}>
+                      {err.password2}
+                    </span>
+                  }
                   fullWidth
                   InputProps={{
                     endAdornment: (
