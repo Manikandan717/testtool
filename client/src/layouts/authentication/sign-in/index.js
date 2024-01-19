@@ -134,7 +134,7 @@ const Basic = function (props) {
           textAlign="center"
         >
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Jump In
+          Sign In
           </MDTypography>
         </MDBox>
 
@@ -189,7 +189,7 @@ const Basic = function (props) {
 
             <MDBox mt={2} mb={1}>
               <MDButton variant="gradient" type="submit" color="info" fullWidth>
-                sign in
+               submit
               </MDButton>
             </MDBox>
             <MDBox mt={1} mb={1} textAlign="center">

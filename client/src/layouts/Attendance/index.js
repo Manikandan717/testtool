@@ -17,7 +17,7 @@ import Box from "@mui/material/Box";
 import './calendar.css';
 
 function Attendance() {
-  const apiUrl = "http://localhost:5000";
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   const dispatch = useDispatch();
   const [checkinTime, setCheckinTime] = useState(localStorage.getItem("checkinTime") || "");
   const [checkoutTime, setCheckoutTime] = useState(localStorage.getItem("checkoutTime") || "");
@@ -26,39 +26,52 @@ function Attendance() {
   const empId = useSelector((state) => state.auth.user.empId);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [attendanceData, setAttendanceData] = useState([]);
-  const [isCheckinButtonDisabled, setCheckinButtonDisabled] = useState(false);
-  const [isCheckoutButtonDisabled, setCheckoutButtonDisabled] = useState(false);
+  const [isCheckinButtonDisabled, setCheckinButtonDisabled] = useState(
+    localStorage.getItem("isCheckinButtonDisabled") === "true" || false
+  );
+
+  const [isCheckoutButtonDisabled, setCheckoutButtonDisabled] = useState(
+    localStorage.getItem("isCheckoutButtonDisabled") === "true" || false
+  );
   const [selectedAttendanceData, setSelectedAttendanceData] = useState([]);
 
   const dayCellRenderer = ({ date }) => {
-    // Check if the date is the present date
-    const isPresentDate = moment(date).isSame(moment(), "day");
+    // Check if the date is in the past or today
+    const isPastOrPresentDate = moment(date).isSameOrBefore(moment(), "day");
 
-    // Determine the symbol based on whether it is the present date or has attendance
-    const symbol = selectedAttendanceData.find((item) => moment(item.currentDate).isSame(date, "day")) ? "P" : "A";
+    // Find the attendance data for the current date
+    const attendanceDataForDate = selectedAttendanceData.find((item) =>
+      moment(item.currentDate).isSame(date, "day")
+    );
 
-    // Apply different styles for days with and without attendance
+    // Determine the symbol based on whether it is in the past or today and has attendance
+    const symbol =
+      isPastOrPresentDate && attendanceDataForDate ? "P" : isPastOrPresentDate ? "A" : "";
+
+    // Apply fixed padding for all cells
     const cellStyle = {
-      padding: "0px",
+      padding: "9px", // Set your desired fixed padding value here
       textAlign: "center",
       fontWeight: "bold",
-      color: isPresentDate ? "green" : symbol === "P" ? "green" : "red",
-      cursor: "pointer", // Add cursor pointer for interaction
+      color: isPastOrPresentDate ? (symbol === "P" ? "green" : "red") : "unset",
+      cursor: "not-allowed", // Add cursor style for future dates
     };
 
     const handleDateClick = () => {
-      // Toggle attendance on date click
-      const updatedData = selectedAttendanceData.map((item) => {
-        if (moment(item.currentDate).isSame(date, "day")) {
-          return {
-            ...item,
-            hasAttendance: !item.hasAttendance,
-          };
-        }
-        return item;
-      });
+      if (isPastOrPresentDate && !attendanceDataForDate) {
+        // Toggle attendance on date click only for past or present dates without data
+        const updatedData = selectedAttendanceData.map((item) => {
+          if (moment(item.currentDate).isSame(date, "day")) {
+            return {
+              ...item,
+              hasAttendance: !item.hasAttendance,
+            };
+          }
+          return item;
+        });
 
-      setSelectedAttendanceData(updatedData);
+        setSelectedAttendanceData(updatedData);
+      }
     };
 
     return (
@@ -67,6 +80,9 @@ function Attendance() {
       </div>
     );
   };
+
+
+
 
   useEffect(() => {
     fetchData(); // Initial data fetch
@@ -140,6 +156,7 @@ function Attendance() {
     try {
       // Set the check-in button to disabled
       setCheckinButtonDisabled(true);
+      localStorage.setItem("isCheckinButtonDisabled", "true");
 
       // Define 'timeNow'
       const timeNow = moment().format("hh:mm a");
@@ -175,6 +192,7 @@ function Attendance() {
     try {
       // Set the check-out button to disabled
       setCheckoutButtonDisabled(true);
+      localStorage.setItem("isCheckoutButtonDisabled", "true");
 
       // Define 'checkTime'
       const checkTime = moment().format("hh:mm a");
@@ -209,7 +227,10 @@ function Attendance() {
       // Enable the check-in and check-out buttons again after 1 hour
       setTimeout(() => {
         setCheckinButtonDisabled(false);
+        localStorage.setItem("isCheckinButtonDisabled", "false");
+
         setCheckoutButtonDisabled(false);
+        localStorage.setItem("isCheckoutButtonDisabled", "false");
       }, 3600000); // 1 hour in milliseconds
     }
   };

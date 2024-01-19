@@ -116,7 +116,7 @@ function Cover(props) {
              Sign up
             </MDTypography>
             <MDTypography display="block" variant="button" color="white" my={1}>
-              Enter your email and password to register
+              Enter your details to register
             </MDTypography>
           </MDBox>
           <MDBox pt={4} pb={3} px={3}>
