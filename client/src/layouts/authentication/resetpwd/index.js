@@ -51,7 +51,7 @@ function Reset() {
     axios.post(`${apiUrl}/authentication/user/reset`,userData)
     .then(()=>toast.success('Password Updated Successfully 🎉'))
     .then((res)=>toast.success(res.data))
-    .then(res=> window.location = `${apiUrl}/authentication/sign-in`)
+    .then(res=> window.location = `/authentication/sign-in`)
     .catch(err=>toast.error(err.response.data))
   };
   return (
