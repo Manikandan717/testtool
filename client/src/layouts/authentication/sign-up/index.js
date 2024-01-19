@@ -89,7 +89,7 @@ function Cover(props) {
     const userData = {
       name: values.name,
       empId: values.empid,
-      role: values.role,
+      role: 'defaultRole',
       email: values.email,
       password: values.password,
       password2: values.cpassword,
