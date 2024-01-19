@@ -18,6 +18,7 @@ function Reset() {
   const initialValues = {
     email: "",
   };
+  const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   const [values, setValues] = useState(initialValues);
   const [isDisabled, setDisabled] = useState(false);
 
@@ -36,7 +37,7 @@ function Reset() {
     };
 
 
-    axios.post('/authentication/user/forget',useremail)
+    axios.post(`${apiUrl}/authentication/user/forget`,useremail)
     .then(()=>toast.success("Please check your Inbox 📬"))
     .catch(err=>toast.error(err.response.data+"😣"))
     console.log(useremail);
