@@ -14,14 +14,10 @@ import User from "../models/user.model.js";
 import Employee from "../models/excelUpload.js";
 
 dotenv.config();
-// const HOST = process.env.SMTP_HOST;
-// const PORT = process.env.SMTP_PORT;
-// const USER = process.env.SMTP_USER;
-// const PASS = process.env.SMTP_PASS;
-const HOST = "email-smtp.us-east-1.amazonaws.com";
-const PORT = "587";
-const USER = "AKIATUPT4BZDUGEXYTWY";
-const PASS = "BGeW6eUx3pr6no+h+frO9mhe5iIPm2R0w/Fxlyv/oAV7";
+const HOST = process.env.SMTP_HOST;
+const PORT = process.env.SMTP_PORT;
+const USER = process.env.SMTP_USER;
+const PASS = process.env.SMTP_PASS;
 
 const determineRoleFromDesignation = (designation) => {
   // Your logic to determine the role based on the designation
