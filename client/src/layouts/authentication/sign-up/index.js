@@ -178,7 +178,7 @@ function Cover(props) {
               </MDBox>
               <MDBox mb={2}>
                 <MDInput
-                  label="Password"
+                  label="Create New Password"
                   variant="outlined"
                   name="password"
                   value={values.password}

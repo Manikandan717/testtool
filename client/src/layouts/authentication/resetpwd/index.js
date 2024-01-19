@@ -86,11 +86,12 @@ function Reset() {
                   // helperText={err.email || err.emailAlready}
                   label="Email"
                   fullWidth
+                  required
                 />
               </MDBox>
             <MDBox mb={2}>
             <MDInput
-                  label="Password"
+                  label="Create New Password"
                   variant="outlined"
                   name="password"
                   value={values.password}
@@ -99,6 +100,7 @@ function Reset() {
                   // error={red}
                   // helperText={err.password}
                   fullWidth
+                  required
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">

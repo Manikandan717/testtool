@@ -71,7 +71,7 @@ function Reset() {
             <MDBox mb={4}>
               <MDInput type="email" label="Email"  name="email"
                 value={values.email}
-                onChange={handleInputChange} fullWidth />
+                onChange={handleInputChange} fullWidth required />
             </MDBox>
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" type="submit" color="info"  disabled={isDisabled} fullWidth>
