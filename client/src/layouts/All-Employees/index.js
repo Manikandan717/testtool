@@ -1,4 +1,3 @@
-// src/pages/Employees.js
 import React, { useState, useEffect } from 'react';
 import {
   Grid,
@@ -27,7 +26,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { IconButton } from '@mui/material';
 import MDButton from "components/MDButton";
-
+ 
 const excelRowSchema = {
   emp_id: '',
   emp_name: '',
@@ -54,9 +53,9 @@ const excelRowSchema = {
   // grade: '',
   // shift: '',
 };
-
+ 
 function Employees() {
-const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
 // console.log(apiUrl, "===apiUrl===")
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +64,7 @@ const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [newEmployeeData, setNewEmployeeData] = useState({
     emp_id: '',
     emp_name: '',
@@ -94,99 +94,99 @@ const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.
   const handleSelectColumns = (selectedColumns) => {
     setSelectedColumns(selectedColumns);
   };
-  
+ 
   const [columns, setColumns] = useState([]);
-
+ 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
-
+ 
 // ... const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedViewEmployee, setSelectedViewEmployee] = useState(null);
-
+ 
   const handleViewEmployee = (id) => {
     // Find the selected employee from the data
     const selectedEmployee = data.find((emp) => emp.id === id);
-
+ 
     // Set the selected employee data
     setSelectedViewEmployee(selectedEmployee);
-
+ 
     // Open the View dialog
     setIsViewDialogOpen(true);
   };
-
+ 
   // ... (existing code)
-
+ 
   // JSX for the "View" icon in the DataGrid
   const ViewButton = ({ onClick, id }) => (
     <IconButton color="info" onClick={() => handleViewEmployee(id)}>
       <VisibilityIcon />
     </IconButton>
   );
-
+ 
 const capitalizeHeader = (header) => header.toUpperCase();
-
+ 
 // ...
-
+ 
 useEffect(() => {
   // Fetch initial data from MongoDB
   const fetchDataFromMongoDB = async () => {
     try {
+      setIsLoading(true);
+ 
       const response = await fetch(`${apiUrl}/fetchData`);
       const fetchData = await response.json();
-  
-      // Filter out "__v" field from columns
+ 
       const filteredColumns = fetchData.columns
         .filter((col) => col !== '__v')
         .map((col) => ({ field: col, headerName: capitalizeHeader(col), width: 230 }));
-  
-      // Set initial selected columns (you can customize this based on your requirement)
+ 
       const initialSelectedColumns = filteredColumns.slice(0, 5).map((col) => col.field);
-  
+ 
       setColumns(filteredColumns);
       setData(fetchData.rows);
       setSelectedColumns(initialSelectedColumns);
     } catch (error) {
       console.error('Error fetching data from MongoDB', error);
+      setSnackbarMessage('Error fetching data from MongoDB');
+      setSnackbarOpen(true);
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-
+ 
+ 
   fetchDataFromMongoDB();
 }, []);
-
-// ...
-
-// Use capitalizeHeader in other places where you define or update columns
-
-// ...
-
+ 
+ 
+ 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
-
+ 
     if (file) {
       setIsLoading(true);
-
+ 
       const reader = new FileReader();
-
+ 
       reader.onload = async (e) => {
         try {
           const binaryString = e.target.result;
           const workbook = read(binaryString, { type: 'binary' });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-
+ 
           const sheetData = utils.sheet_to_json(worksheet, { header: 1 });
           const sheetColumns = sheetData[0];
-
+ 
           // Validation function
           const validateSchema = (columns, schema) => {
             const schemaKeys = Object.keys(schema).map((key) => key.toLowerCase().replace(/\s+/g, '_'));
             console.log('Actual Schema Keys:', columns);
             console.log('Expected Schema Keys:', schemaKeys);
-
+ 
             // Check if all schema keys are present in columns
             return schemaKeys.every((key) => columns.some((col) => col.toLowerCase().replace(/\s+/g, '_') === key));
           };
-
+ 
           // Validate the schema
           if (!validateSchema(sheetColumns, excelRowSchema)) {
             console.error('Invalid Excel schema');
@@ -195,7 +195,7 @@ useEffect(() => {
             setIsLoading(false);
             return;
           }
-
+ 
           const formattedData = sheetData.slice(1).map((row, index) => {
             const rowData = {};
             if (row.length > 0) {
@@ -207,10 +207,10 @@ useEffect(() => {
             }
             return rowData;
           });
-
+ 
           setColumns(sheetColumns.map((col) => ({ field: col, headerName: col, width: 150 })));
           setData(formattedData);
-
+ 
           // Save the data to MongoDB
           const response = await fetch(`${apiUrl}/uploadData`, {
             method: 'POST',
@@ -219,17 +219,17 @@ useEffect(() => {
             },
             body: JSON.stringify(formattedData),
           });
-
+ 
           if (response.ok) {
             setSnackbarMessage('Data saved to MongoDB');
-
+ 
             // Fetch the data from MongoDB
             const fetchDataResponse = await fetch(`${apiUrl}/fetchData`);
             const fetchData = await fetchDataResponse.json();
-
+ 
             setColumns(fetchData.columns.map((col) => ({ field: col, headerName: col, width: 150 })));
             setData(fetchData.rows);
-
+ 
             setSnackbarOpen(true);
           } else {
             setSnackbarMessage('Failed to save data to MongoDB');
@@ -243,19 +243,19 @@ useEffect(() => {
           setIsLoading(false);
         }
       };
-
+ 
       reader.readAsBinaryString(file);
     }
   };
-
+ 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
-
+ 
   const handleOpenForm = () => {
     setIsFormOpen(true);
   };
-
+ 
   const handleCloseForm = () => {
     setIsFormOpen(false);
     // Reset the new employee data when closing the form
@@ -286,15 +286,15 @@ useEffect(() => {
       // shift: '',
     });
   };
-
+ 
   const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
-  
+ 
   const handleApiRequest = async (url, method, body = null) => {
     try {
       setIsLoading(true);
-  
+ 
       const requestOptions = {
         method,
         headers: {
@@ -302,24 +302,24 @@ useEffect(() => {
         },
         body: body ? JSON.stringify(body) : null,
       };
-  
+ 
       const response = await fetch(url, requestOptions);
-  
+ 
       if (response.ok) {
         setSnackbarMessage(`Operation completed successfully`);
       } else {
         setSnackbarMessage(`Failed to ${capitalizeFirstLetter(method.toLowerCase())} employee`);
       }
-  
+ 
       // Fetch the updated data from MongoDB
       const fetchDataResponse = await fetch(`${apiUrl}/fetchData`);
       const fetchData = await fetchDataResponse.json();
-  
+ 
       setColumns(fetchData.columns.map((col) => ({ field: col, headerName: col, width: 150 })));
       setData(fetchData.rows);
-  
+ 
       setSnackbarOpen(true);
-  
+ 
       if (method === 'POST' || method === 'PUT') {
         setIsFormOpen(false); // Close the form after adding or updating an employee
       }
@@ -331,32 +331,32 @@ useEffect(() => {
       setIsLoading(false);
     }
   };
-  
+ 
   // ...
-  
+ 
   const handleAddEmployee = async () => {
     await handleApiRequest(`${apiUrl}/addEmployee`, 'POST', newEmployeeData);
   };
-  
+ 
   const handleDeleteEmployee = async (id) => {
     await handleApiRequest(`${apiUrl}/deleteEmployee/${id}`, 'DELETE');
   };
-  
+ 
   const handleUpdateEmployee = async () => {
     await handleApiRequest(`${apiUrl}/updateEmployee/${selectedEmployeeId}`, 'PUT', newEmployeeData);
   };
-  
-
+ 
+ 
   const handleEditEmployee = (id) => {
     // Find the selected employee from the data
     const selectedEmployee = data.find((emp) => emp.id === id);
-
+ 
     // Open the form with the existing data for editing
     setNewEmployeeData({ ...selectedEmployee });
     setSelectedEmployeeId(id);
     setIsFormOpen(true);
   };
-
+ 
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -380,7 +380,7 @@ useEffect(() => {
                   textAlign: "center",
                   minHeight: "10px",
                   minWidth: "120px",
-
+ 
                 }}>
                   Import
                 </MDButton>
@@ -403,54 +403,61 @@ useEffect(() => {
               Add Employee
             </MDButton>
           </div>
-          <Card>
-
-            {isLoading && <CircularProgress />}
-            {!isLoading && (
-              <div style={{ height: 770, width: '100%' }}>
-      <DataGrid
-  rows={data}
-  rowsPerPageOptions={[5, 10, 25, 50, 100]}
-  columns={[
-    ...columns.filter((col) => selectedColumns.includes(col.field)), // Filter columns based on selection
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 150,
-      renderCell: (params) => (
-        <>
-               <IconButton color="info">
-          <ViewButton  id={params.id} />
-          </IconButton> |
-     
-          <IconButton color="secondary" onClick={() => handleEditEmployee(params.id)}>
-            <EditIcon /> 
-          </IconButton> |
-          <IconButton color="error" onClick={() => handleDeleteEmployee(params.id)}>
-            <DeleteIcon />
-          </IconButton>
-   
-        </>
-      ),
-    },
-  ]}
-  checkboxSelection
-  components={{
-    Toolbar: () => (
-      <GridToolbar
-        selectedColumns={selectedColumns}
-        onColumnsChange={handleSelectColumns}
-        columns={columns}
-      />
-    ),
-  }}
-/>
-
-              </div>
-            )}
+              <Card>
+            <div style={{ position: 'relative', height: 770, width: '100%' }}>
+              {/* Show headers and toolbar initially */}
+              <DataGrid
+                rows={data}
+                rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                columns={[
+                  ...columns.filter((col) => selectedColumns.includes(col.field)),
+                  {
+                    field: 'actions',
+                    headerName: 'Actions',
+                    width: 150,
+                    renderCell: (params) => (
+                      <>
+                        <IconButton color="info">
+                          <ViewButton id={params.id} />
+                        </IconButton> |
+                        <IconButton color="secondary" onClick={() => handleEditEmployee(params.id)}>
+                          <EditIcon />
+                        </IconButton> |
+                        <IconButton color="error" onClick={() => handleDeleteEmployee(params.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </>
+                    ),
+                  },
+                ]}
+                checkboxSelection
+                components={{
+                  Toolbar: () => (
+                    <div>
+                      <GridToolbar
+                        selectedColumns={selectedColumns}
+                        onColumnsChange={handleSelectColumns}
+                        columns={columns}
+                      />
+                      <Divider />
+                    </div>
+                  ),
+                }}
+              />
+              {isLoading && (
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }}>
+                  <CircularProgress />
+                </div>
+              )}
+              {!isLoading && data.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  No data available.
+                </div>
+              )}
+            </div>
           </Card>
         </Grid>
-
+ 
         <Dialog open={isFormOpen} onClose={handleCloseForm}>
           <DialogTitle style={{ background: '#2196f3', color: 'white' }}>{selectedEmployeeId ? 'Update Employee' : 'Add Employee'}</DialogTitle>
           <DialogContent >
@@ -484,7 +491,7 @@ useEffect(() => {
               margin="normal"
             />
             </div>
-            <div       
+            <div      
             style={{
                 display: "flex",
                 justifyContent: "center",
@@ -496,7 +503,7 @@ useEffect(() => {
                 gap: "10px"
               }}>
             {/* <TextField
-              label="Doj" 
+              label="Doj"
               value={newEmployeeData.doj}
               type='text'
               onChange={(e) =>
@@ -865,5 +872,5 @@ useEffect(() => {
     </DashboardLayout>
   );
 }
-
+ 
 export default Employees;

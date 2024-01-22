@@ -629,29 +629,10 @@ const TaskWiseBarChart = () => {
             </Grid>
             <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
               <Autocomplete
-                value={selectedProject}
-                onChange={(event, newProject) => setSelectedProject(newProject)}
-                options={selectedTeam ? teamProjects : allProjectNames}
-                getOptionLabel={(option) => option}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Project Name"
-                    fullWidth
-                    variant="outlined"
-                    color="secondary"
-                    sx={{
-                      backgroundColor: "white",
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
-              <Autocomplete
                 value={selectedTeam}
                 onChange={handleTeamChange}
                 options={teams}
+                sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -663,6 +644,25 @@ const TaskWiseBarChart = () => {
                 )}
               />
             </Grid>
+            <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
+              <Autocomplete
+                value={selectedProject}
+                onChange={(event, newProject) => setSelectedProject(newProject)}
+                options={selectedTeam ? teamProjects : allProjectNames}
+                getOptionLabel={(option) => option}
+                sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Project Name"
+                    fullWidth
+                    variant="outlined"
+                    color="secondary"
+                  />
+                )}
+              />
+            </Grid>
+          
           </Box>
         </Grid>
 
