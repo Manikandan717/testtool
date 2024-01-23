@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
@@ -15,6 +15,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import axios from "axios";
+
 
 const Basic = function (props) {
   const [rememberMe, setRememberMe] = useState();
@@ -37,30 +38,13 @@ const Basic = function (props) {
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    setValues({
-      ...values,
-      [name]: value,
-      showPassword: !values.showPassword,
-    });
-  };
-
-  // useEffect(() => {
-  //   if (props.auth.isAuthenticated) {
-  //     navigate("/dashboard");
-  //   }
-  // });
-
-  const [prevErr, setPrevErr] = useState({});
-
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (props.auth.isAuthenticated) {
-      const { role } = props.auth.user; // Assuming your user object has a 'role' property
-  
-      if (role === 'superadmin') {
+      const { role } = props.auth.user;
+
+      if (role === "superadmin") {
         navigate("/allreport");
       } else {
         navigate("/dashboard");
@@ -88,36 +72,43 @@ const Basic = function (props) {
     }
   }, [props.errors]);
 
-  // useEffect(() => {
-  //   if (props.errors) {
-  //     setErr({
-  //       email: props.errors.email,
-  //       password: props.errors.password,
-  //       emailIncorrect: props.errors.emailnotfound,
-  //       passwordIncorrect: props.errors.passwordIncorrect,
-  //     });
-  //   }
-  //   if (
-  //     err.email ||
-  //     (err.emailIncorrect && err.password) ||
-  //     err.passwordIncorrect !== ""
-  //   ) {
-  //     setRed(true);
-  //   }
-  //   // console.log(err)
-  // }, [props.errors]);
-
   const img = "https://source.unsplash.com/random/2560×1600/?Nature";
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setValues({
+      ...values,
+      [name]: value,
+      showPassword: !values.showPassword,
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Set loading to true when starting the authentication request
+    setLoading(true);
+
     const userData = {
       email: values.email,
       password: values.password,
     };
-    // console.log(userData);
-    props.loginUser(userData);
+
+    // Dispatch loginUser action
+    props.loginUser(userData)
+      .then(() => {
+        // Set loading to false when the request is complete (success)
+        setLoading(false);
+      })
+      .catch((err) => {
+        // Handle errors (optional)
+        console.error('Login failed:', err);
+        // Set loading to false when the request is complete (error)
+        setLoading(false);
+      });
   };
+
 
   return (
     <BasicLayout image={img}>
@@ -134,7 +125,7 @@ const Basic = function (props) {
           textAlign="center"
         >
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-          Sign In
+            Sign In
           </MDTypography>
         </MDBox>
 
@@ -147,7 +138,7 @@ const Basic = function (props) {
                 value={values.email}
                 onChange={handleInputChange}
                 helperText={
-                  <span style={{ color: (err.email || err.emailIncorrect) ? 'red' : 'blue' }}>
+                  <span style={{ color: err.email || err.emailIncorrect ? 'red' : 'inherit' }}>
                     {err.email || err.emailIncorrect}
                   </span>
                 }
@@ -188,10 +179,16 @@ const Basic = function (props) {
             </MDBox>
 
             <MDBox mt={2} mb={1}>
-              <MDButton variant="gradient" type="submit" color="info" fullWidth>
-               submit
-              </MDButton>
-            </MDBox>
+            <MDButton
+              variant="gradient"
+              type="submit"
+              color="info"
+              fullWidth
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Submit'}
+            </MDButton>
+          </MDBox>
             <MDBox mt={1} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
                 Forgot your password?{" "}

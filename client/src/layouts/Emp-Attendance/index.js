@@ -16,55 +16,58 @@ import MDTypography from 'components/MDTypography';
 import DialogContent from "@mui/material/DialogContent";
 import MDButton from "components/MDButton";
 import MDInput from "components/MDInput";
-
+ 
 function Attendance() {
-  const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';;
+  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';;
   const name = useSelector((state) => state.auth.user.name);
   const empId = useSelector((state) => state.auth.user.empId);
-
+ 
   const [attendanceData, setAttendanceData] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-
+  const [loading, setLoading] = useState(true);
+ 
   useEffect(() => {
+    // setLoading(true); // Set loading to true when starting the data fetch
     fetch(`${apiUrl}/emp-attendance`)
       .then((response) => response.json())
       .then((data) => {
         const mappedData = data.map((item, index) => ({ ...item, id: index + 1 }));
         setAttendanceData(mappedData);
       })
-      .catch((error) => console.error('Error fetching data:', error));
+      .catch((error) => console.error('Error fetching data:', error))
+      .finally(() => setLoading(false)); // Set loading to false once data is loaded
   }, []);
-
+ 
   const handleStartDateChange = (date) => {
     setStartDate(date);
   };
-
+ 
   const handleEndDateChange = (date) => {
     setEndDate(date);
   };
-
+ 
   const [popperOpen, setPopperOpen] = useState(false);
-
+ 
   const handlePopperToggle = () => {
     setPopperOpen((prev) => !prev);
   };
-
+ 
   const handlePopperClose = () => {
     setPopperOpen(false);
   };
-
+ 
   const filteredData = attendanceData.filter((item) => {
     if (startDate && endDate) {
       const startDateTime = moment(startDate).startOf('day');
       const endDateTime = moment(endDate).endOf('day');
       const itemDateTime = moment(item.currentDate);
-
+ 
       return itemDateTime.isBetween(startDateTime, endDateTime, null, '[]');
     }
     return true;
   });
-
+ 
   const columns = [
     { field: 'id', headerName: 'ID', width: 30 },
     {
@@ -78,14 +81,14 @@ function Attendance() {
     { field: 'checkInTime', headerName: 'Check In', width: 150, flex: 1 },
     { field: 'checkOutTime', headerName: 'Check Out', width: 150 },
     { field: 'total', headerName: 'Total', width: 150 },
-
+ 
   ];
-
-
+ 
+ 
   return (
     <DashboardLayout>
       <DashboardNavbar />
-
+ 
       {/* <Grid container justifyContent="center">
         <Grid item xs={12} lg={8}>
           <Card mb={3}>
@@ -210,6 +213,7 @@ function Attendance() {
               rows={filteredData}
               columns={columns}
               rowsPerPageOptions={[5, 10, 25, 50, 100]}
+              loading={loading}
               components={{
                 Toolbar: () => (
                   <div style={{ display: "flex" }}>
@@ -243,7 +247,7 @@ function Attendance() {
                         DATE FILTER
                       </MDTypography>
                     </div>
-
+ 
                     <GridToolbar />
                     {/* <div
                       style={{
@@ -266,15 +270,15 @@ function Attendance() {
                   </div>
                 ),
               }}
-
+ 
             />
           </Box>
         </Card>
       </Grid>
-
+ 
       {/* <Footer /> */}
     </DashboardLayout>
   );
 }
-
+ 
 export default Attendance;

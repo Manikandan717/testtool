@@ -37,20 +37,20 @@ function Cover(props) {
     password: "",
     password2: "",
     emailAlready: "",
-    emailNotFound: "",
+    emailNotFound:"",
   });
   const [red, setRed] = useState(false);
-  const img =
-    "https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80";
+  const img="https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80"
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
+
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setValues({
       ...values,
-
       [name]: value,
     });
   };
@@ -59,7 +59,6 @@ function Cover(props) {
     if (props.errors) {
       setErr({
         name: props.errors.name,
-        // role: props.errors.role,
         empId: props.errors.empId,
         email: props.errors.email,
         password: props.errors.password,
@@ -73,7 +72,6 @@ function Cover(props) {
       err.email &&
       err.password &&
       err.name &&
-      // err.role &&
       err.empId &&
       err.password2 &&
       err.emailNotFound &&
@@ -83,9 +81,12 @@ function Cover(props) {
     }
   }, [props.errors]);
 
-  // const [show, setShow] = useState(false);
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Set loading to true when starting the authentication request
+    setLoading(true);
+
     const userData = {
       name: values.name,
       empId: values.empid,
@@ -94,8 +95,19 @@ function Cover(props) {
       password: values.password,
       password2: values.cpassword,
     };
-    // console.log(userData);
-    props.registerUser(userData);
+
+    // Dispatch registerUser action
+    props.registerUser(userData)
+      .then(() => {
+        // Set loading to false when the request is complete (success)
+        setLoading(false);
+      })
+      .catch((err) => {
+        // Handle errors (optional)
+        console.error('Registration failed:', err);
+        // Set loading to false when the request is complete (error)
+        setLoading(false);
+      });
   };
   return (
     <>
@@ -113,7 +125,7 @@ function Cover(props) {
             textAlign="center"
           >
             <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-             Sign up
+            Sign up
             </MDTypography>
             <MDTypography display="block" variant="button" color="white" my={1}>
               Enter your details to register
@@ -129,7 +141,7 @@ function Cover(props) {
                   onChange={handleInputChange}
                   // helperText={err.name}
                   helperText={
-                    <span style={{ color: err.name ? "red" : "inherit" }}>
+                    <span style={{ color: (err.name) ? 'red' : 'inherit' }}>
                       {err.name}
                     </span>
                   }
@@ -161,14 +173,7 @@ function Cover(props) {
                   name="email"
                   // helperText={err.email || err.emailAlready || err.emailNotFound}
                   helperText={
-                    <span
-                      style={{
-                        color:
-                          err.email || err.emailAlready || err.emailNotFound
-                            ? "red"
-                            : "inherit",
-                      }}
-                    >
+                    <span style={{ color: (err.email || err.emailAlready || err.emailNotFound) ? 'red' : 'inherit' }}>
                       {err.email || err.emailAlready || err.emailNotFound}
                     </span>
                   }
@@ -187,7 +192,7 @@ function Cover(props) {
                   error={red}
                   // helperText={err.password}
                   helperText={
-                    <span style={{ color: err.password ? "red" : "inherit" }}>
+                    <span style={{ color: (err.password) ? 'red' : 'inherit' }}>
                       {err.password}
                     </span>
                   }
@@ -218,7 +223,7 @@ function Cover(props) {
                   error={red}
                   // helperText={err.password2}
                   helperText={
-                    <span style={{ color: err.password2 ? "red" : "inherit" }}>
+                    <span style={{ color: (err.password2) ? 'red' : 'inherit' }}>
                       {err.password2}
                     </span>
                   }
@@ -239,15 +244,16 @@ function Cover(props) {
                 />
               </MDBox>
               <MDBox mt={4} mb={1}>
-                <MDButton
-                  variant="gradient"
-                  type="submit"
-                  color="info"
-                  fullWidth
-                >
-                  submit
-                </MDButton>
-              </MDBox>
+          <MDButton
+            variant="gradient"
+            type="submit"
+            color="info"
+            fullWidth
+            disabled={loading}
+          >
+            {loading ? 'Loading...' : 'Sign Up'}
+          </MDButton>
+        </MDBox>
               <MDBox mt={3} mb={1} textAlign="center">
                 <MDTypography variant="button" color="text">
                   Already have an account?{" "}
