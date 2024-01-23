@@ -40,10 +40,14 @@ import DialogContent from "@mui/material/DialogContent";
 import Popper from "@mui/material/Popper";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import Paper from "@mui/material/Paper";
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 function AdminReport() {
 
-const apiUrl = process.env.REACT_APP_API_URL || "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
+
+  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+
   const initialValues = {
     startDate: "",
     endDate: "",
@@ -56,6 +60,7 @@ const apiUrl = process.env.REACT_APP_API_URL || "https://9tnby7zrib.execute-api.
   const [report, setReport] = useState([]);
   const [selectedUserData, setSelectedUserData] = useState(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = React.useState(true); 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,8 +81,7 @@ const apiUrl = process.env.REACT_APP_API_URL || "https://9tnby7zrib.execute-api.
       })
       .catch((err) => console.log(err));
   };
-  // console.log(values.endDate)
-  // console.log(empName)
+
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -173,8 +177,18 @@ const apiUrl = process.env.REACT_APP_API_URL || "https://9tnby7zrib.execute-api.
   };
 
   useEffect(() => {
-    userName();
+    const fetchData = async () => {
+      try {
+        await allReport();
+        await userName();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchData();
   }, []);
+  
 
   const userName = () => {
     axios.get(`${apiUrl}/users`).then((res) => {
@@ -510,6 +524,17 @@ const apiUrl = process.env.REACT_APP_API_URL || "https://9tnby7zrib.execute-api.
           </Box>
         </Card>
       </Grid>
+      {isLoading && (
+  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }}>
+    <CircularProgress />
+  </div>
+)}
+{!isLoading && row.length === 0 && (
+  <div style={{ textAlign: 'center', padding: '20px' }}>
+    No data available.
+  </div>
+)}
+        
       <Dialog open={isDialogOpen} onClose={closeDialog} maxWidth="lg">
   <DialogTitle
     style={{
@@ -697,7 +722,7 @@ const apiUrl = process.env.REACT_APP_API_URL || "https://9tnby7zrib.execute-api.
                           </div>
 
                           <GridToolbar />
-                          <div
+                          {/* <div
                             style={{
                               display: "flex",
                               marginLeft: "auto",
@@ -715,7 +740,7 @@ const apiUrl = process.env.REACT_APP_API_URL || "https://9tnby7zrib.execute-api.
                             >
                               &nbsp;All Report
                             </MDButton>
-                          </div>
+                          </div> */}
                         </div>
                       ),
                     }}
