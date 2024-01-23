@@ -440,7 +440,6 @@ useEffect(() => {
                         onColumnsChange={handleSelectColumns}
                         columns={columns}
                       />
-                      <Divider />
                     </div>
                   ),
                 }}

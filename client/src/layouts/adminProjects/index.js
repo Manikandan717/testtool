@@ -38,7 +38,7 @@ import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 
 export default function ColumnGroupingTable() {
 
-const apiUrl = process.env.REACT_APP_API_URL ||'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   // drawer code
   const columns = [
     { field: "projectname", headerName: "Projectname", flex: 1 },
@@ -228,7 +228,7 @@ const apiUrl = process.env.REACT_APP_API_URL ||'https://9tnby7zrib.execute-api.u
       .post(`${apiUrl}/new`, billData)
       .then((res) => {
         toast.success(res.data);
-        axios.get(`${apiUrl}/z`).then((response) => {
+        axios.get(`${apiUrl}/admin`).then((response) => {
           setData(response.data);
         });
         axios.get(`${apiUrl}/fetch/addteam-data`).then((response) => {
