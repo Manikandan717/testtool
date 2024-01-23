@@ -26,7 +26,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { IconButton } from '@mui/material';
 import MDButton from "components/MDButton";
- 
+import './calendar.css';
+
 const excelRowSchema = {
   emp_id: '',
   emp_name: '',
