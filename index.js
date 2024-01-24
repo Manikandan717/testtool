@@ -102,10 +102,10 @@ app.use((req, res, next) => {
 // });
 dotenv.config();
 
-const HOST = process.env.SMTP_HOST;
-const PORT = process.env.SMTP_PORT;
-const USER = process.env.SMTP_USER;
-const PASS = process.env.SMTP_PASS;
+const HOST = process.env.SMTP_HOST || "email-smtp.us-east-1.amazonaws.com";
+const PORT = process.env.SMTP_PORT || 587;
+const USER = process.env.SMTP_USER || "AKIATUPT4BZDUGEXYTWY";
+const PASS = process.env.SMTP_PASS || "BGeW6eUx3pr6no+h+frO9mhe5iIPm2R0w/Fxlyv/oAV7";
 
 await mongoose.connect(
   process.env.ATLAS_URI,
