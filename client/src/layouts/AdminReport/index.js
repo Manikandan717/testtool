@@ -60,8 +60,7 @@ function AdminReport() {
   const [report, setReport] = useState([]);
   const [selectedUserData, setSelectedUserData] = useState(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = React.useState(true); 
-
+  const [loading, setLoading] = useState(true);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -73,14 +72,14 @@ function AdminReport() {
   const handleChange = (event, value) => setEmpName(value);
   const handleTeamChange = (event, value) => setTeamList(value);
 
-  const allReport = (e) => {
-    axios
-      .get(`${apiUrl}/analyst`)
-      .then((res) => {
-        setReport(res.data);
-      })
-      .catch((err) => console.log(err));
-  };
+  // const allReport = (e) => {
+  //   axios
+  //     .get(`${apiUrl}/analyst`)
+  //     .then((res) => {
+  //       setReport(res.data);
+  //     })
+  //     .catch((err) => console.log(err));
+  // };
 
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -176,26 +175,48 @@ function AdminReport() {
     closeFilterDialog();
   };
 
+  // useEffect(() => {
+  //   // Fetch data directly when the component mounts
+  //   allReport();
+  //   userName();
+  //   setLoading(false);
+  // }, []);
+  
+  const allReport = () => {
+    return axios
+      .get(`${apiUrl}/analyst`)
+      .then((res) => {
+        setReport(res.data);
+      })
+      .catch((err) => console.log(err));
+  };
+  
+  const userName = () => {
+    return axios.get(`${apiUrl}/users`).then((res) => {
+      setName(res.data);
+    });
+  };
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await allReport();
-        await userName();
+        await Promise.all([allReport(), userName()]);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
   
     fetchData();
   }, []);
-  
 
-  const userName = () => {
-    axios.get(`${apiUrl}/users`).then((res) => {
-      setName(res.data);
-    });
-    // console.log(name);
-  };
+  // const userName = () => {
+  //   axios.get(`${apiUrl}/users`).then((res) => {
+  //     setName(res.data);
+  //   });
+  //   // console.log(name);
+  // };
   const openDialog = (userData) => {
     setSelectedUserData(userData);
     setDialogOpen(true);
@@ -523,18 +544,7 @@ function AdminReport() {
             </Popper>
           </Box>
         </Card>
-      </Grid>
-      {isLoading && (
-  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }}>
-    <CircularProgress />
-  </div>
-)}
-{!isLoading && row.length === 0 && (
-  <div style={{ textAlign: 'center', padding: '20px' }}>
-    No data available.
-  </div>
-)}
-        
+      </Grid>       
       <Dialog open={isDialogOpen} onClose={closeDialog} maxWidth="lg">
   <DialogTitle
     style={{
@@ -687,6 +697,7 @@ function AdminReport() {
                     rowsPerPageOptions={[5, 10, 25, 50, 100]}
                     checkboxSelection
                     disableSelectionOnClick
+                    loading={loading}
                     components={{
                       Toolbar: () => (
                         <div style={{ display: "flex" }}>
@@ -778,7 +789,17 @@ function AdminReport() {
                   //     </div>
                   //   ),
                   // }}
-                  />
+                  />   
+                           {/* {isLoading && (
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }}>
+                      <CircularProgress />
+                    </div>
+                  )}
+                  {!isLoading && row.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                      No data available.
+                    </div>
+                  )} */}
                 </Box>
               </MDBox>
             </Card>
