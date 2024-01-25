@@ -160,3 +160,8 @@ abbr[title] {
     overflow-y: auto;
   }
   
+  /* live */
+  .MuiDataGrid-columnHeadersInner {
+    background: #3b95ee!important;;
+    color: #fff!important;;
+}
