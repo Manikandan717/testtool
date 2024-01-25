@@ -165,6 +165,56 @@ function Cover(props) {
                   fullWidth
                 />
               </MDBox>
+              {/* <MDBox
+                mt={2}
+                mb={2}
+                display="flex"
+                justifycontent="space-evenly"
+                alignItems="center"
+              >
+                <Grid container spacing={2}>
+                  <Grid item xs={1} md={7}>
+                    <MDInput
+                      type="text"
+                      value={values.empid}
+                      onChange={handleInputChange}
+                      // helperText={err.empId}
+                      helperText={
+                        <span style={{ color: (err.empId) ? 'red' : 'inherit' }}>
+                          {err.empId}
+                        </span>
+                      }
+                      name="empid"
+                      label="Employee Number"
+                    />
+                  </Grid>
+                  <Grid item xs={1} md={3}>
+                    <div>
+                      <FormControl>
+                        <InputLabel htmlFor="grouped-native-select">
+                          Role
+                        </InputLabel>
+                        <Select
+                          native
+                          id="grouped-native-select"
+                          label="Role"
+                          name="role"
+                          value={values.role}
+                          onChange={handleInputChange}
+                          // sx={{ Width: 300 }}
+                          style={{ width: "130px" }}
+                        >
+                          <option aria-label="None" />
+                          <option value="analyst">Analyst</option>
+                           <option value="Project Manager">Project Manager</option>
+                           <option value="admin">Admin</option>
+                        </Select>
+                        <FormHelperText>{err.role}</FormHelperText>
+                      </FormControl>
+                    </div>
+                  </Grid>
+                </Grid>
+              </MDBox> */}
               <MDBox mb={2}>
                 <MDInput
                   type="email"

@@ -36,30 +36,34 @@ function Attendance() {
   const [selectedAttendanceData, setSelectedAttendanceData] = useState([]);
 
   const dayCellRenderer = ({ date }) => {
-    // Check if the date is in the past or today
-    const isPastOrPresentDate = moment(date).isSameOrBefore(moment(), "day");
-
+    // Check if the date is in the past
+    const isPastDate = moment(date).isSameOrBefore(moment(), "day");
+  
     // Find the attendance data for the current date
-    const attendanceDataForDate = selectedAttendanceData.find((item) =>
-      moment(item.currentDate).isSame(date, "day")
+    const attendanceDataForDate = selectedAttendanceData.find(
+      (item) => moment(item.currentDate).isSame(date, "day")
     );
-
-    // Determine the symbol based on whether it is in the past or today and has attendance
+  
+    // Determine the symbol based on whether it is in the past and has a checkout time
     const symbol =
-      isPastOrPresentDate && attendanceDataForDate ? "P" : isPastOrPresentDate ? "A" : "";
-
+      isPastDate && attendanceDataForDate && attendanceDataForDate.checkOutTime
+        ? "P"
+        : isPastDate
+        ? "A"
+        : "";
+  
     // Apply fixed padding for all cells
     const cellStyle = {
       padding: "9px", // Set your desired fixed padding value here
       textAlign: "center",
       fontWeight: "bold",
-      color: isPastOrPresentDate ? (symbol === "P" ? "green" : "red") : "unset",
+      color: isPastDate ? (symbol === "P" ? "green" : "red") : "unset",
       cursor: "not-allowed", // Add cursor style for future dates
     };
-
+  
     const handleDateClick = () => {
-      if (isPastOrPresentDate && !attendanceDataForDate) {
-        // Toggle attendance on date click only for past or present dates without data
+      if (isPastDate && !attendanceDataForDate) {
+        // Toggle attendance on date click only for past dates without data
         const updatedData = selectedAttendanceData.map((item) => {
           if (moment(item.currentDate).isSame(date, "day")) {
             return {
@@ -69,18 +73,18 @@ function Attendance() {
           }
           return item;
         });
-
+  
         setSelectedAttendanceData(updatedData);
       }
     };
-
+  
     return (
       <div style={cellStyle} onClick={handleDateClick}>
         {symbol}
       </div>
     );
   };
-
+  
 
 
 
@@ -152,41 +156,46 @@ function Attendance() {
     fetchLatestCheckinAndCheckout();
   }, [empId, selectedDate]);
 
-  const handleCheckin = async () => {
-    try {
-      // Set the check-in button to disabled
-      setCheckinButtonDisabled(true);
-      localStorage.setItem("isCheckinButtonDisabled", "true");
+const handleCheckin = async () => {
+  try {
+    // Set the check-in button to disabled
+    setCheckinButtonDisabled(true);
+    localStorage.setItem("isCheckinButtonDisabled", "true");
 
-      // Define 'timeNow'
-      const timeNow = moment().format("hh:mm a");
+    // Define 'timeNow'
+    const timeNow = moment().format("hh:mm a");
 
-      // Send check-in time to the server
-      const response = await fetch(`${apiUrl}/att/checkin`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          empId,
-          checkInTime: timeNow,
-        }),
-      });
+    // Send check-in time to the server
+    const response = await fetch(`${apiUrl}/att/checkin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        empId,
+        checkInTime: timeNow,
+      }),
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Check-in time saved successfully");
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Check-in time saved successfully");
 
-        // Update the latest check-in time in the component state
-        setCheckinTime(data.latestCheckin);
-      } else {
-        console.error("Failed to save check-in time");
-      }
-    } catch (error) {
-      console.error("Error:", error);
+      // Update the latest check-in time in the component state
+      setCheckinTime(data.latestCheckin);
+
+      // Reset checkoutTime and total
+      setCheckoutTime("");
+      setTotal("");
+    } else {
+      console.error("Failed to save check-in time");
     }
-  };
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
 
   const handleCheckout = async () => {
     try {
@@ -231,7 +240,7 @@ function Attendance() {
 
         setCheckoutButtonDisabled(false);
         localStorage.setItem("isCheckoutButtonDisabled", "false");
-      }, 3600000); // 1 hour in milliseconds
+      }, 0); // 1 hour in milliseconds
     }
   };
 
