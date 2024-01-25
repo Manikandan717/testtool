@@ -35,6 +35,7 @@ import ClickAwayListener from "@mui/material/ClickAwayListener";
 import CheckIcon from "@mui/icons-material/Check";
 import SelfImprovementIcon from "@mui/icons-material/SelfImprovement";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
+import CircularProgress from "@mui/material/CircularProgress";
 
 export default function ColumnGroupingTable() {
 
@@ -120,6 +121,7 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
     },
   ];
 
+  const [loadingData, setLoadingData] = React.useState(false);
   const [count, setCount] = useState({ aTotal: "" });
   const [bill, setBill] = useState({
     tDate: "",
@@ -239,8 +241,9 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
           setManagers(response.data);
         });
       })
-      .catch((err) => toast.error(err));
-
+      .catch((err) => toast.error(err))
+      .finally(() => {
+        setLoadingData(false);
     closeDrawer();
 
     // Reset the state to initial values
@@ -255,7 +258,8 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
         cDate: "",
       },
     });
-  };
+  });
+};
 
 
   // drawer code end
@@ -330,6 +334,7 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
 
   
   useEffect(() => {
+    setLoadingData(true);
     axios.get(`${apiUrl}/admin`).then((response) => {
       // Update initial data
       setInitialData(response.data);
@@ -340,6 +345,10 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
     });
     axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
       setManagers(response.data);
+    })
+    .catch((err) => console.log(err))
+    .finally(() => {
+      setLoadingData(false);
     });
   }, []);
   const handleSubmit = (e) => {
@@ -974,6 +983,21 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
                 ),
               }}
             />
+             {loadingData && (
+    <div
+      style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 1,
+        textAlign: 'center',
+      }}
+    >
+      <CircularProgress />
+     
+    </div>
+  )}
           </Box>
         </Card>
       </Grid>
