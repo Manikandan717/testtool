@@ -26,8 +26,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { IconButton } from '@mui/material';
 import MDButton from "components/MDButton";
-
-
+ 
 const excelRowSchema = {
   emp_id: '',
   emp_name: '',
@@ -50,7 +49,7 @@ const excelRowSchema = {
   // residential_status: '',
   // location: '',
   designation: '',
-  // department: '',
+  // department: '',pieChartData
   // grade: '',
   // shift: '',
 };
@@ -65,7 +64,7 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [newEmployeeData, setNewEmployeeData] = useState({
     emp_id: '',
     emp_name: '',
@@ -92,6 +91,8 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
     // grade: '',
     // shift: '',
   });
+
+
   const handleSelectColumns = (selectedColumns) => {
     setSelectedColumns(selectedColumns);
   };
@@ -336,6 +337,11 @@ useEffect(() => {
   // ...
  
   const handleAddEmployee = async () => {
+
+    // Validate the data before sending the request
+    if (!validateEmployeeData(newEmployeeData)) {
+      return;
+    }
     await handleApiRequest(`${apiUrl}/addEmployee`, 'POST', newEmployeeData);
   };
  
@@ -357,7 +363,110 @@ useEffect(() => {
     setSelectedEmployeeId(id);
     setIsFormOpen(true);
   };
- 
+
+  const [validationErrors, setValidationErrors] = useState({
+    emp_id: '',
+    emp_name: '',
+    email_id: '',
+    report_to: '',
+    designation: '',
+
+  });
+
+  // ... (existing code)
+
+  useEffect(() => {
+    // Reset validationErrors when the dialog box is opened
+    if (isFormOpen) {
+      setValidationErrors({
+        emp_id: '',
+    emp_name: '',
+    email_id: '',
+    report_to: '',
+    designation: '',
+        // Add more fields as needed
+      });
+    }
+  }, [isFormOpen]);
+
+  // ... (existing code)
+
+  const validateEmployeeData = (employeeData) => {
+    const errors = {};
+
+    // Validate Employee ID
+    if (!employeeData.emp_id) {
+      errors.emp_id = 'Employee ID is required';
+    } else {
+      errors.emp_id = '';
+    }
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      ...errors,
+    }));
+
+    // Validate Employee Name
+    if (!employeeData.emp_name) {
+      errors.emp_name = 'Employee Name is required';
+    } else {
+      errors.emp_name = '';
+    }
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      ...errors,
+    }));
+
+    // Validate Email ID
+    if (!employeeData.email_id) {
+      errors.email_id = 'Email ID is required';
+    } else if (!isValidEmail(employeeData.email_id)) {
+      errors.email_id = 'Invalid email format';
+    } else {
+      errors.email_id = '';
+    }
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      ...errors,
+    }));
+
+    // Validate Manager Name
+    if (!employeeData.report_to) {
+      errors.report_to = 'Manager Name is required';
+    } else {
+      errors.report_to = '';
+    }
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      ...errors,
+    }));
+
+    // Validate designation Name
+    if (!employeeData.designation) {
+      errors.designation = 'Designation is required';
+    } else {
+      errors.designation = '';
+    }
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      ...errors,
+    }));
+
+    // Check if there are no validation errors
+    return Object.keys(errors).every((key) => errors[key] === '');
+  };
+   
+
+  const isValidEmail = (email) => {
+    // Implement your own email validation logic here
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -440,6 +549,7 @@ useEffect(() => {
                         onColumnsChange={handleSelectColumns}
                         columns={columns}
                       />
+                      {/* <Divider /> */}
                     </div>
                   ),
                 }}
@@ -480,6 +590,12 @@ useEffect(() => {
               }
               fullWidth
               margin="normal"
+              // error={!!validationErrors.emp_id}
+              helperText={
+                <Typography variant="body3" style={{ color: 'red' }}>
+                  {validationErrors.emp_id}
+                </Typography>
+              }   
             />
             <TextField
               label="Employee Name"
@@ -489,6 +605,12 @@ useEffect(() => {
               }
               fullWidth
               margin="normal"
+              // error={!!validationErrors.emp_name}
+              helperText={
+                <Typography variant="body3" style={{ color: 'red' }}>
+                  {validationErrors.emp_name}
+                </Typography>
+              }
             />
             </div>
             <div      
@@ -545,6 +667,12 @@ useEffect(() => {
               onChange={(e) => setNewEmployeeData({ ...newEmployeeData, email_id: e.target.value })}
               fullWidth
               margin="normal"
+              // error={!!validationErrors.email_id}
+              helperText={
+                <Typography variant="body3" style={{ color: 'red' }}>
+                  {validationErrors.email_id}
+                </Typography>
+              }
             />
              </div>
              {/* <div        style={{
@@ -616,6 +744,12 @@ useEffect(() => {
               onChange={(e) => setNewEmployeeData({ ...newEmployeeData, report_to: e.target.value })}
               fullWidth
               margin="normal"
+              // error={!!validationErrors. report_to}
+              helperText={
+                <Typography variant="body3" style={{ color: 'red' }}>
+                  {validationErrors.report_to}
+                </Typography>
+              }
             />
                       <TextField
               label="Designation"
@@ -623,6 +757,12 @@ useEffect(() => {
               onChange={(e) => setNewEmployeeData({ ...newEmployeeData, designation: e.target.value })}
               fullWidth
               margin="normal"
+              // error={!!validationErrors. designation}
+              helperText={
+                <Typography variant="body3" style={{ color: 'red' }}>
+                  {validationErrors.designation}
+                </Typography>
+              }
             />
             {/* <TextField
               label="Phone No"

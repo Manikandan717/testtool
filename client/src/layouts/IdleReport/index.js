@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo, PureComponent, useRef  } from 'react';
 import axios from 'axios';
 import { CardActionArea, CardActions, IconButton } from '@mui/material';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -31,7 +31,11 @@ import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 
 const TaskWiseBarChart = () => {
-  const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+
+  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+
+  // const inputRef = useRef(null);
+
   const getCurrentMonthStartDate = () => {
     const currentDate = new Date();
     return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -68,8 +72,8 @@ const TaskWiseBarChart = () => {
     datasets: [
       {
         data: [0, 0, 0], // Initial percentages set to 0
-        backgroundColor: ['#7b69bc', '#435671', '#90C1F2' ],
-        hoverBackgroundColor: ['#7b69bc', '#435671', '#90C1F2' ],
+        backgroundColor: ['#886dd8', '#584189', '#b8a1e7' ],
+        hoverBackgroundColor: ['#886dd8', '#584189', '#b8a1e7' ],
       },
     ],
   });
@@ -106,7 +110,7 @@ const TaskWiseBarChart = () => {
   const handleFetchProjectsForTeam = async (team) => {
     try {
       const response = await axios.get(`${apiUrl}/projectNames?team=${team}`);
-      // console.log(`Projects for ${team} Team Response:`, response.data);
+      console.log(`Projects for ${team} Team Response:`, response.data);
       setTeamProjects(response.data);
     } catch (error) {
       console.error(`Error fetching projects for ${team} team:`, error);
@@ -157,7 +161,7 @@ const TaskWiseBarChart = () => {
         datasets: [
           {
             data: percentages,
-            backgroundColor: ['#7b69bc', '#435671', '#90C1F2' ],
+            backgroundColor: ['#06C', '#5752D1', '#519DE9' ],
             hoverBackgroundColor: ['#7b69bc', '#435671', '#90C1F2' ],
           },
         ],
@@ -215,29 +219,65 @@ const TaskWiseBarChart = () => {
 
         const data = response.data;
 
+        // const uniqueDates = [...new Set(data.map((item) => item._id.date))];
+        // const formattedDates = uniqueDates.map(date => {
+        //   const formattedDate = new Date(date);
+        //   return formattedDate.getDate(); // Only get the day part
+        // });
+
+        // const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
+
+        // const datasets = uniqueTasks.map((task) => {
+        //   const taskData = data.filter((item) => item._id.task === task);
+        //   return {
+        //     label: task,
+        //     data: formattedDates.map((date) => {
+        //       const matchingItem = taskData.find((item) => {
+        //         const itemDate = new Date(item._id.date);
+        //         return itemDate.getDate() === date;
+        //       });
+        //       return matchingItem ? matchingItem.count : 0;
+        //     }),
+        //     backgroundColor: getRandomColor(),
+        //   };
+        // });
+
         const uniqueDates = [...new Set(data.map((item) => item._id.date))];
         const formattedDates = uniqueDates.map(date => {
           const formattedDate = new Date(date);
-          return formattedDate.getDate(); // Only get the day part
+          const day = formattedDate.getDate();
+          const month = formattedDate.toLocaleString('en-US', { month: 'short' });
+          const year = formattedDate.getFullYear();
+          return `${day} ${month} ${year}`;
         });
-
+        
+        // Sort the formattedDates array in chronological order
+        formattedDates.sort((a, b) => new Date(a) - new Date(b));
+        
         const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
-
+        
         const datasets = uniqueTasks.map((task) => {
           const taskData = data.filter((item) => item._id.task === task);
           return {
             label: task,
-            data: formattedDates.map((date) => {
+            data: formattedDates.map((formattedDate) => {
               const matchingItem = taskData.find((item) => {
                 const itemDate = new Date(item._id.date);
-                return itemDate.getDate() === date;
+                const day = itemDate.getDate();
+                const month = itemDate.toLocaleString('en-US', { month: 'short' });
+                const year = itemDate.getFullYear();
+                const itemFormattedDate = `${day} ${month} ${year}`;
+                return itemFormattedDate === formattedDate;
               });
               return matchingItem ? matchingItem.count : 0;
             }),
             backgroundColor: getRandomColor(),
           };
         });
+        
 
+        
+        
         let idleNonBillableCount = 0;
         let idleBillableCount = 0;
         let productionCount = 0;
@@ -281,6 +321,7 @@ const TaskWiseBarChart = () => {
   }, [startDate, endDate, selectedProject, selectedTeam]);
 
   const handleProjectChange = (event) => {
+    // inputRef.current?.focus();
     setSelectedProject(event.target.value);
   };
 
@@ -323,6 +364,9 @@ const TaskWiseBarChart = () => {
         return formattedDate.getDate(); // Only get the day part
       });
 
+
+
+
       const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
 
       const datasets = uniqueTasks.map((task) => {
@@ -364,8 +408,8 @@ const TaskWiseBarChart = () => {
     datasets: [
       {
         data: [],
-            backgroundColor: ['#435671', '#90C1F2' ],
-            hoverBackgroundColor: ['#435671', '#90C1F2' ],
+            backgroundColor: ['#F4C145', '#EABA12' ],
+            hoverBackgroundColor: ['#F4C145', '#90C1F2' ],
       },
     ],
   });
@@ -391,7 +435,7 @@ const TaskWiseBarChart = () => {
             {
               data: percentages,
               
-            backgroundColor: ['#435671', '#90C1F2' ],
+            backgroundColor: ['#979700', '#FF9800' ],
             hoverBackgroundColor: ['#435671', '#90C1F2' ],
             },
           ],
@@ -426,7 +470,7 @@ const TaskWiseBarChart = () => {
   useEffect(() => {
     const fetchStatus1CountByProject = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/api/status1CountByProject`);
+        const response = await axios.get('/api/status1CountByProject');
         setStatus1CountByProject(response.data);
       } catch (error) {
         console.error('Error fetching status1 count by project:', error);
@@ -475,7 +519,7 @@ const TaskWiseBarChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/compareData`);
+        const response = await axios.get('/compareData');
         setComparisonData(response.data);
       } catch (error) {
         console.error('Error fetching comparison data:', error);
@@ -485,24 +529,42 @@ const TaskWiseBarChart = () => {
     fetchData();
   }, []);
 
+  // const { totalEmployees, presentEmployees, absentEmployees } = comparisonData;
+
+  // // Calculate percentage for the doughnut chart
+  // const total = presentEmployees + absentEmployees;
+  // const presentPercentage = ((idleBillableCount + idleNonBillableCount + productionCount) / totalEmployees) * 100;
+  // const absentPercentage = ((totalEmployees - (idleBillableCount + idleNonBillableCount + productionCount)) / totalEmployees) * 100;
+  
+  // // Prepare data for the Doughnut chart
+  // const doughnutChartData = {
+  //   labels: ['Present Employees', 'Absent Employees'],
+  //   datasets: [
+  //     {
+  //       data: [presentPercentage, absentPercentage],
+  //       backgroundColor: ['#38812F', '#F33C51'],
+  //       hoverBackgroundColor: ['#38812F', '#F04F62'],
+  //     },
+  //   ],
+  // };
+
   const { totalEmployees, presentEmployees, absentEmployees } = comparisonData;
 
-  // Calculate percentage for the doughnut chart
-  const total = presentEmployees + absentEmployees;
-  const presentPercentage = ((idleBillableCount + idleNonBillableCount + productionCount) / totalEmployees) * 100;
-  const absentPercentage = ((totalEmployees - (idleBillableCount + idleNonBillableCount + productionCount)) / totalEmployees) * 100;
-  
-  // Prepare data for the Doughnut chart
-  const doughnutChartData = {
-    labels: ['Present Employees', 'Absent Employees'],
-    datasets: [
-      {
-        data: [presentPercentage, absentPercentage],
-        backgroundColor: ['#1A345B', '#AFD0F0'],
-        hoverBackgroundColor: ['#1A345B', '#AFD0F0'],
-      },
-    ],
-  };
+// Calculate counts for the doughnut chart
+const presentCount = idleBillableCount + idleNonBillableCount + productionCount;
+const absentCount = totalEmployees - presentCount;
+
+// Prepare data for the Doughnut chart
+const doughnutChartData = {
+  labels: ['Present Employees', 'Absent Employees'],
+  datasets: [
+    {
+      data: [presentCount, absentCount],
+      backgroundColor: ['#38812F', '#F33C51'],
+      hoverBackgroundColor: ['#38812F', '#F04F62'],
+    },
+  ],
+};
   const [data, setData] = useState([]);
   const [dataTwo, setInitialData] = useState([]);
   useEffect(() => {
@@ -520,6 +582,8 @@ const TaskWiseBarChart = () => {
     reversedData.reverse();
     return reversedData;
   }, [data]);
+
+
 
   const statusIcons = {
     "POC": <SelfImprovementIcon />,
@@ -569,6 +633,7 @@ const TaskWiseBarChart = () => {
       ),
     },
   ];
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -627,12 +692,12 @@ const TaskWiseBarChart = () => {
                 color="secondary"
               />
             </Grid>
+            
             <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
               <Autocomplete
                 value={selectedTeam}
                 onChange={handleTeamChange}
                 options={teams}
-                sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -640,6 +705,16 @@ const TaskWiseBarChart = () => {
                     fullWidth
                     variant="outlined"
                     color="secondary"
+                    style={{
+                      backgroundColor: "white",
+                      marginLeft: "8px",
+                    }}
+                    // inputProps={{
+                    //   style: {
+                    //     height: "2px", // Set the desired height
+                    //     width: "100%", // Set the desired width
+                    //   },
+                    // }}
                   />
                 )}
               />
@@ -650,7 +725,6 @@ const TaskWiseBarChart = () => {
                 onChange={(event, newProject) => setSelectedProject(newProject)}
                 options={selectedTeam ? teamProjects : allProjectNames}
                 getOptionLabel={(option) => option}
-                sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -658,11 +732,22 @@ const TaskWiseBarChart = () => {
                     fullWidth
                     variant="outlined"
                     color="secondary"
+                    style={{
+                      backgroundColor: "white",
+                      marginLeft: "8px",
+                    }}
+                    // ref={inputRef}
+                    // inputProps={{
+                    //   style: {
+                    //     height: "2px",
+                    //     width: "100%",
+                    //     padding: "8px",
+                    //   },
+                    // }}
                   />
                 )}
               />
             </Grid>
-          
           </Box>
         </Grid>
 
@@ -685,35 +770,6 @@ const TaskWiseBarChart = () => {
                 <p sx={{ fontSize: "2px", color: "#333" }}>
                   {idleBillableCount + idleNonBillableCount + productionCount}
                 </p>
-              </CardContent>
-            </CardActionArea>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          <Card sx={{ width: "100%", height: "100%" }}>
-            <CardActionArea>
-              <CardContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    bottom: 1,
-                  }}
-                >
-                  {/* Material-UI icon for Idle - Non Billable */}
-                  <WorkOutlineIcon
-                    fontSize="large"
-                    style={{ color: "#42a883" }}
-                  />
-                </IconButton>
-                <h3>Projects</h3>
-                {selectedTeam ? (
-                  <p>{teamProjects.length}</p>
-                ) : (
-                  <p>{allProjectNames.length}</p>
-                )}
               </CardContent>
             </CardActionArea>
           </Card>
@@ -769,7 +825,36 @@ const TaskWiseBarChart = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
+          <Card sx={{ width: "100%", height: "100%" }}>
+            <CardActionArea>
+              <CardContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
+                <IconButton
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    bottom: 1,
+                  }}
+                >
+                  {/* Material-UI icon for Idle - Non Billable */}
+                  <WorkOutlineIcon
+                    fontSize="large"
+                    style={{ color: "#42a883" }}
+                  />
+                </IconButton>
+                <h3>Projects</h3>
+                {selectedTeam ? (
+                  <p>{teamProjects.length}</p>
+                ) : (
+                  <p>{allProjectNames.length}</p>
+                )}
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        </Grid>
+
+        <Grid item xs={6} md={4}>
           <Card style={{ width: "100%", margin: "0 auto" }}>
             <CardHeader
               title={
@@ -779,10 +864,9 @@ const TaskWiseBarChart = () => {
               }
             />
             <CardContent>
+            <div style={{ width: '80%', margin: '0 auto' }}>
               <Doughnut
                 data={pieChartData}
-                // width={200} // Adjust the width as needed
-                // height={200} // Adjust the height as needed
                 options={{
                   plugins: {
                     tooltip: {
@@ -791,19 +875,21 @@ const TaskWiseBarChart = () => {
                         label: (context) => {
                           const label = context.label || "";
                           const value = context.formattedValue || "";
-                          return `${label}: ${value}%`;
+                          return `${label}: ${value}`;
                         },
                       },
                     },
                   },
+                  cutout: "60%", // Adjust the cutout percentage to reduce the size
                 }}
               />
+              </div>
             </CardContent>
           </Card>
         </Grid>
 
-         {/* Doughnut Chart */}
-         <Grid item xs={12} md={4}>
+        {/* Doughnut Chart */}
+        <Grid item xs={6} md={4}>
           <Card style={{ width: "100%", margin: "0 auto" }}>
             <CardHeader
               title={
@@ -811,9 +897,10 @@ const TaskWiseBarChart = () => {
               }
             />
             <CardContent>
+            <div style={{ width: '80%', margin: '0 auto' }}>
               <Doughnut
                 data={doughnutChartData}
-                width={30} 
+                width={30}
                 height={30}
                 options={{
                   plugins: {
@@ -828,43 +915,48 @@ const TaskWiseBarChart = () => {
                       },
                     },
                   },
+                  cutout: "60%", // Adjust the cutout percentage to reduce the size
                 }}
               />
+              </div>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <Card style={{ width: "100%", margin: "0 auto" }}>
-            <CardHeader
-              title={<h3 style={{ fontSize: "17px" }}>Project Status</h3>}
-            />
-            <CardContent>
-              {pieChartData1.labels.length > 0 && (
-                <Doughnut
-                  data={pieChartData1}
-                  options={{
-                    plugins: {
-                      tooltip: {
-                        enabled: true,
-                        callbacks: {
-                          label: (context) => {
-                            const label = context.label || "";
-                            const value = context.formattedValue || "";
-                            const index = context.dataIndex;
-                            const count = pieChartData1.datasets[0].data[index];
-
-                            return `${label}: ${value}%`;
-                          },
-                        },
-                      },
+        <Grid item xs={6} md={4}>
+  <Card style={{ width: "100%", margin: "0 auto" }}>
+    <CardHeader
+      title={<h3 style={{ fontSize: "17px" }}>Project Status</h3>}
+    />
+    <CardContent>
+      {pieChartData1.labels.length > 0 && (
+        <div style={{ width: '80%', margin: '0 auto' }}>
+          <Doughnut
+            data={pieChartData1}
+            options={{
+              plugins: {
+                tooltip: {
+                  enabled: true,
+                  callbacks: {
+                    label: (context) => {
+                      const label = context.label || "";
+                      const value = context.formattedValue || "";
+                      const index = context.dataIndex;
+                      const count = pieChartData1.datasets[0].data[index];
+                      return `${label}: ${value}%`;
                     },
-                  }}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
+                  },
+                },
+              },
+              cutout: "60%", // Set the cutout percentage to 50%
+            }}
+          />
+        </div>
+      )}
+    </CardContent>
+  </Card>
+</Grid>
+
 
         {/* DataGrid table */}
         <Grid item xs={12} md={6}>
@@ -907,7 +999,11 @@ const TaskWiseBarChart = () => {
 
         <Grid item xs={12} md={6}>
           <Card>
-            <CardHeader title={<h3 style={{ fontSize: "17px" }}>Latest project report</h3>}/>
+            <CardHeader
+              title={
+                <h3 style={{ fontSize: "17px" }}>Latest project report</h3>
+              }
+            />
             <CardContent>
               <div
                 style={{
@@ -959,9 +1055,6 @@ const TaskWiseBarChart = () => {
             </CardContent>
           </Card>
         </Grid>
-        
-
-        
       </Grid>
     </DashboardLayout>
   );
