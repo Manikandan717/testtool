@@ -173,15 +173,15 @@ const TaskWiseBarChart = () => {
           setProductionCount(0);
           return;
         }
-
+  
         let response;
-
+  
         if (selectedProject && selectedTeam) {
           // Fetch data for a specific project and team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split("T")[0],
-              eDate: endDate.toISOString().split("T")[0],
+              sDate: startDate.toISOString().split('T')[0],
+              eDate: endDate.toISOString().split('T')[0],
               projectName: selectedProject,
               team: selectedTeam,
             },
@@ -190,8 +190,8 @@ const TaskWiseBarChart = () => {
           // Fetch data for all projects for a specific team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split("T")[0],
-              eDate: endDate.toISOString().split("T")[0],
+              sDate: startDate.toISOString().split('T')[0],
+              eDate: endDate.toISOString().split('T')[0],
               team: selectedTeam,
             },
           });
@@ -199,36 +199,46 @@ const TaskWiseBarChart = () => {
           // Fetch data for all projects
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split("T")[0],
-              eDate: endDate.toISOString().split("T")[0],
+              sDate: startDate.toISOString().split('T')[0],
+              eDate: endDate.toISOString().split('T')[0],
             },
           });
         }
-
+  
         const data = response.data;
-
         const uniqueDates = [...new Set(data.map((item) => item._id.date))];
-        const formattedDates = uniqueDates.map((date) => {
+        const formattedDates = uniqueDates.map(date => {
           const formattedDate = new Date(date);
-          return formattedDate.getDate(); // Only get the day part
+          const day = formattedDate.getDate();
+          const month = formattedDate.toLocaleString('en-US', { month: 'short' });
+          const year = formattedDate.getFullYear();
+          return `${day} ${month} ${year}`;
         });
-
+        // const formattedDates = uniqueDates.map(date => {
+        //   const formattedDate = new Date(date);
+        //   const day = formattedDate.getDate();
+        //   const month = formattedDate.toLocaleString('en-US', { month: 'short' });
+        //   const year = formattedDate.getFullYear().toString().slice(-2); // Get the last two digits
+        //   return `${day} ${month} ${year}`;
+        // });
+  
         // Sort the formattedDates array in chronological order
         formattedDates.sort((a, b) => new Date(a) - new Date(b));
-
-        // Sort the formattedDates array in chronological order
-        formattedDates.sort((a, b) => new Date(a) - new Date(b));
-
+  
         const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
-
+  
         const datasets = uniqueTasks.map((task) => {
           const taskData = data.filter((item) => item._id.task === task);
           return {
             label: task,
-            data: formattedDates.map((date) => {
+            data: formattedDates.map((formattedDate) => {
               const matchingItem = taskData.find((item) => {
                 const itemDate = new Date(item._id.date);
-                return itemDate.getDate() === date;
+                const day = itemDate.getDate();
+                const month = itemDate.toLocaleString('en-US', { month: 'short' });
+                const year = itemDate.getFullYear();
+                const itemFormattedDate = `${day} ${month} ${year}`;
+                return itemFormattedDate === formattedDate;
               });
               return matchingItem ? matchingItem.count : 0;
             }),
