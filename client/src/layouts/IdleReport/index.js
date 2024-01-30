@@ -155,6 +155,11 @@ const TaskWiseBarChart = () => {
   }, [idleNonBillableCount, idleBillableCount, productionCount, setPieChartData]);
 
   useEffect(() => {
+    fetchPieChartData();
+  }, [fetchPieChartData]);
+
+  
+  useEffect(() => {
     const fetchData = async () => {
       try {
         if (!startDate || !endDate) {
@@ -168,15 +173,15 @@ const TaskWiseBarChart = () => {
           setProductionCount(0);
           return;
         }
- 
+
         let response;
- 
+
         if (selectedProject && selectedTeam) {
           // Fetch data for a specific project and team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split('T')[0],
-              eDate: endDate.toISOString().split('T')[0],
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
               projectName: selectedProject,
               team: selectedTeam,
             },
@@ -185,8 +190,8 @@ const TaskWiseBarChart = () => {
           // Fetch data for all projects for a specific team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split('T')[0],
-              eDate: endDate.toISOString().split('T')[0],
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
               team: selectedTeam,
             },
           });
@@ -194,47 +199,43 @@ const TaskWiseBarChart = () => {
           // Fetch data for all projects
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split('T')[0],
-              eDate: endDate.toISOString().split('T')[0],
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
             },
           });
         }
- 
+
         const data = response.data;
 
         const uniqueDates = [...new Set(data.map((item) => item._id.date))];
-        const formattedDates = uniqueDates.map(date => {
+        const formattedDates = uniqueDates.map((date) => {
           const formattedDate = new Date(date);
-          const day = formattedDate.getDate();
-          const month = formattedDate.toLocaleString('en-US', { month: 'short' });
-          const year = formattedDate.getFullYear();
-          return `${day} ${month} ${year}`;
+          return formattedDate.getDate(); // Only get the day part
         });
-       
+
         // Sort the formattedDates array in chronological order
         formattedDates.sort((a, b) => new Date(a) - new Date(b));
-       
+
+        // Sort the formattedDates array in chronological order
+        formattedDates.sort((a, b) => new Date(a) - new Date(b));
+
         const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
-       
+
         const datasets = uniqueTasks.map((task) => {
           const taskData = data.filter((item) => item._id.task === task);
           return {
             label: task,
-            data: formattedDates.map((formattedDate) => {
+            data: formattedDates.map((date) => {
               const matchingItem = taskData.find((item) => {
                 const itemDate = new Date(item._id.date);
-                const day = itemDate.getDate();
-                const month = itemDate.toLocaleString('en-US', { month: 'short' });
-                const year = itemDate.getFullYear();
-                const itemFormattedDate = `${day} ${month} ${year}`;
-                return itemFormattedDate === formattedDate;
+                return itemDate.getDate() === date;
               });
               return matchingItem ? matchingItem.count : 0;
             }),
             backgroundColor: getRandomColor(),
           };
         });
-        
+
         let idleNonBillableCount = 0;
         let idleBillableCount = 0;
         let productionCount = 0;
