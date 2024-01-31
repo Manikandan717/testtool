@@ -1200,6 +1200,130 @@ app.get("/compareData", async (req, res) => {
 //   }
 // });
 
+// app.post("/att/checkin", async (req, res) => {
+//   try {
+//     const { name, empId, checkInTime } = req.body;
+
+//     // Capture the current date
+//     const currentDate = new Date();
+
+//     const newAttendance = new Attendance({
+//       name,
+//       empId,
+//       checkInTime,
+//       currentDate,
+//     });
+
+//     await newAttendance.save();
+
+//     // Fetch latest check-in data after saving
+//     const latestCheckin = await Attendance.findOne({
+//       empId,
+//       checkOutTime: null,
+//     }).sort({ currentDate: -1 });
+
+//     res.json({
+//       message: "Check-in Data Saved!!!",
+//       latestCheckin: latestCheckin ? latestCheckin.checkInTime : "N/A",
+//     });
+//   } catch (error) {
+//     res.status(400).json("Error: " + error);
+//   }
+// });
+
+// app.post("/att/checkout", async (req, res) => {
+//   try {
+//     const { empId, checkOutTime } = req.body;
+
+//     // Find the latest check-in data for the employee
+//     const checkinAttendance = await Attendance.findOne({
+//       empId,
+//       checkOutTime: null,
+//     }).sort({ currentDate: -1 });
+
+//     if (checkinAttendance) {
+//       checkinAttendance.checkOutTime = checkOutTime;
+
+//       // Calculate overall time
+//       const checkinMoment = moment(checkinAttendance.checkInTime, "hh:mm a");
+//       const checkoutMoment = moment(checkOutTime, "hh:mm a");
+//       const overAll = moment.duration(checkoutMoment.diff(checkinMoment));
+
+//       checkinAttendance.total = `${overAll.hours()}hrs : ${overAll.minutes()}mins`;
+
+//       await checkinAttendance.save();
+
+//       // Fetch latest check-out data after saving
+//       const latestCheckout = await Attendance.findOne({ empId }).sort({
+//         currentDate: -1,
+//       });
+
+//       res.json({
+//         message: "Check-out Data Saved!!!",
+//         latestCheckout: latestCheckout ? latestCheckout.checkOutTime : "N/A",
+//       });
+//     } else {
+//       res.status(400).json("Error: Check-in data not found for check-out");
+//     }
+//   } catch (error) {
+//     res.status(400).json("Error: " + error);
+//   }
+// });
+
+// app.get("/att/latest", async (req, res) => {
+//   try {
+//     const empId = req.query.empId;
+
+//     // Fetch the latest check-in and check-out times
+//     const latestAttendance = await Attendance.findOne({ empId }).sort({
+//       currentDate: -1,
+//     });
+
+//     if (latestAttendance) {
+//       res.json({
+//         latestCheckin: latestAttendance.checkInTime || "N/A",
+//         latestCheckout: latestAttendance.checkOutTime || "N/A",
+//       });
+//     } else {
+//       res.json({
+//         latestCheckin: "N/A",
+//         latestCheckout: "N/A",
+//       });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+// app.get("/fetch/att-data/", (req, res) => {
+//   const empId = req.query.empId;
+//   Attendance.find({ empId: empId })
+//     .sort({ currentDate: -1 }) // Sort by currentDate in descending order
+//     .select("checkInTime checkOutTime total currentDate") // Select only specific fields
+//     .then((attendance) => res.json(attendance))
+//     .catch((err) => res.status(400).json("err" + err));
+// });
+
+
+// Fetch initial mode
+app.get("/att/mode", async (req, res) => {
+  try {
+    const empId = req.query.empId;
+
+    // Fetch the latest check-in and check-out times for the specified empId
+    const latestAttendance = await Attendance.findOne({ empId }).sort({ currentDate: -1 });
+
+    const mode = latestAttendance ? (latestAttendance.checkOutTime ? "checkin" : "checkout") : "checkin";
+
+    res.json({
+      mode,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 app.post("/att/checkin", async (req, res) => {
   try {
     const { name, empId, checkInTime } = req.body;
@@ -1207,20 +1331,27 @@ app.post("/att/checkin", async (req, res) => {
     // Capture the current date
     const currentDate = new Date();
 
-    const newAttendance = new Attendance({
-      name,
-      empId,
-      checkInTime,
-      currentDate,
-    });
+    // Find existing check-in record for the current day
+    const existingCheckin = await Attendance.findOne({ empId, checkOutTime: null, currentDate });
 
-    await newAttendance.save();
+    if (existingCheckin) {
+      // Update existing check-in record
+      existingCheckin.checkInTime = checkInTime;
+      await existingCheckin.save();
+    } else {
+      // Create a new check-in record
+      const newAttendance = new Attendance({
+        name,
+        empId,
+        checkInTime,
+        currentDate,
+      });
+
+      await newAttendance.save();
+    }
 
     // Fetch latest check-in data after saving
-    const latestCheckin = await Attendance.findOne({
-      empId,
-      checkOutTime: null,
-    }).sort({ currentDate: -1 });
+    const latestCheckin = await Attendance.findOne({ empId, checkOutTime: null }).sort({ currentDate: -1 });
 
     res.json({
       message: "Check-in Data Saved!!!",
@@ -1236,15 +1367,12 @@ app.post("/att/checkout", async (req, res) => {
     const { empId, checkOutTime } = req.body;
 
     // Find the latest check-in data for the employee
-    const checkinAttendance = await Attendance.findOne({
-      empId,
-      checkOutTime: null,
-    }).sort({ currentDate: -1 });
+    const checkinAttendance = await Attendance.findOne({ empId, checkOutTime: null }).sort({ currentDate: -1 });
 
     if (checkinAttendance) {
+      // Update check-out time and calculate overall time
       checkinAttendance.checkOutTime = checkOutTime;
 
-      // Calculate overall time
       const checkinMoment = moment(checkinAttendance.checkInTime, "hh:mm a");
       const checkoutMoment = moment(checkOutTime, "hh:mm a");
       const overAll = moment.duration(checkoutMoment.diff(checkinMoment));
@@ -1254,9 +1382,7 @@ app.post("/att/checkout", async (req, res) => {
       await checkinAttendance.save();
 
       // Fetch latest check-out data after saving
-      const latestCheckout = await Attendance.findOne({ empId }).sort({
-        currentDate: -1,
-      });
+      const latestCheckout = await Attendance.findOne({ empId }).sort({ currentDate: -1 });
 
       res.json({
         message: "Check-out Data Saved!!!",
@@ -1275,9 +1401,7 @@ app.get("/att/latest", async (req, res) => {
     const empId = req.query.empId;
 
     // Fetch the latest check-in and check-out times
-    const latestAttendance = await Attendance.findOne({ empId }).sort({
-      currentDate: -1,
-    });
+    const latestAttendance = await Attendance.findOne({ empId }).sort({ currentDate: -1 });
 
     if (latestAttendance) {
       res.json({
@@ -1295,15 +1419,14 @@ app.get("/att/latest", async (req, res) => {
   }
 });
 
-app.get("/fetch/att-data/", (req, res) => {
+app.get("/fetch/att-data", (req, res) => {
   const empId = req.query.empId;
-  Attendance.find({ empId: empId })
+  Attendance.find({ empId })
     .sort({ currentDate: -1 }) // Sort by currentDate in descending order
     .select("checkInTime checkOutTime total currentDate") // Select only specific fields
     .then((attendance) => res.json(attendance))
     .catch((err) => res.status(400).json("err" + err));
 });
-
 //task.js route
 
 //add task

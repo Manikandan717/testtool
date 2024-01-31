@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import axios from "axios";
 import { CardActionArea, CardActions, IconButton } from "@mui/material";
 import { Bar, Doughnut } from "react-chartjs-2";
@@ -23,10 +23,204 @@ import * as XLSX from "xlsx";
 import GroupIcon from "@mui/icons-material/Group";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 
+const MemoizedBarChart = memo(
+  ({ chartData }) =>
+    chartData.labels.length > 0 && (
+      <div style={{ height: "333px", overflowY: "auto" }}>
+        <Bar
+          data={chartData}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true },
+              y: { stacked: true },
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+              },
+            },
+            barThickness: 30,
+          }}
+        />
+      </div>
+    )
+);
+
+const MemoizedBillingChart = memo(
+  ({ pieChartData }) =>
+    pieChartData.labels.length > 0 && (
+      <Card>
+        <CardHeader
+          title={
+            <h3 style={{ fontSize: "17px" }}>Billing & Non-Billing Status</h3>
+          }
+        />
+        <CardContent>
+          <Doughnut
+            data={pieChartData}
+            options={{
+              plugins: {
+                tooltip: {
+                  enabled: true,
+                  callbacks: {
+                    label: (context) => {
+                      const label = context.label || "";
+                      const value = context.formattedValue || "";
+                      return `${label}: ${value}`;
+                    },
+                  },
+                },
+                legend: {
+                  position: "right",
+                  labels: {
+                    generateLabels: function (chart) {
+                      const data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map((label, index) => {
+                          const dataset = data.datasets[0];
+                          const value = dataset.data[index];
+                          return {
+                            text: `${label} (${value})`,
+                            fillStyle: dataset.backgroundColor[index],
+                            strokeStyle: dataset.backgroundColor[index],
+                            lineWidth: 0,
+                          };
+                        });
+                      }
+                      return [];
+                    },
+                  },
+                },
+              },
+              cutout: "60%",
+            }}
+          />
+        </CardContent>
+      </Card>
+    )
+);
+
+const MemoizedDoughnutChart = memo(
+  ({ doughnutChartData }) => {
+    return (
+      <Card>
+        <CardHeader
+          title={<h3 style={{ fontSize: "17px" }}>Employee Attendance Status</h3>}
+        />
+        <CardContent>
+          <Doughnut
+            data={doughnutChartData}
+            options={{
+              plugins: {
+                tooltip: {
+                  enabled: true,
+                  callbacks: {
+                    label: (context) => {
+                      const label = context.label || "";
+                      const value = context.formattedValue || "";
+                      return `${label}: ${value}`;
+                    },
+                  },
+                },
+                legend: {
+                  position: "right",
+                  labels: {
+                    generateLabels: function (chart) {
+                      const data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map((label, index) => {
+                          const dataset = data.datasets[0];
+                          const value = dataset.data[index];
+                          return {
+                            text: `${label} (${value})`,
+                            fillStyle: dataset.backgroundColor[index],
+                            strokeStyle: dataset.backgroundColor[index],
+                            lineWidth: 0,
+                          };
+                        });
+                      }
+                      return [];
+                    },
+                  },
+                },
+              },
+              cutout: "60%",
+            }}
+          />
+        </CardContent>
+      </Card>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Compare the properties that should trigger a re-render
+    return (
+      JSON.stringify(prevProps.doughnutChartData.labels) ===
+        JSON.stringify(nextProps.doughnutChartData.labels) &&
+      JSON.stringify(prevProps.doughnutChartData.datasets[0].data) ===
+        JSON.stringify(nextProps.doughnutChartData.datasets[0].data)
+    );
+  }
+);
+
+const MemoizedProjectStatusChart = memo(
+  ({ pieChartData1 }) =>
+    pieChartData1.labels.length > 0 && (
+      <Card>
+        <CardHeader
+          title={<h3 style={{ fontSize: "17px" }}>Project Status</h3>}
+        />
+        <CardContent>
+          <Doughnut
+            data={pieChartData1}
+            options={{
+              plugins: {
+                tooltip: {
+                  enabled: true,
+                  callbacks: {
+                    label: (context) => {
+                      const label = context.label || "";
+                      const value = context.formattedValue || "";
+                      const index = context.dataIndex;
+                      const count = pieChartData1.datasets[0].data[index];
+                      return `${label}: ${value}`;
+                    },
+                  },
+                },
+                legend: {
+                  position: "right",
+                  labels: {
+                    generateLabels: function (chart) {
+                      const data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map((label, i) => {
+                          const dataset = data.datasets[0];
+                          const count = dataset.data[i];
+                          return {
+                            text: `${label} (${count})`,
+                            fillStyle: dataset.backgroundColor[i],
+                            hidden:
+                              isNaN(dataset.data[i]) || dataset.data[i] === 0,
+                          };
+                        });
+                      }
+                      return [];
+                    },
+                  },
+                },
+              },
+              cutout: "60%",
+            }}
+          />
+        </CardContent>
+      </Card>
+    )
+);
+
 const TaskWiseBarChart = () => {
-  const apiUrl =
-    process.env.REACT_APP_API_URL ||
-    "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
+  const apiUrl ="http://localhost:5000";
   const getCurrentMonthStartDate = () => {
     const currentDate = new Date();
     return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -158,7 +352,6 @@ const TaskWiseBarChart = () => {
     fetchPieChartData();
   }, [fetchPieChartData]);
 
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -173,9 +366,9 @@ const TaskWiseBarChart = () => {
           setProductionCount(0);
           return;
         }
-  
+
         let response;
-  
+
         if (selectedProject && selectedTeam) {
           // Fetch data for a specific project and team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
@@ -276,7 +469,6 @@ const TaskWiseBarChart = () => {
           id: index + 1,
           task: task,
           count: datasets[index].data.reduce((sum, value) => sum + value, 0),
-          // Include count property in the tableData
         }));
 
         setTableData(tableData);
@@ -287,7 +479,7 @@ const TaskWiseBarChart = () => {
 
     fetchData();
   }, [startDate, endDate, selectedProject, selectedTeam]);
-
+  
   const handleProjectChange = (event) => {
     setSelectedProject(event.target.value);
   };
@@ -828,174 +1020,17 @@ const TaskWiseBarChart = () => {
             </CardActionArea>
           </Card>
         </Grid>
+        <Grid container spacing={2} style={{ marginTop: "10px" }}>
         <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader
-              title={
-                <h3 style={{ fontSize: "17px" }}>
-                  Billing & Non-Billing Status
-                </h3>
-              }
-            />
-            <CardContent>
-              {/* <div style={{ width: '80%', margin: '0 auto' }}> */}
-              <Doughnut
-                data={pieChartData}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      enabled: true,
-                      callbacks: {
-                        label: (context) => {
-                          const label = context.label || "";
-                          const value = context.formattedValue || "";
-                          return `${label}: ${value}`;
-                        },
-                      },
-                    },
-                    legend: {
-                      position: "right",
-                      labels: {
-                        generateLabels: function (chart) {
-                          const data = chart.data;
-                          if (data.labels.length && data.datasets.length) {
-                            return data.labels.map((label, index) => {
-                              const dataset = data.datasets[0];
-                              const value = dataset.data[index];
-                              return {
-                                text: `${label} (${value})`,
-                                fillStyle: dataset.backgroundColor[index],
-                                strokeStyle: dataset.backgroundColor[index],
-                                lineWidth: 0,
-                              };
-                            });
-                          }
-                          return [];
-                        },
-                      },
-                    },
-                  },
-                  cutout: "60%", // Adjust the cutout percentage to reduce the size
-                }}
-              />
-              {/* </div> */}
-            </CardContent>
-          </Card>
+          <MemoizedBillingChart pieChartData={pieChartData} />
         </Grid>
-
-        {/* Doughnut Chart */}
         <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader
-              title={
-                <h3 style={{ fontSize: "17px" }}>Employee Attendance Status</h3>
-              }
-            />
-            <CardContent>
-              {/* <div style={{ width: '80%'}}> */}
-              <Doughnut
-                data={doughnutChartData}
-                // height={30}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      enabled: true,
-                      callbacks: {
-                        label: (context) => {
-                          const label = context.label || "";
-                          const value = context.formattedValue || "";
-                          return `${label}: ${value}`;
-                        },
-                      },
-                    },
-                    legend: {
-                      position: "right",
-                      labels: {
-                        generateLabels: function (chart) {
-                          const data = chart.data;
-                          if (data.labels.length && data.datasets.length) {
-                            return data.labels.map((label, index) => {
-                              const dataset = data.datasets[0];
-                              const value = dataset.data[index];
-                              return {
-                                text: `${label} (${value})`,
-                                fillStyle: dataset.backgroundColor[index],
-                                strokeStyle: dataset.backgroundColor[index],
-                                lineWidth: 0,
-                              };
-                            });
-                          }
-                          return [];
-                        },
-                      },
-                    },
-                  },
-                  cutout: "60%",
-                }}
-              />
-              {/* </div> */}
-            </CardContent>
-          </Card>
+          <MemoizedDoughnutChart doughnutChartData={doughnutChartData} />
         </Grid>
-
         <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader
-              title={<h3 style={{ fontSize: "17px" }}>Project Status</h3>}
-            />
-            <CardContent>
-              {pieChartData1.labels.length > 0 && (
-                // <div style={{ width: '80%', margin: '0 auto' }}>
-                <Doughnut
-                  data={pieChartData1}
-                  options={{
-                    plugins: {
-                      tooltip: {
-                        enabled: true,
-                        callbacks: {
-                          label: (context) => {
-                            const label = context.label || "";
-                            const value = context.formattedValue || "";
-                            const index = context.dataIndex;
-                            const count = pieChartData1.datasets[0].data[index];
-                            return `${label}: ${value}`;
-                          },
-                        },
-                      },
-                      legend: {
-                        position: "right",
-                        labels: {
-                          generateLabels: function (chart) {
-                            const data = chart.data;
-                            if (data.labels.length && data.datasets.length) {
-                              return data.labels.map((label, i) => {
-                                const dataset = data.datasets[0];
-                                const count = dataset.data[i];
-                                return {
-                                  text: `${label} (${count})`,
-                                  fillStyle: dataset.backgroundColor[i],
-                                  hidden:
-                                    isNaN(dataset.data[i]) ||
-                                    dataset.data[i] === 0,
-                                  // You can customize other properties as needed
-                                };
-                              });
-                            }
-                            return [];
-                          },
-                        },
-                      },
-                    },
-                    cutout: "60%", // Set the cutout percentage to 50%
-                  }}
-                />
-                // </div>
-              )}
-            </CardContent>
-          </Card>
+          <MemoizedProjectStatusChart pieChartData1={pieChartData1} />
         </Grid>
-
-        {/* DataGrid table */}
+        </Grid>
         <Grid item xs={12} md={6}>
           <Card>
             <CardHeader
@@ -1067,28 +1102,7 @@ const TaskWiseBarChart = () => {
               title={<h3 style={{ fontSize: "17px" }}>Task Report Status</h3>}
             />
             <CardContent>
-              {chartData.labels.length > 0 && (
-                <div style={{ height: "333px", overflowY: "auto" }}>
-                  <Bar
-                    data={chartData}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        x: { stacked: true },
-                        y: { stacked: true },
-                      },
-                      plugins: {
-                        legend: {
-                          display: true,
-                          position: "top",
-                        },
-                      },
-                      barThickness: 30, // Adjust the value to your desired thickness
-                    }}
-                  />
-                </div>
-              )}
+                <MemoizedBarChart chartData={chartData} />
             </CardContent>
           </Card>
         </Grid>
