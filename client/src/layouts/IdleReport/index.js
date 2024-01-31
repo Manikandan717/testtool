@@ -253,7 +253,7 @@ const TaskWiseBarChart = () => {
 
   // New state variable for Pie Chart
   const [pieChartData, setPieChartData] = useState({
-    labels: ["Idle - Non Billable", "Idle - Billable", "Production"],
+    labels: ["Idle-NonBillable", "Idle-Billable", "Production"],
     datasets: [
       {
         data: [0, 0, 0], // Initial percentages set to 0
@@ -1020,7 +1020,7 @@ const TaskWiseBarChart = () => {
             </CardActionArea>
           </Card>
         </Grid>
-        <Grid container spacing={2} style={{ marginTop: "10px" }}>
+        <Grid container spacing={2} style={{ marginTop: "10px", paddingLeft: "16px" }}>
         <Grid item xs={12} md={4}>
           <MemoizedBillingChart pieChartData={pieChartData} />
         </Grid>
