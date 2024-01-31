@@ -17,53 +17,42 @@ import Box from "@mui/material/Box";
 import './calendar.css';
 
 function Attendance() {
-  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp"; // Update with your backend URL
   const dispatch = useDispatch();
-  const [checkinTime, setCheckinTime] = useState(localStorage.getItem("checkinTime") || "");
-  const [checkoutTime, setCheckoutTime] = useState(localStorage.getItem("checkoutTime") || "");
-  const [total, setTotal] = useState(localStorage.getItem("total") || "");
+  const [checkinTime, setCheckinTime] = useState("");
+  const [checkoutTime, setCheckoutTime] = useState("");
+  const [total, setTotal] = useState("");
   const name = useSelector((state) => state.auth.user.name);
   const empId = useSelector((state) => state.auth.user.empId);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [attendanceData, setAttendanceData] = useState([]);
-  const [isCheckinButtonDisabled, setCheckinButtonDisabled] = useState(
-    localStorage.getItem("isCheckinButtonDisabled") === "true" || false
-  );
-
-  const [isCheckoutButtonDisabled, setCheckoutButtonDisabled] = useState(
-    localStorage.getItem("isCheckoutButtonDisabled") === "true" || false
-  );
+  const [isCheckinButtonDisabled, setCheckinButtonDisabled] = useState(false);
+  const [isCheckoutButtonDisabled, setCheckoutButtonDisabled] = useState(false);
   const [selectedAttendanceData, setSelectedAttendanceData] = useState([]);
+  const [mode, setMode] = useState("");
 
   const dayCellRenderer = ({ date }) => {
-    // Check if the date is in the past
     const isPastDate = moment(date).isSameOrBefore(moment(), "day");
-  
-    // Find the attendance data for the current date
     const attendanceDataForDate = selectedAttendanceData.find(
       (item) => moment(item.currentDate).isSame(date, "day")
     );
-  
-    // Determine the symbol based on whether it is in the past and has a checkout time
     const symbol =
       isPastDate && attendanceDataForDate && attendanceDataForDate.checkOutTime
         ? "P"
         : isPastDate
         ? "A"
         : "";
-  
-    // Apply fixed padding for all cells
+
     const cellStyle = {
-      padding: "9px", // Set your desired fixed padding value here
+      padding: "9px",
       textAlign: "center",
       fontWeight: "bold",
       color: isPastDate ? (symbol === "P" ? "green" : "red") : "unset",
-      cursor: "not-allowed", // Add cursor style for future dates
+      cursor: "not-allowed",
     };
-  
+
     const handleDateClick = () => {
       if (isPastDate && !attendanceDataForDate) {
-        // Toggle attendance on date click only for past dates without data
         const updatedData = selectedAttendanceData.map((item) => {
           if (moment(item.currentDate).isSame(date, "day")) {
             return {
@@ -73,24 +62,46 @@ function Attendance() {
           }
           return item;
         });
-  
+
         setSelectedAttendanceData(updatedData);
       }
     };
-  
+
     return (
       <div style={cellStyle} onClick={handleDateClick}>
         {symbol}
       </div>
     );
   };
-  
 
-
+  const handleToggleButtonClick = async () => {
+    try {
+      if (mode === "checkin") {
+        await handleCheckin();
+      } else {
+        await handleCheckout();
+        const modeResponse = await fetch(`${apiUrl}/att/mode?empId=${empId}`);
+        const modeData = await modeResponse.json();
+        setMode(modeData.mode);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   useEffect(() => {
-    fetchData(); // Initial data fetch
-  }, [empId, selectedDate]);
+    const fetchInitialMode = async () => {
+      try {
+        const modeResponse = await fetch(`${apiUrl}/att/mode?empId=${empId}`);
+        const modeData = await modeResponse.json();
+        setMode(modeData.mode);
+      } catch (error) {
+        console.error("Error fetching initial mode:", error);
+      }
+    };
+
+    fetchInitialMode();
+  }, [empId]);
 
   const fetchData = async () => {
     try {
@@ -101,19 +112,105 @@ function Attendance() {
       }
 
       const data = await response.json();
-      const mappedData = data.map((item) => ({ ...item, id: item._id, hasAttendance: true })); // Set hasAttendance to true for all dates
+      const mappedData = data.map((item) => ({ ...item, id: item._id, hasAttendance: true }));
 
-      // Filter data based on the selected date if it's set
       const filteredData = selectedDate
         ? mappedData.filter((item) => moment(item.currentDate).isSame(selectedDate, "day"))
         : mappedData;
 
       setAttendanceData(filteredData);
-      setSelectedAttendanceData(mappedData); // Set the selected data for the DataGrid
+      setSelectedAttendanceData(mappedData);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
+
+  const handleCheckin = async () => {
+    try {
+      setCheckinButtonDisabled(true);
+  
+      const timeNow = moment().format("hh:mm a");
+  
+      const response = await fetch(`${apiUrl}/att/checkin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          empId,
+          checkInTime: timeNow,
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Check-in time saved successfully");
+  
+        setCheckinTime(data.latestCheckin);
+        setCheckoutTime("");
+        setTotal("");
+
+        // Fetch the latest attendance data immediately after check-in
+        await fetchData();
+  
+        // Fetch the current mode from the server after successful check-in
+        const modeResponse = await fetch(`${apiUrl}/att/mode?empId=${empId}`);
+        const modeData = await modeResponse.json();
+        setMode(modeData.mode);
+      } else {
+        console.error("Failed to save check-in time");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setTimeout(() => {
+        setCheckinButtonDisabled(false);
+      }, 0);
+    }
+  };
+  
+
+  const handleCheckout = async () => {
+    try {
+      setCheckoutButtonDisabled(true);
+
+      const checkTime = moment().format("hh:mm a");
+
+      const response = await fetch(`${apiUrl}/att/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          empId,
+          checkOutTime: checkTime,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Check-out time saved successfully");
+
+        setCheckoutTime(data.latestCheckout);
+        setTotal(data.latestTotal);
+
+        await fetchData();
+      } else {
+        console.error("Failed to save check-out time");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setTimeout(() => {
+        setCheckoutButtonDisabled(false);
+      }, 0);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [empId, selectedDate]);
 
   const columns = [
     { field: "id", headerName: "S.No", editable: false },
@@ -136,179 +233,55 @@ function Attendance() {
     status: item.checkOutTime ? 'Present' : 'Absent',
   }));
 
-  const fetchLatestCheckinAndCheckout = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/att/latest?empId=${empId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setCheckinTime(data.latestCheckin);
-        setCheckoutTime(data.latestCheckout);
-      } else {
-        console.error("Failed to fetch latest check-in and check-out data");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    fetchLatestCheckinAndCheckout();
-  }, [empId, selectedDate]);
-
-const handleCheckin = async () => {
-  try {
-    // Set the check-in button to disabled
-    setCheckinButtonDisabled(true);
-    localStorage.setItem("isCheckinButtonDisabled", "true");
-
-    // Define 'timeNow'
-    const timeNow = moment().format("hh:mm a");
-
-    // Send check-in time to the server
-    const response = await fetch(`${apiUrl}/att/checkin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        empId,
-        checkInTime: timeNow,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("Check-in time saved successfully");
-
-      // Update the latest check-in time in the component state
-      setCheckinTime(data.latestCheckin);
-
-      // Reset checkoutTime and total
-      setCheckoutTime("");
-      setTotal("");
-    } else {
-      console.error("Failed to save check-in time");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-  }
-};
-
-
-  const handleCheckout = async () => {
-    try {
-      // Set the check-out button to disabled
-      setCheckoutButtonDisabled(true);
-      localStorage.setItem("isCheckoutButtonDisabled", "true");
-
-      // Define 'checkTime'
-      const checkTime = moment().format("hh:mm a");
-
-      // Send check-out time to the server
-      const response = await fetch(`${apiUrl}/att/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          empId,
-          checkOutTime: checkTime,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Check-out time saved successfully");
-
-        // Update the latest check-out time and total in the component state
-        setCheckoutTime(data.latestCheckout);
-        setTotal(data.latestTotal);
-
-        await fetchData(); // Refresh data after check-out
-      } else {
-        console.error("Failed to save check-out time");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      // Enable the check-in and check-out buttons again after 1 hour
-      setTimeout(() => {
-        setCheckinButtonDisabled(false);
-        localStorage.setItem("isCheckinButtonDisabled", "false");
-
-        setCheckoutButtonDisabled(false);
-        localStorage.setItem("isCheckoutButtonDisabled", "false");
-      }, 0); // 1 hour in milliseconds
-    }
-  };
-
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <Grid item xs={12} mt={1}>
         <MDBox mt={2} mb={2}>
-          <Grid container spacing={3} justifyContent="center">
-            <Grid item xs={12} lg={8}>
-              <MDBox
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <MDTypography mb={3} style={{ marginRight: "80px" }} variant="caption" color="info" fontWeight="regular">
-                  <h1>Employee Attendance</h1>
-                </MDTypography>
-                <MDBox
-                  display="flex"
-                  width="850px"
-                  flexDirection="row"
-                  alignItems="center"
-                  justifyContent="space-evenly"
-                >
-                  <Grid mt={3} item xs={12} md={6} lg={4}>
-                    <MDButton
-                      type="submit"
-                      onClick={handleCheckin}
-                      style={{ marginLeft: "100px" }}
-                      disabled={isCheckinButtonDisabled}
-                    >
-                      <img
-                        src={checkinImage}
-                        alt="Check In"
-                        display="flex"
-                        style={{ cursor: "pointer", marginBottom: "16px", width: "100%", maxWidth: "100px" }}
-                      />
-                    </MDButton>
-                    <MDBox display="flex" flexDirection="column">
-                      <MDTypography mt={3} variant="caption" color="dark" fontWeight="regular" style={{ marginLeft: "90px" }}>
-                        <h3>Check-In Time: {checkinTime}</h3>
-                      </MDTypography>
-                    </MDBox>
-                  </Grid>
-                  <Grid mt={3} item xs={12} md={6} lg={4}>
-                    <MDButton
-                      type="submit"
-                      onClick={handleCheckout}
-                      disabled={isCheckoutButtonDisabled}
-                    >
-                      <img
-                        src={checkoutImage}
-                        alt="Check Out"
-                        style={{ cursor: "pointer", marginBottom: "16px", width: "100%", maxWidth: "100px" }}
-                      />
-                    </MDButton>
-                    <MDBox display="flex" flexDirection="column">
-                      <MDTypography mt={3} variant="caption" color="dark" fontWeight="regular" style={{ marginLeft: "0px" }}>
-                        <h3>Check-Out Time: {checkoutTime}</h3>
-                      </MDTypography>
-                    </MDBox>
-                  </Grid>
-                </MDBox>
-              </MDBox>
-            </Grid>
-          </Grid>
+        <Grid container spacing={3} justifyContent="center">
+  <Grid item xs={12} lg={8} container justifyContent="center">
+    <MDBox
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="space-between"
+    >
+      <MDTypography mb={3}  variant="caption" color="info" fontWeight="regular">
+        <h1>ATTENDANCE</h1>
+      </MDTypography>
+      <MDBox
+        display="flex"
+        width="850px"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="space-evenly"
+      >
+        <Grid item xs={12} md={6} lg={4} container justifyContent="center">
+          <MDButton
+            type="submit"
+            onClick={handleToggleButtonClick}
+            disabled={isCheckinButtonDisabled || isCheckoutButtonDisabled}
+          >
+            <img
+              src={mode === "checkin" ? checkinImage : checkoutImage}
+              alt={mode === "checkin" ? "Check In" : "Check Out"}
+              display="flex"
+              style={{ cursor: "pointer", marginBottom: "16px", width: "100%", maxWidth: "100px" }}
+            />
+          </MDButton>
+        </Grid>
+        <Grid item xs={12} mt={2} md={6} lg={4} container justifyContent="center">
+          <MDBox>
+            <MDTypography variant="caption" color="dark" fontWeight="regular" style={{ textAlign: "center" }}>
+              <h2>{mode === "checkin" ? "PUNCH-IN" : "PUNCH-OUT"} </h2>
+            </MDTypography>
+          </MDBox>
+        </Grid>
+      </MDBox>
+    </MDBox>
+  </Grid>
+</Grid>
+
         </MDBox>
       </Grid>
 
@@ -329,7 +302,7 @@ const handleCheckin = async () => {
               selected={selectedDate}
               onChange={(date) => {
                 setSelectedDate(date);
-                fetchData(); // Fetch data for the selected date
+                fetchData();
               }}
               dateFormat="yyyy-MM-dd"
               isClearable
@@ -358,4 +331,3 @@ const handleCheckin = async () => {
 }
 
 export default Attendance;
-

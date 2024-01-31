@@ -202,12 +202,7 @@ function Report() {
   // Upload Data
   const submit = (e) => {
     e.preventDefault();
-
-    // const tasksData = tasks.map((task) => ({
-    //   task: task.task,
-    //   sessionOne: `${task.sessionOneHours}:${task.sessionOneMinutes || "00"}`,
-    // }));
-
+  
     const userData = {
       name,
       empId,
@@ -220,7 +215,7 @@ function Report() {
         sessionOne: `${task.sessionOneHours}:${task.sessionOneMinutes || "00"}`,
       })),
     };
-
+  
     axios
       .post(`${apiUrl}/add`, userData)
       .then(() => {
@@ -232,9 +227,27 @@ function Report() {
           .then((response) => {
             setInitialData(response.data);
           });
+  
+        // Reset hours and minutes after successful submission
+        setTasks([
+          {
+            task: "",
+            sessionOneHours: "",
+            sessionOneMinutes: "",
+          },
+        ]);
+  
+        setValue((prevValues) => ({
+          ...prevValues,
+          dateTask: "",
+          team: "",
+          projectName: "",
+          managerTask: "",
+        }));
       })
       .catch((err) => toast.error(`All fields required☹️`));
   };
+  
 
   const listtask = ["CV", "NLP", "CM"];
 
