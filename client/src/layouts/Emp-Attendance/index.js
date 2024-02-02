@@ -19,7 +19,7 @@ import MDInput from "components/MDInput";
  
 function Attendance() {
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
-  const name = useSelector((state) => state.auth.user.name);
+  const managerTask = useSelector((state) => state.auth.user.name);
   const empId = useSelector((state) => state.auth.user.empId);
  
   const [attendanceData, setAttendanceData] = useState([]);
@@ -28,8 +28,9 @@ function Attendance() {
   const [loading, setLoading] = useState(true);
  
   useEffect(() => {
-    // setLoading(true); // Set loading to true when starting the data fetch
-    fetch(`${apiUrl}/emp-attendance`)
+    const managerName = managerTask.trim();
+    // Include the managerTask value in the API URL
+    fetch(`${apiUrl}/emp-attendance/${managerName}`)
       .then((response) => response.json())
       .then((data) => {
         const mappedData = data.map((item, index) => ({ ...item, id: index + 1 }));
@@ -37,7 +38,7 @@ function Attendance() {
       })
       .catch((error) => console.error('Error fetching data:', error))
       .finally(() => setLoading(false)); // Set loading to false once data is loaded
-  }, []);
+  }, [managerTask]); 
  
   const handleStartDateChange = (date) => {
     setStartDate(date);
@@ -78,6 +79,8 @@ function Attendance() {
     },
     { field: 'name', headerName: 'Name', width: 150, flex: 1 },
     { field: 'empId', headerName: 'Employee ID', width: 150, flex: 1 },
+    { field: 'team', headerName: 'Team', width: 150, flex: 1 },
+    { field: 'projectName', headerName: 'Project Name', width: 150, flex: 1 },
     { field: 'checkInTime', headerName: 'Check In', width: 150, flex: 1 },
     { field: 'checkOutTime', headerName: 'Check Out', width: 150 },
     { field: 'total', headerName: 'Total', width: 150 },

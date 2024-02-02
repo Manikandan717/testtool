@@ -24,18 +24,22 @@ import Employee from "./models/excelUpload.js";
 import Analyst from "./models/analyst.model.js";
 import Billing from "./models/billing.model.js";
 import Attendance from "./models/attendance.model.js";
-
+import cron from "node-cron";
 import Task from "./models/task.model.js";
 import Manager from "./models/addmanager.model.js";
 import Team from "./models/addteam.model.js";
 import Status from "./models/status.model.js";
 import AddTeam from "./models/addteam.model.js";
 // import moment from 'moment';
-import passportJwt from "passport-jwt";
-import Key from "./config/key.js";
-import jwtStrategy from "passport-jwt";
-import extractJwt from "passport-jwt";
-import moment from "moment";
+
+import passportJwt from 'passport-jwt';
+import Key from './config/key.js';
+import jwtStrategy from 'passport-jwt';
+import extractJwt from 'passport-jwt';  // Replace with your actual secret key
+import moment from 'moment';
+import { DateTime } from 'luxon'
+
+
 // import awsServerlessExpressMiddleware from 'aws-serverless-express/middleware.js';
 
 const app = express();
@@ -106,6 +110,7 @@ const HOST = process.env.SMTP_HOST || "email-smtp.us-east-1.amazonaws.com";
 const PORT = process.env.SMTP_PORT || 587;
 const USER = process.env.SMTP_USER || "AKIATUPT4BZDUGEXYTWY";
 const PASS = process.env.SMTP_PASS || "BGeW6eUx3pr6no+h+frO9mhe5iIPm2R0w/Fxlyv/oAV7";
+
 
 await mongoose.connect(
   process.env.ATLAS_URI,
@@ -260,7 +265,7 @@ app.post("/login", async (req, res) => {
       email === "superadmin@objectways.com" &&
       password === "superadmin@123"
     ) {
-      const payload = {
+           const payload = {
         id: "superadmin", // You can use a unique identifier for the superadmin
         name: "Super Admin",
         email: "superadmin@objectways.com",
@@ -311,6 +316,7 @@ app.post("/login", async (req, res) => {
               await lastLogin.save();
 
               user.lastLogin = lastLogin._id;
+              user.managerTask = user.name; // Associate managerTask with the user's name
 
               await user.save();
 
@@ -344,7 +350,7 @@ app.post("/login", async (req, res) => {
           } else {
             return res
               .status(400)
-              .json({ passwordIncorrect: "Password is Incorrect" });
+              .json({ passwordIncorrect: "Password Incorrect" });
           }
         });
       });
@@ -354,6 +360,7 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 app.get("/users", (req, res) => {
   User.find({}, "name")
@@ -468,7 +475,7 @@ app.post("/authentication/user/forget", (req, res) => {
                                                                                         </td>
                                                                                     </tr>
                                                                                     <tr>
-                                                                                        <td align="center" class="esd-block-button es-p15t es-p15b" style="padding: 0;margin: 0;padding-top: 15px;padding-bottom: 15px;" ><span class="es-button-border" style="border-style: solid solid solid solid;border-color: #26C6DA #26C6DA #26C6DA #26C6DA;background: #26C6DA;border-width: 4px 4px 4px 4px;display: inline-block;border-radius: 10px;width: auto;"><a href="https://www.pmt.objectways.com/authentication/reset/${token}" class="es-button" target="_blank" style="font-weight: normal;-webkit-text-size-adjust: none;-ms-text-size-adjust: none;mso-line-height-rule: exactly;text-decoration: none !important;color: #ffffff;font-size: 20px;border-style: solid;border-color: #26C6DA;border-width: 10px 25px 10px 30px;display: inline-block;background: #26C6DA;border-radius: 10px;font-family: arial, 'helvetica neue', helvetica, sans-serif;font-style: normal;line-height: 120%;width: auto;text-align: center;mso-style-priority: 100 !important;"> Reset Your Password</a></span></td>
+                                                                                        <td align="center" class="esd-block-button es-p15t es-p15b" style="padding: 0;margin: 0;padding-top: 15px;padding-bottom: 15px;" ><span class="es-button-border" style="border-style: solid solid solid solid;border-color: #26C6DA #26C6DA #26C6DA #26C6DA;background: #26C6DA;border-width: 4px 4px 4px 4px;display: inline-block;border-radius: 10px;width: auto;"><a href="http://localhost:3000/authentication/reset/${token}" class="es-button" target="_blank" style="font-weight: normal;-webkit-text-size-adjust: none;-ms-text-size-adjust: none;mso-line-height-rule: exactly;text-decoration: none !important;color: #ffffff;font-size: 20px;border-style: solid;border-color: #26C6DA;border-width: 10px 25px 10px 30px;display: inline-block;background: #26C6DA;border-radius: 10px;font-family: arial, 'helvetica neue', helvetica, sans-serif;font-style: normal;line-height: 120%;width: auto;text-align: center;mso-style-priority: 100 !important;"> Reset Your Password</a></span></td>
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <td align="center" class="esd-block-text es-p10t es-p10b">
@@ -593,7 +600,7 @@ app.post("/authentication/user/forget", (req, res) => {
   });
 });
 
-app.post("/authentication/user/reset", (req, res) => {
+app.post("/reset", (req, res) => {
   const newPass = req.body.password;
   const email = req.body.email;
   const sendToken = req.body.token;
@@ -679,6 +686,23 @@ app.post("/uploadData", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+app.get('/fetch/manager-name', async (req, res) => {
+  try {
+    // Fetch employees with designation "Project Manager"
+    const projectManagers = await Employee.find({ designation: "Project Manager" });
+
+    // Extract both the emp_name and designation from the project managers
+    const projectManagerDetails = projectManagers.map(manager => ({
+      emp_name: manager.emp_name,
+      designation: manager.designation
+    }));
+
+    res.status(200).json(projectManagerDetails);
+  } catch (error) {
+    console.error('Error fetching manager data', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // GET route for fetching data
 app.get("/fetchData", async (req, res) => {
@@ -743,6 +767,23 @@ app.get("/analyst", async (req, res) => {
     .then((analyst) => res.json(analyst))
     .catch((err) => res.status(400).json("Error:" + err));
 });
+
+app.get("/analyst/byManagerTask/:managerTask", async (req, res) => {
+  const managerTask = req.params.managerTask;
+
+  try {
+    const analysts = await Analyst.find({ managerTask });
+
+    if (analysts.length === 0) {
+      return res.status(404).json({ message: "No analysts found for the specified managerTask." });
+    }
+
+    res.json(analysts);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
+
 app.delete("/delete/usertask/:id", async (req, res) => {
   try {
     // Find the task by ID and delete it
@@ -1003,6 +1044,82 @@ app.get("/admin", (req, res) => {
     .then((billing) => res.json(billing))
     .catch((err) => res.status(400).json("Error:" + err));
 });
+
+app.get("/getBatchByProjectName", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+
+    // Find the project in Analyst schema
+    const analystProject = await Analyst.findOne({ projectName });
+
+    if (!analystProject) {
+      return res.status(404).json({ error: "Project not found in Analyst schema" });
+    }
+
+    // Find the project in Billing schema
+    const billingProject = await Billing.findOne({ projectname: projectName });
+
+    if (!billingProject) {
+      return res.status(404).json({ error: "Project not found in Billing schema" });
+    }
+
+    // If both projects exist, send the batch value from Billing schema
+    const batchValue = billingProject.batch;
+
+    res.json({ batchValue });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to calculate the count of emp_id
+app.get('/employeeCount', async (req, res) => {
+  try {
+    // Use Mongoose aggregation to calculate the count
+    const result = await Employee.aggregate([
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Extract the count from the result
+    const count = result.length > 0 ? result[0].count : 0;
+
+    res.json({ count });
+  } catch (error) {
+    console.error('Error calculating employee count:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// New route to get overall batch count by team
+app.get("/overallBatchCountByTeam", async (req, res) => {
+  try {
+    console.log("Received request for /overallBatchCountByTeam");
+    
+    const result = await Billing.aggregate([
+      {
+        $group: {
+          _id: "$team",
+          overallBatchCount: { $sum: "$batch" },
+        },
+      },
+    ]);
+
+    console.log("Sending response:", result);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error getting overall batch count by team:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 // Assuming you have a route like this in your Express app
 app.get("/projectStatus", async (req, res) => {
   try {
@@ -1117,11 +1234,97 @@ app.get("/fetch/report/", (req, res) => {
 //attendatnce.js route
 
 // Fetch all attendance data
-app.get("/emp-attendance", (req, res) => {
-  Attendance.find()
-    .then((attendance) => res.json(attendance))
-    .catch((err) => res.status(400).json("Error:" + err));
+// app.get("/emp-attendance", (req, res) => {
+//   Attendance.find()
+//     .then((attendance) => res.json(attendance))
+//     .catch((err) => res.status(400).json("Error:" + err));
+// });
+
+app.get("/emp-attendance", async (req, res) => {
+  try {
+    const empAttendanceData = await Attendance.find();
+    const analystData = await Analyst.find();
+
+    // Compare empIds and find matching records
+    const matchingData = empAttendanceData.filter(empAttendance => {
+      const matchingAnalyst = analystData.find(analyst => analyst.empId === empAttendance.empId);
+      return matchingAnalyst;
+    });
+
+    // Extract specific fields from the matching data
+    const result = matchingData.map(empAttendance => {
+      const matchingAnalyst = analystData.find(analyst => analyst.empId === empAttendance.empId);
+      return {
+        name: empAttendance.name,
+        empId: empAttendance.empId,
+        projectName: matchingAnalyst.projectName,
+        team: matchingAnalyst.team,
+        checkInTime: empAttendance.checkInTime,
+        checkOutTime: empAttendance.checkOutTime,
+        total: empAttendance.total,
+        currentDate: empAttendance.currentDate,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
+app.get("/emp-attendance/:managerTask", async (req, res) => {
+  try {
+    const empAttendanceData = await Attendance.find();
+    const analystData = await Analyst.find();
+
+    // Group analystData by managerTask
+    const groupedAnalystData = analystData.reduce((acc, analyst) => {
+      if (!acc[analyst.managerTask]) {
+        acc[analyst.managerTask] = [];
+      }
+      acc[analyst.managerTask].push(analyst);
+      return acc;
+    }, {});
+
+    // Get the specified managerTask from the route parameter
+    const specifiedManagerTask = req.params.managerTask;
+
+    // Check if the specified managerTask exists in the groupedAnalystData
+    if (groupedAnalystData[specifiedManagerTask]) {
+      // Filter empAttendanceData based on the specified managerTask
+      const matchingData = empAttendanceData.filter(empAttendance => {
+        const matchingAnalyst = groupedAnalystData[specifiedManagerTask].find(analyst =>
+          analyst.empId === empAttendance.empId
+        );
+        return matchingAnalyst;
+      });
+
+      // Extract specific fields from the matching data
+      const result = matchingData.map(empAttendance => {
+        const matchingAnalyst = groupedAnalystData[specifiedManagerTask].find(analyst =>
+          analyst.empId === empAttendance.empId
+        );
+        return {
+          name: empAttendance.name,
+          empId: empAttendance.empId,
+          projectName: matchingAnalyst.projectName,
+          team: matchingAnalyst.team,
+          checkInTime: empAttendance.checkInTime,
+          checkOutTime: empAttendance.checkOutTime,
+          total: empAttendance.total,
+          currentDate: empAttendance.currentDate,
+          managerTask: matchingAnalyst.managerTask,
+        };
+      });
+
+      res.json(result);
+    } else {
+      res.status(404).json({ error: "Manager Task not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.get("/compareData", async (req, res) => {
   try {
     // Fetch data from API one (Employee data)
@@ -1200,27 +1403,40 @@ app.get("/compareData", async (req, res) => {
 //   }
 // });
 
+
 // app.post("/att/checkin", async (req, res) => {
+
 //   try {
 //     const { name, empId, checkInTime } = req.body;
 
 //     // Capture the current date
 //     const currentDate = new Date();
 
-//     const newAttendance = new Attendance({
-//       name,
-//       empId,
-//       checkInTime,
-//       currentDate,
-//     });
+//     // Find existing check-in record for the current day
+//     const existingCheckin = await Attendance.findOne({ empId, checkOutTime: null, currentDate });
 
-//     await newAttendance.save();
+//     if (existingCheckin) {
+//       // Update existing check-in record
+//       existingCheckin.checkInTime = checkInTime;
+//       await existingCheckin.save();
+//     } else {
+//       // Create a new check-in record
+//       const newAttendance = new Attendance({
+//         name,
+//         empId,
+//         checkInTime,
+//         currentDate,
+//       });
+
+//       await newAttendance.save();
+//     }
 
 //     // Fetch latest check-in data after saving
 //     const latestCheckin = await Attendance.findOne({
 //       empId,
 //       checkOutTime: null,
 //     }).sort({ currentDate: -1 });
+
 
 //     res.json({
 //       message: "Check-in Data Saved!!!",
@@ -1241,10 +1457,11 @@ app.get("/compareData", async (req, res) => {
 //       checkOutTime: null,
 //     }).sort({ currentDate: -1 });
 
+
 //     if (checkinAttendance) {
+//       // Update check-out time and calculate overall time
 //       checkinAttendance.checkOutTime = checkOutTime;
 
-//       // Calculate overall time
 //       const checkinMoment = moment(checkinAttendance.checkInTime, "hh:mm a");
 //       const checkoutMoment = moment(checkOutTime, "hh:mm a");
 //       const overAll = moment.duration(checkoutMoment.diff(checkinMoment));
@@ -1254,9 +1471,11 @@ app.get("/compareData", async (req, res) => {
 //       await checkinAttendance.save();
 
 //       // Fetch latest check-out data after saving
+
 //       const latestCheckout = await Attendance.findOne({ empId }).sort({
 //         currentDate: -1,
 //       });
+
 
 //       res.json({
 //         message: "Check-out Data Saved!!!",
@@ -1271,6 +1490,7 @@ app.get("/compareData", async (req, res) => {
 // });
 
 // app.get("/att/latest", async (req, res) => {
+
 //   try {
 //     const empId = req.query.empId;
 
@@ -1427,6 +1647,7 @@ app.get("/fetch/att-data", (req, res) => {
     .then((attendance) => res.json(attendance))
     .catch((err) => res.status(400).json("err" + err));
 });
+
 //task.js route
 
 //add task

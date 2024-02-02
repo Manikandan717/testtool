@@ -19,7 +19,9 @@ import AdminProjects from "layouts/adminProjects"
 import ProjectEdit from "layouts/ProjectEditAdmin"
 import SettingsIcon from "@mui/icons-material/Settings";
 import PeopleIcon from "@mui/icons-material/People";
-import Homepage from "./layouts/IdleReport"
+import Homepage from "./layouts/IdleReport";
+import SuperadminReport from "./layouts/SuperadminReport";
+import AttendanceAdmin from "./layouts/Attendance-Admin";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -71,11 +73,11 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Employee Attendance",
-    key: "employee-attendance",
+    name: "Admin Attendance",
+    key: "admin-attendance",
     icon: <Icon fontSize="small">create_new_folder</Icon>,
-    route: "/employee-attendance",
-    component: <EmployeeAtt/>,
+    route: "/admin-attendance",
+    component: <AttendanceAdmin/>,
     role: "superadmin",
   },
   {
@@ -92,7 +94,7 @@ const routes = [
     name: "Attendance",
     key: "attendance",
     icon: <Icon fontSize="small">table_view</Icon>,
-    route: "attendance",
+    route: "/attendance",
     component: <Attendance />,
     role: "analyst",
   },
@@ -116,11 +118,11 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Task Report",
-    key: "task-report",
+    name: "Employee Task Report",
+    key: "EmpTaskReport",
     icon: <Icon fontSize="small">switch_account</Icon>,
-    route: "/task-report",
-    component: <AdminReport />,
+    route: "/EmpTaskReport",
+    component: <SuperadminReport />,
     role: "superadmin",
   },
   {

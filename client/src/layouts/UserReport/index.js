@@ -699,6 +699,58 @@ function Report() {
               renderInput={(params) => <TextField {...params} required />}
             />
           </MDBox>
+        
+          <MDBox
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              mt: 1,
+            }}
+          >
+            <InputLabel sx={{ mt: 1, ml: 2 }} htmlFor="manager">
+              Manager
+            </InputLabel>
+            <InputLabel sx={{ mt: 1, mr: 37 }} htmlFor="date">
+              Date
+            </InputLabel>
+          </MDBox>
+          <MDBox
+            sx={{ p: 1, ml: 1 }}
+            style={{
+              display: "flex",
+            }}
+          >
+            <Autocomplete
+              fullWidth
+              id="manager"
+              options={managers}
+              value={value.managerTask}
+              onChange={(event, newValue) => {
+                setValue({
+                  ...value,
+                  managerTask: newValue,
+                });
+              }}
+              sx={{ width: 305 }}
+              renderInput={(params) => <TextField {...params} />}
+            />
+
+            <TextField
+              sx={{ width: 305, ml: 2 }}
+              style={{
+                display: "flex",
+              }}
+              id="date"
+              variant="outlined"
+              fullWidth
+              type="date"
+              name="dateTask"
+              value={value.dateTask}
+              onChange={handleInputchange}
+            />
+          </MDBox>
+
           <MDBox
             sx={{
               display: "flex",
@@ -827,57 +879,6 @@ function Report() {
           >
             Add Task
           </MDButton>
-
-          <MDBox
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              mt: 1,
-            }}
-          >
-            <InputLabel sx={{ mt: 1, ml: 2 }} htmlFor="manager">
-              Manager
-            </InputLabel>
-            <InputLabel sx={{ mt: 1, mr: 37 }} htmlFor="date">
-              Date
-            </InputLabel>
-          </MDBox>
-          <MDBox
-            sx={{ p: 1, ml: 1 }}
-            style={{
-              display: "flex",
-            }}
-          >
-            <Autocomplete
-              fullWidth
-              id="manager"
-              options={managers}
-              value={value.managerTask}
-              onChange={(event, newValue) => {
-                setValue({
-                  ...value,
-                  managerTask: newValue,
-                });
-              }}
-              sx={{ width: 305 }}
-              renderInput={(params) => <TextField {...params} />}
-            />
-
-            <TextField
-              sx={{ width: 305, ml: 2 }}
-              style={{
-                display: "flex",
-              }}
-              id="date"
-              variant="outlined"
-              fullWidth
-              type="date"
-              name="dateTask"
-              value={value.dateTask}
-              onChange={handleInputchange}
-            />
-          </MDBox>
 
           <MDBox
             pt={3}

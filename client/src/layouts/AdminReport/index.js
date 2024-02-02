@@ -1,393 +1,126 @@
-import Card from "@mui/material/Card";
-import Grid from "@mui/material/Grid";
-import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import DeleteIcon from '@mui/icons-material/Delete'; // Assuming you're using Material-UI
-// import Footer from "examples/Footer";
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-import MDButton from "components/MDButton";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@material-ui/core/DialogActions';
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import { ToastContainer, toast } from "react-toastify";
-import MDInput from "components/MDInput";
-import IconButton from "@mui/material/IconButton";
-import * as React from "react";
-import CloseIcon from "@mui/icons-material/Close";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-// import IconButton from "@material-ui/core/IconButton";
-// import FormControl from "@mui/material/FormControl";
-// import Select from "@mui/material/Select";
-import { useState, useEffect, useMemo } from "react";
-import Button from '@material-ui/core/Button';
-import "react-datepicker/dist/react-datepicker.css";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
-import axios from "axios";
-import moment from "moment";
-// import Drawer from "@mui/material/Drawer";
-import FilterListIcon from "@material-ui/icons/FilterList";
-// import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-// import Dialog from "@mui/material/Dialog";
-// import CloseIcon from "@mui/icons-material/Close";
-// import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-// import DialogActions from "@mui/material/DialogActions";
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Grid, Card, TextField } from '@mui/material';
+import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
+import moment from 'moment';
+import DashboardLayout from 'examples/LayoutContainers/DashboardLayout';
+import DashboardNavbar from 'examples/Navbars/DashboardNavbar';
 import Popper from "@mui/material/Popper";
+import FilterListIcon from "@material-ui/icons/FilterList";
+// import Footer from 'examples/Footer';
+import MDBox from 'components/MDBox';
 import ClickAwayListener from "@mui/material/ClickAwayListener";
+import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import CircularProgress from '@mui/material/CircularProgress';
-
-
-function AdminReport() {
-
-
+import MDTypography from 'components/MDTypography';
+import DialogContent from "@mui/material/DialogContent";
+import MDButton from "components/MDButton";
+import MDInput from "components/MDInput";
+ 
+function Attendance() {
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
-
-  const initialValues = {
-    startDate: "",
-    endDate: "",
-    team: "",
-  };
-  const [values, setValues] = useState(initialValues);
-  const [name, setName] = useState([]);
-  const [empName, setEmpName] = useState(null);
-  const [teamList, setTeamList] = useState(null);
-  const [report, setReport] = useState([]);
-  const [selectedUserData, setSelectedUserData] = useState(null);
-  const [isDialogOpen, setDialogOpen] = useState(false);
+  const managerTask = useSelector((state) => state.auth.user.name);
+  const empId = useSelector((state) => state.auth.user.empId);
+ 
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [loading, setLoading] = useState(true);
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    setValues({
-      ...values,
-      [name]: value,
-    });
-  };
-  const handleChange = (event, value) => setEmpName(value);
-  const handleTeamChange = (event, value) => setTeamList(value);
-
-  // const allReport = (e) => {
-  //   axios
-  //     .get(`${apiUrl}/analyst`)
-  //     .then((res) => {
-  //       setReport(res.data);
-  //     })
-  //     .catch((err) => console.log(err));
-  // };
-
-
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  // Function to handle opening the drawer
-  const openDrawer = () => {
-    setDrawerOpen(true);
-  };
-
-  // Function to handle closing the drawer
-  const closeDrawer = () => {
-    setDrawerOpen(false);
-  };
-
-  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
-
-  // Function to handle opening the filter popup
-  const openFilterDialog = () => {
-    setFilterDialogOpen(true);
-  };
-
-  // Function to handle closing the filter popup
-  const closeFilterDialog = () => {
-    setFilterDialogOpen(false);
-  };
-  const handleCancel = () => {
-    // Reset all fields to their initial values
-    setValues(initialValues);
-    setEmpName(null);
-    setTeamList(null);
-
-    // Close the filter popup
-    closeFilterDialog();
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const userData = {
-      startDate: values.startDate,
-      endDate: values.endDate,
-      empname: empName,
-      team: teamList,
-    };
-    console.log(userData);
-
-    const sDate = values.startDate;
-    const eDate = values.endDate;
-    const name = empName;
-    const team = teamList;
-    // console.log(name !== "");
-    if (name == null && team == null) {
-      axios
-        .get(`${apiUrl}/fetch/report/date/?sDate=` + sDate + "&eDate=" + eDate)
-        .then((res) => {
-          setReport(res.data);
-        })
-        .catch((err) => console.log(err));
-    } else if (name === null) {
-      axios
-        .get(
-          `${apiUrl}/fetch/report/team/?sDate=${sDate}&eDate=${eDate}&team=${team}`
-        )
-        .then((res) => {
-          // console.log(res.data);
-          setReport(res.data);
-        })
-        .catch((err) => console.log(`Error:${err}`));
-    } else if (team === null) {
-      axios
-        .get(
-          `${apiUrl}/fetch/report/user/?sDate=${sDate}&eDate=${eDate}&name=${name}`
-        )
-        .then((res) => {
-          // console.log(res.data);
-          setReport(res.data);
-        })
-        .catch((err) => console.log(`Error:${err}`));
-    } else {
-      axios
-        .get(
-          `${apiUrl}/fetch/report/?sDate=${sDate}&eDate=${eDate}&name=${name}&team=${team}`
-        )
-        .then((res) => {
-          // console.log(res.data);
-          setReport(res.data);
-        })
-        .catch((err) => console.log(`Error:${err}`));
-    }
-    setValues(initialValues);
-    setEmpName(null);
-    setTeamList(null);
-
-    closeFilterDialog();
-  };
-
-  // useEffect(() => {
-  //   // Fetch data directly when the component mounts
-  //   allReport();
-  //   userName();
-  //   setLoading(false);
-  // }, []);
-  
-  const allReport = () => {
-    return axios
-      .get(`${apiUrl}/analyst`)
-      .then((res) => {
-        setReport(res.data);
+ 
+//   useEffect(() => {
+//     const managerName = managerTask.trim();
+//     // Include the managerTask value in the API URL
+//     fetch(`${apiUrl}/emp-attendance/${managerName}`)
+//       .then((response) => response.json())
+//       .then((data) => {
+//         const mappedData = data.map((item, index) => ({ ...item, id: index + 1 }));
+//         setAttendanceData(mappedData);
+//       })
+//       .catch((error) => console.error('Error fetching data:', error))
+//       .finally(() => setLoading(false)); // Set loading to false once data is loaded
+//   }, [managerTask]); 
+ 
+useEffect(() => {
+    // setLoading(true); // Set loading to true when starting the data fetch
+    fetch(`${apiUrl}/emp-attendance`)
+      .then((response) => response.json())
+      .then((data) => {
+        const mappedData = data.map((item, index) => ({ ...item, id: index + 1 }));
+        setAttendanceData(mappedData);
       })
-      .catch((err) => console.log(err));
-  };
-  
-  const userName = () => {
-    return axios.get(`${apiUrl}/users`).then((res) => {
-      setName(res.data);
-    });
-  };
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await Promise.all([allReport(), userName()]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchData();
+      .catch((error) => console.error('Error fetching data:', error))
+      .finally(() => setLoading(false)); // Set loading to false once data is loaded
   }, []);
-
-  // const userName = () => {
-  //   axios.get(`${apiUrl}/users`).then((res) => {
-  //     setName(res.data);
-  //   });
-  //   // console.log(name);
-  // };
-  const openDialog = (userData) => {
-    setSelectedUserData(userData);
-    setDialogOpen(true);
+ 
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
   };
-
-  // Function to handle closing the dialog
-  const closeDialog = () => {
-    setSelectedUserData(null);
-    setDialogOpen(false);
+ 
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
   };
-  const handleDelete = (_id) => {
-    // Perform the deletion in MongoDB using the _id
-    axios.delete(`${apiUrl}/delete/usertask/${_id}`).then((response) => {
-      // Handle success, e.g., refetch the data
-      allReport()
-      toast.success('Successfully deleted.');
-    }).catch((error) => {
-      // Handle error
-      toast.error('Error deleting the record.');
-    });
-  };
-  // tabel report
-  const columns = [
-    { field: "id", headerName: "ID", width: 50 },
-    {
-      field: "date",
-      headerName: "Date",
-      width: 100,
-      editable: false,
-      flex: 1,
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      width: 200,
-      editable: false,
-      flex: 1,
-    },
-    {
-      field: "team",
-      headerName: "Team",
-      width: 70,
-      editable: false,
-      flex: 1,
-    },
-    {
-      field: "projectName",
-      headerName: "Project Name",
-      width: 150,
-      editable: false,
-      flex: 1,
-    },
-    {
-      field: "taskCount",
-      headerName: "Task Count",
-      width: 120,
-      editable: false,
-      renderCell: (params) => (
-        <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-          {params.row.sessionOne.length}
-        </Typography>
-      ),
-      align: "center",
-    },
-    {
-      field: "managerTask",
-      headerName: "Project Manager",
-      width: 150,
-      editable: false,
-      flex: 1,
-    },
-    {
-      field: "totalHours",
-      headerName: "Total Hours",
-      width: 140,
-      editable: false,
-      renderCell: (params) => (
-        <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-          {calculateTotalHours(params.row.sessionOne)}
-        </Typography>
-      ),
-      align: "center",
-    },
-    {
-      field: "view",
-      headerName: "View",
-      sortable: false,
-      filterable: false,
-      width: 100,
-      renderCell: (params) => (
-        <IconButton style={{ color: "#2196f3", textAlign: "center" }} onClick={() => openDialog(params.row)}>
-          <VisibilityIcon />
-        </IconButton>
-      ),
-    },
-    {
-      field: 'delete',
-      headerName: 'Delete',
-      sortable: false,
-      filterable: false,
-      width: 100,
-      renderCell: (params) => (
-        <IconButton
-          style={{ color: 'red' }}
-          onClick={() => handleDelete(params.row._id)}
-        >
-          <DeleteIcon />
-        </IconButton>
-      ),
-    },
-  ];
-  
-  const row = useMemo(
-    () =>
-      report.map((item, index) => ({
-        ...item,
-        id: index + 1,
-        name: item.name,
-        team: item.team,
-        date: moment(item.createdAt).format("DD-MM-YYYY"),
-        // TotalTime: moment
-        //   .utc(moment.duration(item.TotalTime, "seconds").as("milliseconds"))
-        //   .format("HH:mm:ss"),
-        // ActiveTime: moment
-        //   .utc(moment.duration(item.ActiveTime, "seconds").as("milliseconds"))
-        //   .format("HH:mm:ss"),
-        // EntityTime: moment
-        //   .utc(moment.duration(item.EntityTime, "seconds").as("milliseconds"))
-        //   .format("HH:mm:ss"),
-        projectName: item.projectName,
-        task: item.task,
-        managerTask: item.managerTask,
-        sessionOne: item.sessionOne,
-        // sessionTwo: item.sessionTwo,
-        // others: item.others,
-        // comments: item.comments,
-        // total: item.total,
-      })),
-    [report]
-  );
-
-  // Team List
-  const list = ["CV", "NLP", "CM", "SOURCING"];
-
+ 
   const [popperOpen, setPopperOpen] = useState(false);
-
+ 
   const handlePopperToggle = () => {
     setPopperOpen((prev) => !prev);
   };
-
+ 
   const handlePopperClose = () => {
     setPopperOpen(false);
   };
-  const calculateTotalHours = (sessionOne) => {
-    let totalMinutes = 0;
-  
-    sessionOne.forEach((task) => {
-      const [hours, minutes] = task.sessionOne.split(":");
-      totalMinutes += parseInt(hours) * 60 + parseInt(minutes);
-    });
-  
-    const hours = Math.floor(totalMinutes / 60);
-    const remainingMinutes = totalMinutes % 60;
-  
-    return `${hours}:${remainingMinutes < 10 ? "0" : ""}${remainingMinutes}`;
-  };
+ 
+  const filteredData = attendanceData.filter((item) => {
+    if (startDate && endDate) {
+      const startDateTime = moment(startDate).startOf('day');
+      const endDateTime = moment(endDate).endOf('day');
+      const itemDateTime = moment(item.currentDate);
+ 
+      return itemDateTime.isBetween(startDateTime, endDateTime, null, '[]');
+    }
+    return true;
+  });
+ 
+  const columns = [
+    { field: 'id', headerName: 'ID', width: 30 },
+    {
+      field: 'currentDate',
+      headerName: 'Date',
+      width: 150,
+      valueGetter: (params) => moment(params.row.currentDate).format('YYYY-MM-DD'),
+    },
+    { field: 'name', headerName: 'Name', width: 150, flex: 1 },
+    { field: 'empId', headerName: 'Employee ID', width: 150, flex: 1 },
+    { field: 'team', headerName: 'Team', width: 150, flex: 1 },
+    { field: 'projectName', headerName: 'Project Name', width: 150, flex: 1 },
+    { field: 'checkInTime', headerName: 'Check In', width: 150, flex: 1 },
+    { field: 'checkOutTime', headerName: 'Check Out', width: 150 },
+    { field: 'total', headerName: 'Total', width: 150 },
+ 
+  ];
+ 
+ 
   return (
     <DashboardLayout>
       <DashboardNavbar />
-
-      <Grid item xs={12} mb={1}>
+ 
+      {/* <Grid container justifyContent="center">
+        <Grid item xs={12} lg={8}>
+          <Card mb={3}>
+            <MDBox
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <MDTypography mt={2} mb={3} variant="caption" color="info" fontWeight="regular">
+                <h1>Employee Attendance</h1>
+              </MDTypography>
+            </MDBox>
+          </Card>
+        </Grid>
+      </Grid> */}
+      <Grid item xs={12} mt={2} mb={1}>
         <Card>
           <Box>
             <Popper
@@ -399,7 +132,7 @@ function AdminReport() {
               style={{
                 zIndex: 9999,
                 position: "absolute",
-                top: "120px",
+                top: "125px",
                 left: "0px",
               }}
             >
@@ -411,7 +144,7 @@ function AdminReport() {
                       <MDBox
                         component="form"
                         role="form"
-                        onSubmit={handleSubmit}
+                        // onSubmit={handleSubmit}
                         className="filter-popup"
                         sx={{ display: "flex", padding: "0px" }}
                       >
@@ -431,11 +164,8 @@ function AdminReport() {
                           </MDTypography>
                           <MDInput
                             type="date"
-                            name="startDate"
-                            size="small"
-                            sx={{ width: "100%" }}
-                            value={values.startDate}
-                            onChange={handleInputChange}
+                            onChange={(e) => handleStartDateChange(e.target.value)}
+                            value={startDate}
                           />
                         </MDBox>
                         <MDBox
@@ -455,70 +185,8 @@ function AdminReport() {
                           <MDInput
                             id="movie-customized-option-demo"
                             type="date"
-                            name="endDate"
-                            size="small"
-                            sx={{ width: "100%", border: "none !important" }}
-                            value={values.endDate}
-                            onChange={handleInputChange}
-                          />
-                        </MDBox>
-                        <MDBox
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            marginRight: 2,
-                          }}
-                        >
-                          <MDTypography variant="h6" fontWeight="medium">
-                            Team
-                          </MDTypography>
-                          <Autocomplete
-                            options={list}
-                            onChange={handleTeamChange}
-                            id="movie-customized-option-demo"
-                            disableCloseOnSelect
-                            sx={{ width: "100%" }}
-                            PopperComponent={(props) => (
-                              <Popper
-                                {...props}
-                                style={{ zIndex: 99999, position: "relative" }}
-                              >
-                                {props.children}
-                              </Popper>
-                            )}
-                            renderInput={(params) => (
-                              <TextField {...params} variant="standard" />
-                            )}
-                          />
-                        </MDBox>
-                        <MDBox
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            marginRight: 2,
-                          }}
-                        >
-                          <MDTypography variant="h6" fontWeight="medium">
-                            User Name
-                          </MDTypography>
-
-                          <Autocomplete
-                            options={name.map((option) => option.name)}
-                            onChange={handleChange}
-                            id="movie-customized-option-demo"
-                            disableCloseOnSelect
-                            sx={{ width: "100%" }}
-                            PopperComponent={(props) => (
-                              <Popper
-                                {...props}
-                                style={{ zIndex: 99999, position: "relative" }}
-                              >
-                                {props.children}
-                              </Popper>
-                            )}
-                            renderInput={(params) => (
-                              <TextField {...params} variant="standard" />
-                            )}
+                            onChange={(e) => handleEndDateChange(e.target.value)}
+                            value={endDate}
                           />
                         </MDBox>
                         <Box
@@ -544,271 +212,88 @@ function AdminReport() {
             </Popper>
           </Box>
         </Card>
-      </Grid>       
-      <Dialog open={isDialogOpen} onClose={closeDialog} maxWidth="lg">
-  <DialogTitle
-    style={{
-      background: "#2196f3",
-      color: "white",
-      fontSize: "1.2rem",
-      padding: "20px",
-    }}
-  >
-    {"Task List"}
-  </DialogTitle>
-  <DialogContent>
-    {selectedUserData && (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <Typography
-          style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}
-        >
-          <strong style={{ fontSize: "18px" }}>
-            Project Name:
-          </strong>{" "}
-          {selectedUserData.projectName}
-        </Typography>
-        <div
-          style={{
-            maxHeight: "300px", // Set a fixed height for the scrollable area
-            overflow: "auto",  // Enable scrolling
-            marginTop: "10px",
-          }}
-        >
-          <table
-            style={{
-              width: "600px",
-              borderCollapse: "collapse",
-              fontSize: "1rem",
+      </Grid>
+      <Grid mt={4} mb={10}>
+        <Card>
+          <Box
+            sx={{
+              height: 480,
+              width: "100%",
+              "@media screen and (min-width: 768px)": {
+                height: 670,
+              },
             }}
           >
-            <thead>
-              <tr>
-                <th
-                  style={{
-                    padding: "8px",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    minWidth: "150px",
-                  }}
-                >
-                  Task Name
-                </th>
-                <th
-                  style={{
-                    padding: "8px",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    minWidth: "150px",
-                  }}
-                >
-                  Total Hours
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {selectedUserData.sessionOne.map((session, index) => (
-                <tr key={index}>
-                  <td
-                    style={{
-                      padding: "8px",
-                      border: "1px solid #ccc",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    {session.task}
-                  </td>
-                  <td
-                    style={{
-                      padding: "8px",
-                      border: "1px solid #ccc",
-                      borderRadius: "8px",
-                      textAlign: "center",
-                    }}
-                  >
-                    {session.sessionOne}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={closeDialog} color="primary">
-      Cancel
-    </Button>
-  </DialogActions>
-</Dialog>
-
-      <Grid item xs={12} mb={10}>
-        {/* <IconButton  onClick={openDrawer} color="primary" aria-label="Filter">
-      <FilterListIcon />
-    </IconButton> */}
-
-        <MDBox pt={1}>
-          <Grid item xs={12}>
-            <Card>
-              {/* <MDBox
-                mx={2}
-                mt={-3}
-                py={3}
-                px={2}
-                variant="gradient"
-                bgColor="info"
-                borderRadius="lg"
-                coloredShadow="info"
-              >
-                <MDTypography variant="h6" color="white">
-                  Reports Table
-                </MDTypography>
-              </MDBox> */}
-              <MDBox pt={0}>
-                {/* <Datatable tableHead={mytableHead} dataSrc={mydataSrc} /> */}
-                {/* <DataTable
-                  table={{ columns, rows }}
-                  isSorted={false}
-                  entriesPerPage={false}
-                  showTotalEntries={false}
-                  noEndBorder
-                /> */}
-
-                {/* <Box sx={{ height: 480, width: "100%" }}> */}
-                <Box
-                  sx={{
-                    height: 480,
-                    width: "100%",
-                    "@media screen and (min-width: 768px)": {
-                      height: 670,
-                    },
-                  }}
-                >
-                  <DataGrid
-                    rows={row}
-                    columns={columns}
-                    // pageSize={10}
-                    rowsPerPageOptions={[5, 10, 25, 50, 100]}
-                    checkboxSelection
-                    disableSelectionOnClick
-                    loading={loading}
-                    components={{
-                      Toolbar: () => (
-                        <div style={{ display: "flex" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              marginTop: "5px",
-                              marginLeft: "10px",
-                            }}
-                          >
-                            <FilterListIcon
-                              className="team-filter-icon"
-                              style={{
-                                cursor: "pointer",
-                                color: "#1a73e8",
-                                fontSize: "20px",
-                              }}
-                              onClick={handlePopperToggle}
-                              aria-label="Team Filter"
-                            />
-                            <MDTypography
-                              variant="h6"
-                              onClick={handlePopperToggle}
-                              style={{
-                                color: "#1a73e8",
-                                cursor: "pointer",
-                                fontSize: "12.1px",
-                              }}
-                            >
-                              DATE FILTER
-                            </MDTypography>
-                          </div>
-
-                          <GridToolbar />
-                          {/* <div
-                            style={{
-                              display: "flex",
-                              marginLeft: "auto",
-                              alignItems: "center",
-                              padding: "10px"
-                            }}
-                          >
-                            <MDButton
-                              className="team-report-btn"
-                              variant="outlined"
-                              color="error"
-                              size="small"
-                              style={{ marginRight: "13px" }}
-                              onClick={allReport}
-                            >
-                              &nbsp;All Report
-                            </MDButton>
-                          </div> */}
-                        </div>
-                      ),
-                    }}
-                  // components={{
-                  //   Toolbar: () => (
-                  //     <div style={{ display: 'flex' }}>
-                  //       <GridToolbar />
-                  //       {/* Custom filter icon with aria-label */}
-
-                  //       <div style={{ display: 'flex', marginLeft: 'auto', alignItems: 'center' }} >
-
-                  //         <FilterListIcon
-                  //           className="team-filter-icon"
-                  //           // style={{ cursor: 'pointer', color: '#3a87ea', fontSize: '20px' }}
-                  //           // onClick={openDrawer}
-                  //           style={{ cursor: 'pointer', color: '#3a87ea', fontSize: '20px' }}
-                  //           onClick={openFilterDialog}
-                  //           aria-label="Team Filter"
-                  //         />
-                  //         <MDTypography variant="h6"  onClick={openFilterDialog} style={{ color: '#3a87ea', cursor: 'pointer', fontSize: '12.1px', marginRight: '10px', }}>
-                  //           TEAM FILTER
-                  //         </MDTypography>
-                  //         <MDButton
-                  //           className="team-report-btn"
-                  //           variant="outlined"
-                  //           color="error"
-                  //           size="small"
-                  //           style={{ marginRight: '13px' }}
-                  //           onClick={allReport}
-                  //         // onClick={() => setShow(!show)}
-                  //         >
-                  //           &nbsp;All Report
-                  //         </MDButton>
-                  //       </div>
-                  //     </div>
-                  //   ),
-                  // }}
-                  />   
-                           {/* {isLoading && (
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }}>
-                      <CircularProgress />
+            <DataGrid
+              rows={filteredData}
+              columns={columns}
+              rowsPerPageOptions={[5, 10, 25, 50, 100]}
+              loading={loading}
+              components={{
+                Toolbar: () => (
+                  <div style={{ display: "flex" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginTop: "5px",
+                        marginLeft: "10px",
+                      }}
+                    >
+                      <FilterListIcon
+                        className="team-filter-icon"
+                        style={{
+                          cursor: "pointer",
+                          color: "#1a73e8",
+                          fontSize: "20px",
+                        }}
+                        onClick={handlePopperToggle}
+                        aria-label="Team Filter"
+                      />
+                      <MDTypography
+                        variant="h6"
+                        onClick={handlePopperToggle}
+                        style={{
+                          color: "#1a73e8",
+                          cursor: "pointer",
+                          fontSize: "12.1px",
+                        }}
+                      >
+                        DATE FILTER
+                      </MDTypography>
                     </div>
-                  )}
-                  {!isLoading && row.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '20px' }}>
-                      No data available.
-                    </div>
-                  )} */}
-                </Box>
-              </MDBox>
-            </Card>
-          </Grid>
-        </MDBox>
+ 
+                    <GridToolbar />
+                    {/* <div
+                      style={{
+                        display: "flex",
+                        marginLeft: "auto",
+                        alignItems: "center"
+                      }}
+                    >
+                    <MDButton
+                      className="team-report-btn"
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      style={{ marginRight: "13px" }}
+                      onClick={allReport}
+                    >
+                      &nbsp;All Report
+                    </MDButton>
+                    </div> */}
+                  </div>
+                ),
+              }}
+ 
+            />
+          </Box>
+        </Card>
       </Grid>
+ 
       {/* <Footer /> */}
-      <ToastContainer />
     </DashboardLayout>
   );
 }
-export default AdminReport;
+ 
+export default Attendance;

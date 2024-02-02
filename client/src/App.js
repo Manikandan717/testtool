@@ -41,6 +41,8 @@ import AllReport from "./layouts/IdleReport"
 import ProjectEdit from "layouts/ProjectEditAdmin"
 import 'layouts/Attendance/calendar.css';
 import { from } from "stylis";
+import SuperadminReport from "./layouts/SuperadminReport";
+import AttendanceAdmin from "./layouts/Attendance-Admin"
  
 function App() {
   const [controller] = useMaterialUIController();
@@ -146,8 +148,11 @@ function App() {
           <Route exact path="/profile" element={<Profile/>}/>
           {/* <Route exact path="/attendance" element={<Attendance/>}/> */}
         </Route>
-        <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin' || role === 'admin'))}/>}>
+        <Route element={<Protected isValid={(isLoggedIn&&( role === 'admin'))}/>}>
           <Route exact path="/task-report" element={<AdminReport/>} />
+        </Route>
+        <Route element={<Protected isValid={(isLoggedIn&&( role === 'superadmin'))}/>}>
+          <Route exact path="/EmpTaskReport" element={<SuperadminReport/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
           <Route exact path="/employees" element={<AllEmployee/>} />
@@ -155,9 +160,12 @@ function App() {
         <Route element={<Protected isValid={(isLoggedIn&&role==='admin')}/>}>
           <Route exact path="/employee" element={<Employee/>} />
         </Route>
-        <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin' || role === 'admin'))}/>}>
+        <Route element={<Protected isValid={(isLoggedIn&&(role === 'admin'))}/>}>
           <Route exact path="/employee-attendance" element={<EmployeeAtt/>} />
         </Route>  
+        <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin'))}/>}>
+          <Route exact path="/admin-attendance" element={<AttendanceAdmin/>} />
+        </Route>
         <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin'))}/>}>
           <Route exact path="/allreport" element={<AllReport/>} />
         </Route>
