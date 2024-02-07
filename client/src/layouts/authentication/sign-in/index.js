@@ -14,8 +14,8 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
+import CircularProgress from "@mui/material/CircularProgress"; // Import CircularProgress from Material-UI
 import axios from "axios";
-
 
 const Basic = function (props) {
   const [rememberMe, setRememberMe] = useState();
@@ -115,33 +115,20 @@ const Basic = function (props) {
       password: values.password,
     };
 
-    // Dispatch loginUser action
-  //   props.loginUser(userData)
-  //     .then(() => {
-  //       // Set loading to false when the request is complete (success)
-  //       setLoading(false);
-  //     })
-  //     .catch((err) => {
-  //       // Handle errors (optional)
-  //       console.error('Login failed:', err);
-  //       // Set loading to false when the request is complete (error)
-  //       setLoading(false);
-  //     });
-  // };
-  props.loginUser(userData)
-  .then(() => {
-    // Reset form values
-    setValues(initialValues);
-    // Reset loading state after successful login
-    setLoading(false);
-  })
-  .catch((err) => {
-    // Handle errors (optional)
-    console.error('Login failed:', err);
-    // Reset loading state after error
-    setLoading(false);
-  });
-};
+    props.loginUser(userData)
+    .then(() => {
+      // Reset form values
+      setValues(initialValues);
+      // Reset loading state after successful login
+      setLoading(false);
+    })
+    .catch((err) => {
+      // Handle errors (optional)
+      console.error('Login failed:', err);
+      // Reset loading state after error
+      setLoading(false);
+    });
+  };
 
   return (
     <BasicLayout image={img}>
@@ -177,7 +164,6 @@ const Basic = function (props) {
                 }
                 name="email"
                 fullWidth
-                // error={err.email || err.emailIncorrect ? true : false}
               />
             </MDBox>
             <MDBox mb={2}>
@@ -188,7 +174,6 @@ const Basic = function (props) {
                 value={values.password}
                 type={showPassword ? "text" : "password"}
                 onChange={handleInputChange}
-                // error={err.password || err.passwordIncorrect ? true : false}
                 helperText={
                   <span style={{ color: red ? 'red' : 'inherit' }}>
                     {err.password || err.passwordIncorrect}
@@ -212,16 +197,17 @@ const Basic = function (props) {
             </MDBox>
 
             <MDBox mt={2} mb={1}>
-            <MDButton
-              variant="gradient"
-              type="submit"
-              color="info"
-              fullWidth
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Submit'}
-            </MDButton>
-          </MDBox>
+              <MDButton
+                variant="gradient"
+                type="submit"
+                color="info"
+                fullWidth
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} // Conditional rendering of CircularProgress
+              >
+                {loading ? 'Loading...' : 'Submit'}
+              </MDButton>
+            </MDBox>
             <MDBox mt={1} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
                 Forgot your password?{" "}
