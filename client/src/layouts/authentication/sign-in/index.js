@@ -77,6 +77,26 @@ const Basic = function (props) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
+    if (name === "email") {
+      setErr(prevErr => ({
+        ...prevErr,
+        email: "", 
+        emailIncorrect: "", 
+      }));
+    }
+    else if (name === "password") {
+      setErr(prevErr => ({
+        ...prevErr,
+        password: "", 
+        passwordIncorrect: "", 
+      }));
+    }
+    else {
+      setErr(prevErr => ({
+        ...prevErr,
+        [name]: "", 
+      }));
+    }
     setValues({
       ...values,
       [name]: value,
@@ -96,19 +116,32 @@ const Basic = function (props) {
     };
 
     // Dispatch loginUser action
-    props.loginUser(userData)
-      .then(() => {
-        // Set loading to false when the request is complete (success)
-        setLoading(false);
-      })
-      .catch((err) => {
-        // Handle errors (optional)
-        console.error('Login failed:', err);
-        // Set loading to false when the request is complete (error)
-        setLoading(false);
-      });
-  };
-
+  //   props.loginUser(userData)
+  //     .then(() => {
+  //       // Set loading to false when the request is complete (success)
+  //       setLoading(false);
+  //     })
+  //     .catch((err) => {
+  //       // Handle errors (optional)
+  //       console.error('Login failed:', err);
+  //       // Set loading to false when the request is complete (error)
+  //       setLoading(false);
+  //     });
+  // };
+  props.loginUser(userData)
+  .then(() => {
+    // Reset form values
+    setValues(initialValues);
+    // Reset loading state after successful login
+    setLoading(false);
+  })
+  .catch((err) => {
+    // Handle errors (optional)
+    console.error('Login failed:', err);
+    // Reset loading state after error
+    setLoading(false);
+  });
+};
 
   return (
     <BasicLayout image={img}>

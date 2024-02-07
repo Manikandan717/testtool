@@ -202,7 +202,7 @@ function Report() {
   // Upload Data
   const submit = (e) => {
     e.preventDefault();
-  
+
     const userData = {
       name,
       empId,
@@ -214,8 +214,12 @@ function Report() {
         task: task.task,
         sessionOne: `${task.sessionOneHours}:${task.sessionOneMinutes || "00"}`,
       })),
+      idleTasks: countIdleTasks(),
+      productionTasks: countProductionTasks(),
     };
-  
+
+    console.log("Submitting the following data to the backend:", userData);
+
     axios
       .post(`${apiUrl}/add`, userData)
       .then(() => {
@@ -227,7 +231,7 @@ function Report() {
           .then((response) => {
             setInitialData(response.data);
           });
-  
+
         // Reset hours and minutes after successful submission
         setTasks([
           {
@@ -236,7 +240,7 @@ function Report() {
             sessionOneMinutes: "",
           },
         ]);
-  
+
         setValue((prevValues) => ({
           ...prevValues,
           dateTask: "",
@@ -245,9 +249,13 @@ function Report() {
           managerTask: "",
         }));
       })
-      .catch((err) => toast.error(`All fields required☹️`));
+      .catch((err) => {
+        console.error("Error submitting data:", err);
+        toast.error(`All fields required☹️`);
+      });
   };
-  
+
+  useEffect(() => {}, [tasks, selectedUserData]);
 
   const listtask = ["CV", "NLP", "CM"];
 
@@ -301,7 +309,86 @@ function Report() {
     setSelectedUserData(userData);
     setDialogOpen(true);
   };
+  // function countIdleTasks() {
+  //   const uniqueIdleTasks = new Set();
 
+  //   selectedUserData.sessionOne.forEach((session) => {
+  //     // Consider any task starting with "Idle" as part of the total "Idle" count
+  //     if (session.task.startsWith("Idle")) {
+  //       uniqueIdleTasks.add("Idle");
+  //     }
+  //   });
+
+  //   return uniqueIdleTasks.size;
+  // }
+  // function countIdleTasks() {
+  //   if (selectedUserData && selectedUserData.sessionOne) {
+  //     const uniqueIdleTasks = new Set();
+
+  //     selectedUserData.sessionOne.forEach((session) => {
+  //       // Consider any task starting with "Idle" as part of the total "Idle" count
+  //       if (session.task.startsWith("Idle")) {
+  //         uniqueIdleTasks.add("Idle");
+  //       }
+  //     });
+
+  //     return uniqueIdleTasks.size;
+  //   } else {
+  //     return 0; // Return 0 if there is no sessionOne or selectedUserData
+  //   }
+  // }
+  // function countProductionTasks() {
+  //   const uniqueProductionTasks = new Set();
+
+  //   selectedUserData.sessionOne.forEach((session) => {
+  //     // Consider any task not starting with "Idle" as part of the total "Production" count
+  //     if (!session.task.startsWith("Idle")) {
+  //       uniqueProductionTasks.add("Production");
+  //     }
+  //   });
+
+  //   return uniqueProductionTasks.size;
+  // }
+  // function countProductionTasks() {
+  //   if (selectedUserData && selectedUserData.sessionOne) {
+  //     const uniqueProductionTasks = new Set();
+
+  //     selectedUserData.sessionOne.forEach((session) => {
+  //       // Consider any task not starting with "Idle" as part of the total "Production" count
+  //       if (!session.task.startsWith("Idle")) {
+  //         uniqueProductionTasks.add("Production");
+  //       }
+  //     });
+
+  //     return uniqueProductionTasks.size;
+  //   } else {
+  //     return 0; // Return 0 if there is no sessionOne or selectedUserData
+  //   }
+  // }
+
+  const countIdleTasks = () => {
+    const uniqueIdleTasks = new Set();
+
+    tasks.forEach((task) => {
+      if (task.task.startsWith("Idle")) {
+        uniqueIdleTasks.add("Idle");
+      }
+    });
+
+    return uniqueIdleTasks.size;
+  };
+
+  const countProductionTasks = () => {
+    const uniqueProductionTasks = new Set();
+
+    tasks.forEach((task) => {
+      if (!task.task.startsWith("Idle")) {
+        uniqueProductionTasks.add("Production");
+      }
+    });
+
+    return uniqueProductionTasks.size;
+  };
   // Function to handle closing the dialog
   const closeDialog = () => {
     setSelectedUserData(null);
@@ -504,7 +591,8 @@ function Report() {
             borderRadius: "10px",
             textAlign: "center",
             minHeight: "10px", // Adjust the height as needed
-            minWidth: "120px", // Adjust the width as needed
+            minWidth: "120px",
+            padding: "10px", // Adjust the width as needed
           }}
         >
           Create Task
@@ -606,7 +694,23 @@ function Report() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDialog} color="primary">
+          <Button
+            onClick={closeDialog}
+            color="primary"
+            style={{
+              color: "red",
+              display: "flex",
+              justifyContent: "center",
+              fontSize: "0.7rem",
+              borderRadius: "50%",
+              borderRadius: "10px",
+              textAlign: "center",
+              minHeight: "10px",
+              minWidth: "80px",
+              border: "1px solid red",
+              padding: "7px",
+            }}
+          >
             Cancel
           </Button>
         </DialogActions>
@@ -665,14 +769,29 @@ function Report() {
               id="project-name"
               options={projectNames}
               value={value.projectName}
-              aria-required            
+              aria-required
               onChange={(event, newValue) => {
                 setValue({
                   ...value,
                   projectName: newValue,
                 });
               }}
-              renderInput={(params) => <TextField {...params} required />}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  placeholder="Select a Project"
+                  InputProps={{
+                    ...params.InputProps,
+                    disableUnderline: true,
+                    sx: {
+                      "&.MuiOutlinedInput-root": {
+                        padding: "4px",
+                      },
+                    },
+                  }}
+                />
+              )}
             />
           </MDBox>
           <MDBox sx={{ width: 250, p: 2 }}>
@@ -696,10 +815,25 @@ function Report() {
                   team: newValue,
                 });
               }}
-              renderInput={(params) => <TextField {...params} required />}
+              disabled
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  placeholder="Select a Department"
+                  InputProps={{
+                    ...params.InputProps,
+                    disableUnderline: true,
+                    sx: {
+                      "&.MuiOutlinedInput-root": {
+                        padding: "4px",
+                      },
+                    },
+                  }}
+                />
+              )}
             />
           </MDBox>
-        
           <MDBox
             sx={{
               display: "flex",
@@ -733,14 +867,33 @@ function Report() {
                 });
               }}
               sx={{ width: 305 }}
-              renderInput={(params) => <TextField {...params} />}
+              disabled
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select a Manager"
+                  InputProps={{
+                    ...params.InputProps,
+                    disableUnderline: true,
+                    sx: {
+                      "&.MuiOutlinedInput-root": {
+                        padding: "3.9px",
+                      },
+                    },
+                  }}
+                />
+              )}
             />
 
             <TextField
-              sx={{ width: 305, ml: 2 }}
-              style={{
-                display: "flex",
+              sx={{
+                width: 305,
+                ml: 2,
+                "& .MuiOutlinedInput-root": {
+                  padding: "0px",
+                },
               }}
+              style={{ display: "flex" }}
               id="date"
               variant="outlined"
               fullWidth
@@ -762,10 +915,10 @@ function Report() {
             <InputLabel sx={{ mt: 1, ml: 2, width: "46%" }} htmlFor="task">
               Task
             </InputLabel>
-            <InputLabel sx={{ mt: 1, ml: 2, width: "22%" }} htmlFor="hours">
+            <InputLabel sx={{ mt: 1, ml: 2, width: "21%" }} htmlFor="hours">
               Hours
             </InputLabel>
-            <InputLabel sx={{ mt: 1, ml: 2, width: "23%" }} htmlFor="minute">
+            <InputLabel sx={{ mt: 1, ml: 2, width: "25%" }} htmlFor="minute">
               Minutes
             </InputLabel>
           </MDBox>
@@ -790,14 +943,34 @@ function Report() {
                   handleTaskChange(index, event, value)
                 }
                 sx={{ width: "46%", mt: 1 }}
-                renderInput={(params) => <TextField {...params}  required />}
-              />
-              
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select a Task"
+                    InputProps={{
+                      ...params.InputProps,
+                      disableUnderline: true,
+                      sx: {
+                        "&.MuiOutlinedInput-root": {
+                          padding: "4.9px", 
+                        },
+                      },
+                    }}
+                  />
+                )}
+              />    
+
               <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
                 <TextField
                   id="sessionOneHours"
                   name="sessionOneHours"
-                  sx={{ width: "100%", p: 1.5 }}
+                  sx={{
+                    width: "100%",
+                    p: 1,
+                    "& .MuiOutlinedInput-root": {
+                      padding: "0px", // Set the desired padding value
+                    },
+                  }}
                   aria-required
                   required
                   value={task.sessionOneHours}
@@ -824,7 +997,13 @@ function Report() {
                 <TextField
                   id="sessionOneMinutes"
                   name="sessionOneMinutes"
-                  sx={{ width: "100%", p: 1.5 }}
+                  sx={{
+                    width: "100%",
+                    p: 1,
+                    "& .MuiOutlinedInput-root": {
+                      padding: "0px", // Set the desired padding value
+                    },
+                  }}
                   required
                   value={task.sessionOneMinutes}
                   onChange={(e) => handleTaskInputChange(index, e)}
@@ -884,7 +1063,7 @@ function Report() {
             pt={3}
             px={2}
             display="flex"
-            justifyContent="end"
+            // justifyContent="end"
             alignItems="center"
           >
             <MDButton type="submit" color="success">
