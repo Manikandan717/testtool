@@ -114,7 +114,6 @@ function Report() {
   // Function to handle closing the drawer
   const closeDrawer = () => {
     setDrawerOpen(false);
-
     // Reset project name and managerTask when the drawer is closed
     setValue((prevValues) => ({
       ...prevValues,
@@ -123,6 +122,15 @@ function Report() {
       sessionOne: "",
       // sessionMinute: ''
     }));
+ 
+    // Reset tasks to initial state when the drawer is closed without saving
+    setTasks([
+      {
+        task: "",
+        sessionOneHours: "",
+        sessionOneMinutes: "",
+      },
+    ]);
   };
 
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -776,6 +784,7 @@ function Report() {
                   projectName: newValue,
                 });
               }}
+              clearIcon={null}
               renderInput={(params) => (
                 <TextField
                   {...params}
