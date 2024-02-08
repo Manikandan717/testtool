@@ -118,10 +118,15 @@ const Basic = function (props) {
     props.loginUser(userData)
     .then(() => {
       // Reset form values
-      setValues(initialValues);
-      // Reset loading state after successful login
+      // setValues(initialValues);
+    //   // Reset loading state after successful login
+    //   setLoading(false);
+    // })
+    setValues(initialValues);
+    setTimeout(() => {
       setLoading(false);
-    })
+    }, 2000);
+  })
     .catch((err) => {
       // Handle errors (optional)
       console.error('Login failed:', err);
