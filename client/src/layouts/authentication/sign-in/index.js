@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Card from "@mui/material/Card";
-import Switch from "@mui/material/Switch";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
 import BasicLayout from "layouts/authentication/components/BasicLayout";
-import man from "assets/images/man.jpg";
 import { loginUser } from "actions/authAction";
 import { connect } from "react-redux";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
-import CircularProgress from "@mui/material/CircularProgress"; // Import CircularProgress from Material-UI
-import axios from "axios";
+import CircularProgress from "@mui/material/CircularProgress"; 
 
 const Basic = function (props) {
   const [rememberMe, setRememberMe] = useState();
@@ -38,7 +35,7 @@ const Basic = function (props) {
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); 
 
   useEffect(() => {
     if (props.auth.isAuthenticated) {
@@ -107,32 +104,23 @@ const Basic = function (props) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Set loading to true when starting the authentication request
-    setLoading(true);
-
     const userData = {
       email: values.email,
       password: values.password,
     };
 
+    setLoading(true); 
+
     props.loginUser(userData)
-    .then(() => {
-      // Reset form values
-      // setValues(initialValues);
-    //   // Reset loading state after successful login
-    //   setLoading(false);
-    // })
-    setValues(initialValues);
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-  })
-    .catch((err) => {
-      // Handle errors (optional)
-      console.error('Login failed:', err);
-      // Reset loading state after error
-      setLoading(false);
-    });
+      .then(() => {
+        setValues(initialValues);
+      })
+      .catch((err) => {
+        console.error('Login failed:', err);
+      })
+      .finally(() => {
+        setLoading(false); // Reset loading state regardless of success or failure
+      });
   };
 
   return (
@@ -207,8 +195,8 @@ const Basic = function (props) {
                 type="submit"
                 color="info"
                 fullWidth
-                disabled={loading}
-                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} // Conditional rendering of CircularProgress
+                disabled={loading} 
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} 
               >
                 {loading ? 'Loading...' : 'Submit'}
               </MDButton>
