@@ -195,7 +195,7 @@ const Basic = function (props) {
                 type="submit"
                 color="info"
                 fullWidth
-                disabled={loading} 
+                // disabled={loading} 
                 startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} 
               >
                 {loading ? 'Loading...' : 'Submit'}

@@ -16,30 +16,60 @@ export const registerUser = (userData) => dispatch =>{
     ));
 };
  
-export const loginUser = (userData) => dispatch => {
-  axios
-  .post(`${apiUrl}/login`, userData)
-  .then(res => {
-      const { token }  = res.data;
-      // Log the token in the console
-      // console.log('Frontend Token:', token);
-      // Set token to localStorage
+// export const loginUser = (userData) => dispatch => {
+//   axios
+//   .post(`${apiUrl}/login`, userData)
+//   .then(res => {
+//       const { token }  = res.data;
+//       // Log the token in the console
+//       // console.log('Frontend Token:', token);
+//       // Set token to localStorage
+//       localStorage.setItem("jwtToken", token);
+//       // Set token to Auth header
+//       setAuthToken(token);
+//       // Decode token to get user data
+//       const decoded = jwt_decode(token);
+//       // Set current user
+//       dispatch(setCurrentUser(decoded));
+//   })
+//   .catch(err => {
+//       dispatch({
+//         type: GET_ERRORS,
+//         payload: err.response.data
+//       });
+//   });
+// }
+export const loginUser = (userData) => (dispatch) => {
+  // Set loading to true when starting the authentication request
+  dispatch(setUserLoading(true));
+
+  return axios.post(`${apiUrl}/login`, userData)
+    .then((res) => {
+      const { token } = res.data;
+      console.log('Frontend Token:', token);
+      
       localStorage.setItem("jwtToken", token);
-      // Set token to Auth header
       setAuthToken(token);
-      // Decode token to get user data
+
       const decoded = jwt_decode(token);
-      // Set current user
       dispatch(setCurrentUser(decoded));
-  })
-  .catch(err => {
+      
+      // Set loading to false after successful authentication
+      dispatch(setUserLoading(false));
+    })
+    .catch((err) => {
       dispatch({
         type: GET_ERRORS,
-        payload: err.response.data
+        payload: err.response.data,
       });
-  });
-}
 
+      // Set loading to false if there's an error during authentication
+      dispatch(setUserLoading(false));
+
+      // Return a rejected promise to allow catching errors in the component
+      return Promise.reject(err);
+    });
+};
  
  // Set logged in user
  export const setCurrentUser = decoded => {
