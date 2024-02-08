@@ -105,7 +105,7 @@ function Cover(props) {
     }
   }, [props.errors]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     const userData = {
@@ -116,16 +116,14 @@ function Cover(props) {
       password: values.password,
       password2: values.cpassword,
     };
-    return props
-    .registerUser(userData)
-    .then(() => {
+    try {
+      await props.registerUser(userData);
       setLoading(false);
-    })
-    .catch((err) => {
-      console.error("Registration failed:", err);
+    } catch (error) {
+      console.error("Registration failed:", error);
       setLoading(false);
-    });
-};
+    }
+  };
   return (
     <>
       <CoverLayout image={img}>
