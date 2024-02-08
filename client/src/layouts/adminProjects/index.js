@@ -38,11 +38,18 @@ import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import CircularProgress from "@mui/material/CircularProgress";
 
 export default function ColumnGroupingTable() {
-
-const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   // drawer code
   const columns = [
     { field: "projectname", headerName: "Projectname", flex: 1 },
+    {
+      field: "jobs.managerTeam",
+      headerName: "Manager",
+      flex: 1,
+      renderCell: (params) => (
+        <div style={{ padding: "8px" }}>{params.row.jobs?.managerTeam}</div>
+      ),
+    },
     { field: "team", headerName: "Department", flex: 1 },
     { field: "batch", headerName: "No.of.Members", flex: 1 },
     // { field: "reportDate", headerName: "StartDate", flex: 1 },
@@ -59,26 +66,20 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
         </div>
       ),
     },
+    
     {
       field: "jobs.cDate",
       headerName: "EndDate",
       flex: 1,
       renderCell: (params) => (
         <div style={{ padding: "8px" }}>
-          {moment(params.row.jobs?.cDate).format("DD/MM/YYYY")}
+          {params.row.jobs?.cDate
+            ? moment(params.row.jobs.cDate).format("DD/MM/YYYY")
+            : '-'}
         </div>
       ),
     },
-    {
-      field: "jobs.managerTeam",
-      headerName: "Manager",
-      flex: 1,
-      renderCell: (params) => (
-        <div style={{ padding: "8px" }}>
-          {params.row.jobs?.managerTeam}
-        </div>
-      ),
-    },
+  
     {
       field: "jobs.status1",
       headerName: "Status",
@@ -120,7 +121,6 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
       ),
     },
   ];
-
   const [loadingData, setLoadingData] = React.useState(false);
   const [count, setCount] = useState({ aTotal: "" });
   const [bill, setBill] = useState({
@@ -181,8 +181,6 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
     });
   };
 
-
-
   const handleManagerTeamChange = (event, value) => {
     setBill({
       ...bill,
@@ -211,7 +209,6 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
   const list = ["CV", "NLP", "CM", "Sourcing"];
   const submit = (e) => {
     e.preventDefault();
-
     const billData = {
       name: name,
       team: teamList,
@@ -237,30 +234,29 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
           setTeamList(response.data);
         });
 
-        axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
+        axios.get(`${apiUrl}/fetch/manager-name`).then((response) => {
           setManagers(response.data);
         });
       })
       .catch((err) => toast.error(err))
       .finally(() => {
         setLoadingData(false);
-    closeDrawer();
+        closeDrawer();
 
-    // Reset the state to initial values
-    setBill({
-      tDate: "",
-      team: "",
-      projectname: "",
-      batch: "",
-      jobs: {
-        managerTeam: "",
-        status1: "",
-        cDate: "",
-      },
-    });
-  });
-};
-
+        // Reset the state to initial values
+        setBill({
+          tDate: "",
+          team: "",
+          projectname: "",
+          batch: "",
+          jobs: {
+            managerTeam: "",
+            status1: "",
+            cDate: "",
+          },
+        });
+      });
+  };
 
   // drawer code end
 
@@ -309,30 +305,6 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
 
   const [initialData, setInitialData] = useState([]);
 
-  // Fetch initial data without filter
-  // useEffect(() => {
-  //   axios.get(`/billing/`).then((response) => {
-  //     // Update initial data
-  //     setInitialData(response.data);
-  //   });
-  // }, []);
-
-  // useEffect(() => {
-  //   axios.get(`/billing?empId=${empId}`).then((response) => {
-  //     // Update initial data
-  //     setInitialData(response.data);
-  //     setData(response.data);
-  //   });
-  //   axios.get("/create/fetch/addteam-data").then((response) => {
-  //     setTeamList(response.data);
-  //   });
-  //   axios.get("/create/fetch/manager-data").then((response) => {
-  //     setManagers(response.data);
-  //   });
-  // }, []); // Remove dependencies from the dependency array
-
-
-  
   useEffect(() => {
     setLoadingData(true);
     axios.get(`${apiUrl}/admin`).then((response) => {
@@ -343,13 +315,15 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
     axios.get(`${apiUrl}/fetch/addteam-data`).then((response) => {
       setTeamList(response.data);
     });
-    axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
-      setManagers(response.data);
-    })
-    .catch((err) => console.log(err))
-    .finally(() => {
-      setLoadingData(false);
-    });
+    axios
+      .get(`${apiUrl}/fetch/manager-name`)
+      .then((response) => {
+        setManagers(response.data);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => {
+        setLoadingData(false);
+      });
   }, []);
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -369,11 +343,11 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
       axios
         .get(
           `${apiUrl}/fetch/report/?sDate=` +
-          sDate +
-          "&eDate=" +
-          eDate +
-          "&team=" +
-          team
+            sDate +
+            "&eDate=" +
+            eDate +
+            "&team=" +
+            team
         )
         .then((res) => {
           // console.log(res.data);
@@ -409,17 +383,17 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
     setPopperOpen(false);
   };
   const statusIcons = {
-    "POC": <SelfImprovementIcon />,
+    POC: <SelfImprovementIcon />,
     "NOT-Started": <SelfImprovementIcon />,
-    "Training": <SelfImprovementIcon />,
+    Training: <SelfImprovementIcon />,
     "In-Progress": <DirectionsRunIcon />,
     "Completed-Won": <CheckIcon />,
     "Completed-Lost": <CloseIcon />,
   };
   const statusColors = {
-    "POC": "#2196F3", // Blue
-    "NOT-Started":"#979700",//dark yellow
-    "Training": "#9F00FF", // purple
+    POC: "#2196F3", // Blue
+    "NOT-Started": "#979700", //dark yellow
+    Training: "#9F00FF", // purple
     "In-Progress": "#FF9800", // orange
     "Completed-Won": "#8BC34A", // Light Green
     "Completed-Lost": "#FF5722", // Deep Orange
@@ -437,7 +411,6 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
         <MDButton
           variant="gradient"
           color="success"
-          startIcon={<AddCircleOutlineIcon />}
           onClick={openDrawer}
           style={{
             display: "flex",
@@ -447,8 +420,10 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
             textAlign: "center",
             minHeight: "10px",
             minWidth: "120px",
+            padding: "9px",
           }}
         >
+          <AddCircleOutlineIcon style={{ marginRight: "4px" }} />
           Create Project
         </MDButton>
       </div>
@@ -519,30 +494,19 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
                 value={bill.projectname}
                 onChange={handleInputChange}
                 required
+                placeholder="Enter project name"
               />
             </MDBox>
-            <MDBox sx={{ width: 730, ml: 2, mt: 1 }}>
+            <MDBox sx={{ width: 730, mt: 1, ml: 2 }}>
               <InputLabel htmlFor="department">Department</InputLabel>
-              {/* <Autocomplete
-                disablePortal
-                id="department"
-                options={list}
-                onChange={handleTeamChange}
-                sx={{
-                  width: 305,
-                  mt: 1,
-                  "& .MuiOutlinedInput-root": {
-                    padding: 0.5,
-                  },
-                }}
-                renderInput={(params) => <TextField {...params} />}
-                required
-              /> */}
+
               <Autocomplete
                 disablePortal
                 id="department"
                 name="team"
-                options={(Array.isArray(teamList) ? teamList : []).map((addteam) => addteam.createTeam)}
+                options={(Array.isArray(teamList) ? teamList : []).map(
+                  (addteam) => addteam.createTeam
+                )}
                 onChange={handleTeamChange}
                 sx={{
                   width: 305,
@@ -554,7 +518,8 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    required  // Add this line for validation
+                    required
+                    placeholder="Select the department"
                   />
                 )}
               />
@@ -575,33 +540,15 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
               No.of.Resources
             </InputLabel>
           </MDBox>
-          <MDBox sx={{ display: 'flex', alignItems: 'center', p: 1, ml: 1 }}>
-            {/* <TextField
-              sx={{ width: 305 }}
-              select
-              fullWidth
-              id="manager"
-              name="managerTeam"
-              value={bill.jobs.managerTeam}
-              required
-              onChange={handleManagerTeamChange}
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="">Select Manager</option>
-              <option value="Balamurugan">Balamurugan</option>
-              <option value="Rajesh">Rajesh</option>
-              <option value="Naveen">Naveen</option>
-              <option value="Sowmiya">Sowmiya</option>
-            </TextField> */}
+          <MDBox sx={{ display: "flex", alignItems: "center", p: 1, ml: 1 }}>
             <Autocomplete
               disablePortal
               id="manager"
               name="managerTeam"
-              options={(Array.isArray(managers) ? managers : []).map((addmanager) => addmanager.createManager)}
+              options={(Array.isArray(managers) ? managers : []).map(
+                ({ emp_name }) => emp_name
+              )}
+              getOptionLabel={(option) => option} // Use emp_name directly as the label
               onChange={handleManagerChange}
               sx={{
                 width: 305,
@@ -612,7 +559,8 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  required  // Add this line for validation
+                  required
+                  placeholder="Select the Manager"
                 />
               )}
             />
@@ -626,6 +574,7 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
               value={bill.batch}
               required
               onChange={handleInputChange}
+              placeholder="Enter the resource count" 
             />
           </MDBox>
           <MDBox
@@ -685,7 +634,7 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
                 native: true,
               }}
             >
-              <option value="">Select Status</option>
+              <option value="">Select the status</option>
               <option value="NOT-Started">NOT Started</option>
               <option value="Training">Training</option>
               <option value="POC">POC</option>
@@ -706,13 +655,18 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
                 <MDBox
                   pt={1}
                   pb={1}
-                  px={2}
+                  px={1}
                   display="flex"
                   justifyContent="center"
                   alignItems="center"
                 >
-                  <MDButton variant="gradient" color="success" type="submit">
-                    &nbsp;Save
+                  <MDButton variant="gradient" color="success" type="submit"
+                  style={{
+                    padding: '9px', // Adjust the padding value as needed
+                    fontSize: '0.7rem',
+                  }}
+                  >
+                    Save
                   </MDButton>
                 </MDBox>
               </Grid>
@@ -983,21 +937,20 @@ const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp'
                 ),
               }}
             />
-             {loadingData && (
-    <div
-      style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 1,
-        textAlign: 'center',
-      }}
-    >
-      <CircularProgress />
-     
-    </div>
-  )}
+            {loadingData && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  zIndex: 1,
+                  textAlign: "center",
+                }}
+              >
+                <CircularProgress />
+              </div>
+            )}
           </Box>
         </Card>
       </Grid>

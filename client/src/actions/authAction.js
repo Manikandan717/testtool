@@ -46,7 +46,7 @@ export const loginUser = (userData) => (dispatch) => {
   return axios.post(`${apiUrl}/login`, userData)
     .then((res) => {
       const { token } = res.data;
-      console.log('Frontend Token:', token);
+      // console.log('Frontend Token:', token);
       
       localStorage.setItem("jwtToken", token);
       setAuthToken(token);
