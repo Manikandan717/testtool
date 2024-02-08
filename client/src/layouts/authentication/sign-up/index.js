@@ -14,7 +14,7 @@ import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { registerUser } from "actions/authAction";
-
+import CircularProgress from "@mui/material/CircularProgress"; 
 
 function Cover(props) {
   const initialValues = {
@@ -39,16 +39,14 @@ function Cover(props) {
   });
   const [red, setRed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const img =
-    "https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80";
+  const img = "https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80";
   const [loading, setLoading] = useState(false);
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   const fetchEmployeeDetails = async (empId) => {
     try {
       if (empId.trim() !== "") {
-        const response = await axios.get(`${apiUrl}/getEmployeeDetails/${empId}`);
+        const response = await axios.get(`${apiUrl}/getEmployeeDetails/${empId}`  );
         const employeeDetails = response.data;
-
         setValues((prevValues) => ({
           ...prevValues,
           name: employeeDetails.emp_name,
@@ -72,19 +70,15 @@ function Cover(props) {
       }));
     }
   };
-
   useEffect(() => {
     fetchEmployeeDetails(values.empId);
   }, [values.empId]); // Trigger the effect whenever empId changes
-
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setValues({
       ...values,
       [name]: value,
-    });
-  };
+    }); };
 
   useEffect(() => {
     if (props.errors) {
@@ -98,7 +92,6 @@ function Cover(props) {
         emailNotFound: props.errors.emailNotFound,
       });
     }
-
     if (
       err.email &&
       err.password &&
@@ -114,9 +107,7 @@ function Cover(props) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     setLoading(true);
-
     const userData = {
       name: values.name,
       empId: values.empId,
@@ -125,193 +116,186 @@ function Cover(props) {
       password: values.password,
       password2: values.cpassword,
     };
-
-    props
-      .registerUser(userData)
-      .then(() => {
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Registration failed:", err);
-        setLoading(false);
-      });
-  };
-
+    return props
+    .registerUser(userData)
+    .then(() => {
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Registration failed:", err);
+      setLoading(false);
+    });
+};
   return (
     <>
-          <CoverLayout image={img}>
-      <Card>
-        <MDBox
-          variant="gradient"
-          bgColor="info"
-          borderRadius="lg"
-          coloredShadow="success"
-          mx={2}
-          mt={-3}
-          p={3}
-          mb={1}
-          textAlign="center"
-        >
-          <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Sign up
-          </MDTypography>
-          <MDTypography
-            display="block"
-            variant="button"
-            color="white"
-            my={1}
-          >
-            Enter your details to register
-          </MDTypography>
-        </MDBox>
-        <MDBox pt={4} pb={3} px={3}>
+      <CoverLayout image={img}>
+        <Card>
           <MDBox
-            component="form"
-            role="form"
-            onSubmit={handleSubmit}
-            noValidate
+            variant="gradient"
+            bgColor="info"
+            borderRadius="lg"
+            coloredShadow="success"
+            mx={2}
+            mt={-3}
+            p={3}
+            mb={1}
+            textAlign="center"
           >
-                        <MDBox mb={2}>
-              <MDInput
-                type="text"
-                value={values.empId}
-                onChange={handleInputChange}
-                helperText={
-                  <span style={{ color: err.empId ? "red" : "inherit" }}>
-                    {err.empId}
-                  </span>
-                }
-                name="empId"
-                label="Employee Number"
-                onBlur={() => fetchEmployeeDetails(values.empId)}
-                fullWidth
-              />
-              {err.emailNotFound && (
-                <FormHelperText style={{ color: "red" }}>
-                  {err.emailNotFound}
-                </FormHelperText>
-              )}
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                type="text"
-                label="Full Name"
-                value={values.name}
-                onChange={handleInputChange}
-                helperText={
-                  <span style={{ color: err.name ? "red" : "inherit" }}>
-                    {err.name}
-                  </span>
-                }
-                name="name"
-                fullWidth
-                disabled
-              />
-            </MDBox>
-           
-            <MDBox mb={2}>
-              <MDInput
-                type="email"
-                value={values.email}
-                onChange={handleInputChange}
-                name="email"
-                helperText={
-                  <span style={{ color: err.email ? "red" : "inherit" }}>
-                    {err.email || err.emailAlready}
-                  </span>
-                }
-                label="Email"
-                fullWidth
-                disabled
-              />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                label="Create New Password"
-                variant="outlined"
-                name="password"
-                value={values.password}
-                type={showPassword ? "text" : "password"}
-                onChange={handleInputChange}
-                error={red}
-                helperText={
-                  <span style={{ color: err.password ? "red" : "inherit" }}>
-                    {err.password}
-                  </span>
-                }
-                fullWidth
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <Visibility /> : <VisibilityOff />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                label="Confirm Password"
-                variant="outlined"
-                name="cpassword"
-                value={values.cpassword}
-                type={showPassword ? "text" : "password"}
-                onChange={handleInputChange}
-                error={red}
-                helperText={
-                  <span style={{ color: err.password2 ? "red" : "inherit" }}>
-                    {err.password2}
-                  </span>
-                }
-                fullWidth
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <Visibility /> : <VisibilityOff />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </MDBox>
-            <MDBox mt={4} mb={1}>
-              <MDButton
-                variant="gradient"
-                type="submit"
-                color="info"
-                fullWidth
-                disabled={loading}
-              >
-                {loading ? "Loading..." : "Sign Up"}
-              </MDButton>
-            </MDBox>
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                Already have an account?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/authentication/sign-in"
-                  variant="button"
+            <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+              Sign up
+            </MDTypography>
+            <MDTypography display="block" variant="button" color="white" my={1}>
+              Enter your details to register
+            </MDTypography>
+          </MDBox>
+          <MDBox pt={4} pb={3} px={3}>
+            <MDBox
+              component="form"
+              role="form"
+              onSubmit={handleSubmit}
+              noValidate
+            >
+              <MDBox mb={2}>
+                <MDInput
+                  type="text"
+                  value={values.empId}
+                  onChange={handleInputChange}
+                  helperText={
+                    <span style={{ color: err.empId ? "red" : "inherit" }}>
+                      {err.empId}
+                    </span>
+                  }
+                  name="empId"
+                  label="Employee Number"
+                  onBlur={() => fetchEmployeeDetails(values.empId)}
+                  fullWidth
+                />
+                {err.emailNotFound && (
+                  <FormHelperText style={{ color: "red" }}>
+                    {err.emailNotFound}
+                  </FormHelperText>
+                )}
+              </MDBox>
+              <MDBox mb={2}>
+                <MDInput
+                  type="text"
+                  label="Full Name"
+                  value={values.name}
+                  onChange={handleInputChange}
+                  helperText={
+                    <span style={{ color: err.name ? "red" : "inherit" }}>
+                      {err.name}
+                    </span>
+                  }
+                  name="name"
+                  fullWidth
+                  disabled
+                />
+              </MDBox>
+              <MDBox mb={2}>
+                <MDInput
+                  type="email"
+                  value={values.email}
+                  onChange={handleInputChange}
+                  name="email"
+                  helperText={
+                    <span style={{ color: err.email ? "red" : "inherit" }}>
+                      {err.email || err.emailAlready}
+                    </span>
+                  }
+                  label="Email"
+                  fullWidth
+                  disabled
+                />
+              </MDBox>
+              <MDBox mb={2}>
+                <MDInput
+                  label="Create New Password"
+                  variant="outlined"
+                  name="password"
+                  value={values.password}
+                  type={showPassword ? "text" : "password"}
+                  onChange={handleInputChange}
+                  error={red}
+                  helperText={
+                    <span style={{ color: err.password ? "red" : "inherit" }}>
+                      {err.password}
+                    </span>
+                  }
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <Visibility /> : <VisibilityOff />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </MDBox>
+              <MDBox mb={2}>
+                <MDInput
+                  label="Confirm Password"
+                  variant="outlined"
+                  name="cpassword"
+                  value={values.cpassword}
+                  type={showPassword ? "text" : "password"}
+                  onChange={handleInputChange}
+                  error={red}
+                  helperText={
+                    <span style={{ color: err.password2 ? "red" : "inherit" }}>
+                      {err.password2}
+                    </span>
+                  }
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <Visibility /> : <VisibilityOff />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </MDBox>
+              <MDBox mt={4} mb={1}>
+                <MDButton
+                  variant="gradient"
+                  type="submit"
                   color="info"
-                  fontWeight="medium"
-                  textGradient
+                  fullWidth
+                  // disabled={loading} 
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} 
                 >
-                  Sign In
+                  {loading ? "Loading..." : "Sign Up"}
+                </MDButton>
+              </MDBox>
+              <MDBox mt={3} mb={1} textAlign="center">
+                <MDTypography variant="button" color="text">
+                  Already have an account?{" "}
+                  <MDTypography
+                    component={Link}
+                    to="/authentication/sign-in"
+                    variant="button"
+                    color="info"
+                    fontWeight="medium"
+                    textGradient
+                  >
+                    Sign In
+                  </MDTypography>
                 </MDTypography>
-              </MDTypography>
+              </MDBox>
             </MDBox>
           </MDBox>
-        </MDBox>
-      </Card>
+        </Card>
       </CoverLayout>
     </>
   );
