@@ -73,12 +73,20 @@ function Cover(props) {
   useEffect(() => {
     fetchEmployeeDetails(values.empId);
   }, [values.empId]); // Trigger the effect whenever empId changes
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setValues({
       ...values,
       [name]: value,
-    }); };
+    });
+    
+    // Clear the error message for the changed input field
+    setErr({
+      ...err,
+      [name]: "",
+    });
+  };
 
   useEffect(() => {
     if (props.errors) {
@@ -176,7 +184,6 @@ function Cover(props) {
               </MDBox>
               <MDBox mb={2}>
                 <MDInput
-                  type="text"
                   label="Full Name"
                   value={values.name}
                   onChange={handleInputChange}
@@ -270,7 +277,6 @@ function Cover(props) {
                   type="submit"
                   color="info"
                   fullWidth
-                  // disabled={loading} 
                   startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} 
                 >
                   {loading ? "Loading..." : "Sign Up"}
