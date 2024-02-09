@@ -168,7 +168,7 @@ function DashboardNavbar(props, { absolute, light, isMini }) {
               >
                 <Icon sx={iconsStyle}>settings</Icon>
               </IconButton> */}
-              <IconButton
+             {name}  <IconButton
                 size="small"
                 disableRipple
                 color="inherit"
