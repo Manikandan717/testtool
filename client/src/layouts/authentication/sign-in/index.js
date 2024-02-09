@@ -23,6 +23,11 @@ const Basic = function (props) {
     passwordIncorrect: "",
   });
   const navigate = useNavigate();
+
+  const handleSignUpClick = () => {
+    navigate("/authentication/sign-up"); 
+    window.location.reload(); 
+  };
   const initialValues = {
     email: "",
     password: "",
@@ -36,6 +41,17 @@ const Basic = function (props) {
   const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
   const [loading, setLoading] = useState(false); 
+
+  useEffect(() => {
+
+    setErr({
+      email: "",
+      password: "",
+      emailIncorrect: "",
+      passwordIncorrect: "",
+    });
+    setRed(false);
+  }, []);
 
   useEffect(() => {
     if (props.auth.isAuthenticated) {
@@ -226,6 +242,7 @@ const Basic = function (props) {
                   color="info"
                   fontWeight="medium"
                   textGradient
+                  onClick={handleSignUpClick}
                 >
                   Sign up
                 </MDTypography>

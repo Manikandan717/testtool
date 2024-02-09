@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { connect } from "react-redux";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -14,7 +14,7 @@ import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { registerUser } from "actions/authAction";
-import CircularProgress from "@mui/material/CircularProgress"; 
+import CircularProgress from "@mui/material/CircularProgress";
 
 function Cover(props) {
   const initialValues = {
@@ -37,6 +37,14 @@ function Cover(props) {
     emailAlready: "",
     emailNotFound: "",
   });
+
+  const navigate = useNavigate();
+
+  const handleSignInClick = () => {
+    navigate("/authentication/sign-in"); 
+    window.location.reload(); 
+  };
+  
   const [red, setRed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const img = "https://images.unsplash.com/photo-1471734134930-fdd4b1af533e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1749&q=80";
@@ -45,7 +53,7 @@ function Cover(props) {
   const fetchEmployeeDetails = async (empId) => {
     try {
       if (empId.trim() !== "") {
-        const response = await axios.get(`${apiUrl}/getEmployeeDetails/${empId}`  );
+        const response = await axios.get(`${apiUrl}/getEmployeeDetails/${empId}`);
         const employeeDetails = response.data;
         setValues((prevValues) => ({
           ...prevValues,
@@ -113,6 +121,21 @@ function Cover(props) {
     }
   }, [props.errors]);
 
+  useEffect(() => {
+    return () => {
+      setErr({
+        name: "",
+        empId: "",
+        email: "",
+        password: "",
+        password2: "",
+        emailAlready: "",
+        emailNotFound: "",
+      });
+    };
+  }, []);
+  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -132,6 +155,7 @@ function Cover(props) {
       setLoading(false);
     }
   };
+
   return (
     <>
       <CoverLayout image={img}>
@@ -292,6 +316,7 @@ function Cover(props) {
                     color="info"
                     fontWeight="medium"
                     textGradient
+                    onClick={handleSignInClick}
                   >
                     Sign In
                   </MDTypography>
