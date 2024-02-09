@@ -276,7 +276,7 @@ const TaskWiseBarChart = () => {
 
   const fetchDataTwo = async (projectName, team, sDate, eDate) => {
     try {
-      let url = "http://localhost:5000/analyst/counts";
+      let url = `${apiUrl}/analyst/counts`;
       const params = {};
 
       if (projectName) {
