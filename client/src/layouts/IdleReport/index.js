@@ -509,7 +509,7 @@ const TaskWiseBarChart = () => {
     try {
       if (newProject !== null && newTeam === null) {
         // If only project is selected, fetch batch value
-        const response = await axios.get('http://localhost:5000/getBatchByProjectName', {
+        const response = await axios.get(`${apiUrl}/getBatchByProjectName`, {
           params: {
             projectName: newProject,
           },
@@ -519,7 +519,7 @@ const TaskWiseBarChart = () => {
         setBatchCountByTeam(null);  // Reset batch count by team when only project is selected
       } else if (newProject === null && newTeam !== null) {
         // If only team is selected, fetch batch count by team
-        const response = await axios.get('http://localhost:5000/overallBatchCountByTeam', {
+        const response = await axios.get(`${apiUrl}/overallBatchCountByTeam`, {
           params: {
             team: newTeam,
           },
@@ -529,7 +529,7 @@ const TaskWiseBarChart = () => {
         setEmployeeCount(null);  // Reset employee count when only team is selected
       } else if (newProject !== null && newTeam !== null) {
         // If both project and team are selected, fetch batch value for the team related to the project
-        const response = await axios.get('http://localhost:5000/getBatchByProjectName', {
+        const response = await axios.get(`${apiUrl}/getBatchByProjectName`, {
           params: {
             projectName: newProject,
           },
@@ -539,7 +539,7 @@ const TaskWiseBarChart = () => {
         // Note: You might need additional logic here to set batch count by team for the specific team
       } else {
         // If no project or team is selected, fetch employee count
-        const response = await axios.get('http://localhost:5000/employeeCount');
+        const response = await axios.get(`${apiUrl}/employeeCount`);
         setEmployeeCount(response.data.count);
         setBatchValue(null);  // Reset batch value when no project or team is selected
         setBatchCountByTeam(null);  // Reset batch count by team when no project or team is selected
