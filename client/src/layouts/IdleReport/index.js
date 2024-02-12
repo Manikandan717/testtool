@@ -781,41 +781,6 @@ const exportChartDataToExcel = async () => {
     fetchProjectStatusData();
   }, [apiUrl]);
 
-  // useEffect(() => {
-  //   const fetchProjectStatusData = async () => {
-  //     try {
-  //       const response = await axios.get(`${apiUrl}/projectStatus`);
-  //       const projectStatusData = response.data;
-
-  //       // Aggregate counts for the same status1 values
-  //       const aggregatedData = aggregateStatus1Data(projectStatusData);
-
-  //       // Calculate the total count
-  //       const totalCount = aggregatedData.reduce((sum, item) => sum + item.count, 0);
-
-  //       // Update pie chart data with percentages
-  //       // const percentages = aggregatedData.map((item) => (item.count / totalCount) * 100);
-  //       const percentages = aggregatedData.map((item) => (item.count) );
-  //       setPieChartData1((prevData) => ({
-  //         ...prevData,
-  //         labels: aggregatedData.map((item) => item.status1),
-  //         datasets: [
-  //           {
-  //             data: percentages,
-
-  //           backgroundColor: ['#435671', '#90C1F2' ],
-  //           hoverBackgroundColor: ['#435671', '#90C1F2' ],
-  //           },
-  //         ],
-  //       }));
-  //     } catch (error) {
-  //       console.error('Error fetching project status data:', error);
-  //     }
-  //   };
-
-  //   fetchProjectStatusData();
-  // }, [apiUrl]);
-
   // Function to aggregate counts for the same status1 values
   const aggregateStatus1Data = (data) => {
     const status1Map = new Map();
@@ -1022,14 +987,15 @@ const exportChartDataToExcel = async () => {
 
   const differenceInMs = endDate.getTime() - startDate.getTime();
 
-// Convert the difference to days
-const differenceInDays = differenceInMs / (1000 * 3600 * 24);
-
-// Calculate the average production count per day
-const averageProductionCountPerDay = totalProductionCount / differenceInDays;
-
-// Calculate the average idle count per day
-const averageIdleCountPerDay = totalIdleCount / differenceInDays;
+  // Convert the difference to days
+  const differenceInDays = differenceInMs / (1000 * 3600 * 24);
+  
+  // Calculate the average production count per day
+  const averageProductionCountPerDay = (totalProductionCount / differenceInDays).toFixed(2);
+  
+  // Calculate the average idle count per day
+  const averageIdleCountPerDay = (totalIdleCount / differenceInDays).toFixed(2);
+  
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -1063,7 +1029,7 @@ const averageIdleCountPerDay = totalIdleCount / differenceInDays;
             <Grid item xs={12} md={3}>
               <TextField
                 label="Start Date"
-                sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
+                sx={{ backgroundColor: "#fff", borderRadius: "8px",width: "98%",  }}
                 type="date"
                 value={startDate.toISOString().split("T")[0]}
                 onChange={(event) => setStartDate(new Date(event.target.value))}
@@ -1088,12 +1054,20 @@ const averageIdleCountPerDay = totalIdleCount / differenceInDays;
                 color="secondary"
               />
             </Grid>
-            <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
+            <Grid item xs={12} md={3} sx={{ padding: "8px",margin: "0 9px"}}>
             <Autocomplete
         value={selectedTeam}
         onChange={handleTeamChange}
         options={teams}
-        sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
+        sx={{
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          width: "103%",
+          "& .MuiOutlinedInput-root": {
+            padding: 0.5,
+            
+          },
+        }}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -1104,14 +1078,15 @@ const averageIdleCountPerDay = totalIdleCount / differenceInDays;
           />
         )}
       />
-
             </Grid>
             <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
       <Autocomplete
         value={selectedProject}
         onChange={handleProjectChange}
         options={selectedTeam ? teamProjects : allProjectNames}
-        sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
+        sx={{ backgroundColor: "#fff", borderRadius: "8px", "& .MuiOutlinedInput-root": {
+          padding: 0.6,
+        }, }}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -1125,7 +1100,7 @@ const averageIdleCountPerDay = totalIdleCount / differenceInDays;
     </Grid>
           </Box>
         </Grid>
-        <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
+        <Grid item xs={12} md={3} >
         <Card sx={{ width: "100%", height: "100%" }}>
           <CardActionArea>
             <CardContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
@@ -1254,221 +1229,12 @@ const averageIdleCountPerDay = totalIdleCount / differenceInDays;
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-        {/* <Card>
-          <CardHeader
-            title={<h3 style={{ fontSize: "17px" }}>Attendance Overview</h3>}
-          />
-          <CardContent>
-            <Doughnut
-              data={pieChartDataAtt}
-              options={{
-                plugins: {
-                  tooltip: {
-                    enabled: true,
-                    callbacks: {
-                      label: (context) => {
-                        const label = context.label || '';
-                        const value = context.formattedValue || '';
-                        return `${label}: ${value}`;
-                      },
-                    },
-                  },
-                  legend: {
-                    position: "right",
-                    labels: {
-                      generateLabels: function (chart) {
-                        const data = chart.data;
-                        if (data.labels.length && data.datasets.length) {
-                          return data.labels.map((label, index) => {
-                            const dataset = data.datasets[0];
-                            const value = dataset.data[index];
-                            return {
-                              text: `${label} (${value})`,
-                              fillStyle: dataset.backgroundColor[index],
-                              strokeStyle: dataset.backgroundColor[index],
-                              lineWidth: 0,
-                            };
-                          });
-                        }
-                        return [];
-                      },
-                    },
-                  },
-                },
-                cutout: "60%",
-              }}
-            />
-          </CardContent>
-        </Card> */}
          <MemoizedDoughnutChart pieChartDataAtt={pieChartDataAtt} />
       </Grid>
         <Grid item xs={12} md={4}>
-          {/* <Card>
-            <CardHeader
-              title={
-                <h3 style={{ fontSize: "17px" }}>
-                  Billing & Non-Billing Status
-                </h3>
-              }
-            />
-            <CardContent>
-   
-              <Doughnut
-                data={pieChartData}
-                options={{
-                  
-                  plugins: {
-                    tooltip: {
-                      enabled: true,
-                      callbacks: {
-                        label: (context) => {
-                          const label = context.label || "";
-                          const value = context.formattedValue || "";
-                          return `${label}: ${value}`;
-                        },
-                      },
-                    },
-                    legend: {
-                      position: "right",
-                      labels: {
-                        generateLabels: function (chart) {
-                          const data = chart.data;
-                          if (data.labels.length && data.datasets.length) {
-                            return data.labels.map((label, index) => {
-                              const dataset = data.datasets[0];
-                              const value = dataset.data[index];
-                              return {
-                                text: `${label} (${value})`,
-                                fillStyle: dataset.backgroundColor[index],
-                                strokeStyle: dataset.backgroundColor[index],
-                                lineWidth: 0,
-                              };
-                            });
-                          }
-                          return [];
-                        },
-                      },
-                    },
-                  },
-                  cutout: "60%", 
-                }}
-              />
-   
-            </CardContent>
-          </Card> */}
                <MemoizedBillingChart pieChartData={pieChartData} />
         </Grid>
-
-        {/* Doughnut Chart */}
-        {/* <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader
-              title={
-                <h3 style={{ fontSize: "17px" }}>Employee Attendance Status</h3>
-              }
-            />
-            <CardContent>
-              <div style={{ width: '80%'}}>
-              <Doughnut
-                data={doughnutChartData}
-                height={30}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      enabled: true,
-                      callbacks: {
-                        label: (context) => {
-                          const label = context.label || "";
-                          const value = context.formattedValue || "";
-                          return `${label}: ${value}`;
-                        },
-                      },
-                    },
-                    legend: {
-                      position: "right",
-                      labels: {
-                        generateLabels: function (chart) {
-                          const data = chart.data;
-                          if (data.labels.length && data.datasets.length) {
-                            return data.labels.map((label, index) => {
-                              const dataset = data.datasets[0];
-                              const value = dataset.data[index];
-                              return {
-                                text: `${label} (${value})`,
-                                fillStyle: dataset.backgroundColor[index],
-                                strokeStyle: dataset.backgroundColor[index],
-                                lineWidth: 0,
-                              };
-                            });
-                          }
-                          return [];
-                        },
-                      },
-                    },
-                  },
-                  cutout: "60%",
-                }}
-              />
-              </div>
-            </CardContent>
-          </Card>
-        </Grid> */}
-
         <Grid item xs={12} md={4}>
-          {/* <Card>
-            <CardHeader
-              title={<h3 style={{ fontSize: "17px" }}>Project Status</h3>}
-            />
-            <CardContent>
-              {pieChartData1.labels.length > 0 && (
-                // <div style={{ width: '80%', margin: '0 auto' }}>
-                <Doughnut
-                  data={pieChartData1}
-                  options={{
-                    plugins: {
-                      tooltip: {
-                        enabled: true,
-                        callbacks: {
-                          label: (context) => {
-                            const label = context.label || "";
-                            const value = context.formattedValue || "";
-                            const index = context.dataIndex;
-                            const count = pieChartData1.datasets[0].data[index];
-                            return `${label}: ${value}`;
-                          },
-                        },
-                      },
-                      legend: {
-                        position: "right",
-                        labels: {
-                          generateLabels: function (chart) {
-                            const data = chart.data;
-                            if (data.labels.length && data.datasets.length) {
-                              return data.labels.map((label, i) => {
-                                const dataset = data.datasets[0];
-                                const count = dataset.data[i];
-                                return {
-                                  text: `${label} (${count})`,
-                                  fillStyle: dataset.backgroundColor[i],
-                                  hidden:
-                                    isNaN(dataset.data[i]) ||
-                                    dataset.data[i] === 0,
-                                  // You can customize other properties as needed
-                                };
-                              });
-                            }
-                            return [];
-                          },
-                        },
-                      },
-                    },
-                    cutout: "60%", // Set the cutout percentage to 50%
-                  }}
-                />
-                // </div>
-              )}
-            </CardContent>
-          </Card> */}
             <MemoizedProjectStatusChart pieChartData1={pieChartData1} />
         </Grid>
 
@@ -1544,28 +1310,6 @@ const averageIdleCountPerDay = totalIdleCount / differenceInDays;
               title={<h3 style={{ fontSize: "17px" }}>Task Report Status</h3>}
             />
             <CardContent>
-              {/* {chartData.labels.length > 0 && (
-                <div style={{ height: "333px", overflowY: "auto" }}>
-                  <Bar
-                    data={chartData}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        x: { stacked: true },
-                        y: { stacked: true },
-                      },
-                      plugins: {
-                        legend: {
-                          display: true,
-                          position: "top",
-                        },
-                      },
-                      barThickness: 30, // Adjust the value to your desired thickness
-                    }}
-                  />
-                </div>
-              )} */}
                <MemoizedBarChart chartData={chartData} />
             </CardContent>
           </Card>
