@@ -235,8 +235,9 @@ export default function ColumnGroupingTable() {
           setTeamList(response.data);
         });
 
-        axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
-          setManagers(response.data);
+        // axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
+          axios.get(`${apiUrl}/fetch/manager-name`).then((response) => {
+        setManagers(response.data);
         });
       })
       .catch((err) => toast.error(err));
@@ -322,8 +323,9 @@ export default function ColumnGroupingTable() {
     axios.get(`${apiUrl}/fetch/addteam-data`).then((response) => {
       setTeamList(response.data);
     });
-    axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
-      setManagers(response.data);
+    // axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
+      axios.get(`${apiUrl}/fetch/manager-name`).then((response) => {
+    setManagers(response.data);
     });
   }, []); // Remove dependencies from the dependency array
 
