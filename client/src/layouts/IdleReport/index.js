@@ -22,7 +22,8 @@ import WorkIcon from "@mui/icons-material/Work";
 import * as XLSX from "xlsx";
 import GroupIcon from "@mui/icons-material/Group";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
-
+import MDBox from "components/MDBox";
+import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
 const MemoizedBarChart = memo(
   ({ chartData }) =>
@@ -257,18 +258,17 @@ const TaskWiseBarChart = () => {
 
   // New state variable for Pie Chart
   const [pieChartData, setPieChartData] = useState({
-    labels: ["Idle - Non Billable", "Idle - Billable", "Production"],
+    labels: ["Idle", "Production"],
     datasets: [
       {
         data: [0, 0, 0], // Initial percentages set to 0
-        backgroundColor: ["#7b69bc", "#435671", "#90C1F2"],
-        hoverBackgroundColor: ["#7b69bc", "#435671", "#90C1F2"],
+        backgroundColor: ["#7b69bc", "#435671"],
+        hoverBackgroundColor: ["#7b69bc", "#435671"],
       },
     ],
   });
   const [totalProductionCount, setTotalProductionCount] = useState(0);
   const [totalIdleCount, setTotalIdleCount] = useState(0);
-
 
   useEffect(() => {
     fetchDataTwo(selectedProject, selectedTeam, startDate, endDate);
@@ -299,7 +299,6 @@ const TaskWiseBarChart = () => {
     }
   };
 
-
   const [teams, setTeams] = useState([]);
   useEffect(() => {
     const fetchTeams = async () => {
@@ -314,8 +313,6 @@ const TaskWiseBarChart = () => {
     fetchTeams();
   }, []);
 
-
-
   useEffect(() => {
     const fetchAllProjectNames = async () => {
       try {
@@ -329,7 +326,7 @@ const TaskWiseBarChart = () => {
     fetchAllProjectNames();
   }, []);
 
-// useEffect(() => {
+  // useEffect(() => {
   //   const fetchProjectNames = async () => {
   //     try {
   //       const response = await axios.get(`${apiUrl}/projectNames`);
@@ -350,32 +347,30 @@ const TaskWiseBarChart = () => {
 
   const fetchPieChartData = useCallback(async () => {
     try {
-      const total = idleNonBillableCount + idleBillableCount + productionCount;
-    // const percentages = [idleNonBillableCount, idleBillableCount, productionCount];
-      const percentages = [idleNonBillableCount, idleBillableCount, totalProductionCount];
+      const totalProduction = idleBillableCount + totalProductionCount; // Include idleBillableCount in production count
+      const total = totalProduction + idleNonBillableCount; // Include idleNonBillableCount separately
+      const percentages = [idleNonBillableCount, totalProduction]; // Include totalProduction
 
       setPieChartData((prevData) => ({
         ...prevData,
         datasets: [
           {
             data: percentages,
-            backgroundColor: ["#7b69bc", "#435671", "#90C1F2"],
-            hoverBackgroundColor: ["#7b69bc", "#435671", "#90C1F2"],
+            backgroundColor: ["#7b69bc", "#435671"],
+            hoverBackgroundColor: ["#7b69bc", "#435671"],
           },
         ],
       }));
     } catch (error) {
       console.error("Error fetching pie chart data:", error);
     }
-  // }, [idleNonBillableCount, idleBillableCount, productionCount, setPieChartData]);
-}, [idleNonBillableCount, idleBillableCount, totalProductionCount, setPieChartData]);
-
+  }, [idleNonBillableCount, totalProductionCount, setPieChartData]);
 
   useEffect(() => {
     fetchPieChartData();
   }, [fetchPieChartData]);
 
-  
+  // Modify the useEffect hook where you calculate the production count
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -390,15 +385,15 @@ const TaskWiseBarChart = () => {
           setProductionCount(0);
           return;
         }
-  
+
         let response;
-  
+
         if (selectedProject && selectedTeam) {
           // Fetch data for a specific project and team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split('T')[0],
-              eDate: endDate.toISOString().split('T')[0],
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
               projectName: selectedProject,
               team: selectedTeam,
             },
@@ -407,8 +402,8 @@ const TaskWiseBarChart = () => {
           // Fetch data for all projects for a specific team
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split('T')[0],
-              eDate: endDate.toISOString().split('T')[0],
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
               team: selectedTeam,
             },
           });
@@ -416,34 +411,29 @@ const TaskWiseBarChart = () => {
           // Fetch data for all projects
           response = await axios.get(`${apiUrl}/fetch/taskwise`, {
             params: {
-              sDate: startDate.toISOString().split('T')[0],
-              eDate: endDate.toISOString().split('T')[0],
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
             },
           });
         }
-  
+
         const data = response.data;
         const uniqueDates = [...new Set(data.map((item) => item._id.date))];
-        const formattedDates = uniqueDates.map(date => {
+        const formattedDates = uniqueDates.map((date) => {
           const formattedDate = new Date(date);
           const day = formattedDate.getDate();
-          const month = formattedDate.toLocaleString('en-US', { month: 'short' });
+          const month = formattedDate.toLocaleString("en-US", {
+            month: "short",
+          });
           const year = formattedDate.getFullYear();
           return `${day} ${month} ${year}`;
         });
-        // const formattedDates = uniqueDates.map(date => {
-        //   const formattedDate = new Date(date);
-        //   const day = formattedDate.getDate();
-        //   const month = formattedDate.toLocaleString('en-US', { month: 'short' });
-        //   const year = formattedDate.getFullYear().toString().slice(-2); // Get the last two digits
-        //   return `${day} ${month} ${year}`;
-        // });
-  
+
         // Sort the formattedDates array in chronological order
         formattedDates.sort((a, b) => new Date(a) - new Date(b));
-  
+
         const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
-  
+
         const datasets = uniqueTasks.map((task) => {
           const taskData = data.filter((item) => item._id.task === task);
           return {
@@ -452,7 +442,9 @@ const TaskWiseBarChart = () => {
               const matchingItem = taskData.find((item) => {
                 const itemDate = new Date(item._id.date);
                 const day = itemDate.getDate();
-                const month = itemDate.toLocaleString('en-US', { month: 'short' });
+                const month = itemDate.toLocaleString("en-US", {
+                  month: "short",
+                });
                 const year = itemDate.getFullYear();
                 const itemFormattedDate = `${day} ${month} ${year}`;
                 return itemFormattedDate === formattedDate;
@@ -479,6 +471,9 @@ const TaskWiseBarChart = () => {
             productionCount += count;
           }
         });
+
+        // Add idle billable count to production count
+        productionCount += idleBillableCount;
 
         setIdleNonBillableCount(idleNonBillableCount);
         setIdleBillableCount(idleBillableCount);
@@ -515,8 +510,8 @@ const TaskWiseBarChart = () => {
           },
         });
         setBatchValue(response.data.batchValue);
-        setEmployeeCount(null);  // Reset employee count when a project is selected
-        setBatchCountByTeam(null);  // Reset batch count by team when only project is selected
+        setEmployeeCount(null); // Reset employee count when a project is selected
+        setBatchCountByTeam(null); // Reset batch count by team when only project is selected
       } else if (newProject === null && newTeam !== null) {
         // If only team is selected, fetch batch count by team
         const response = await axios.get(`${apiUrl}/overallBatchCountByTeam`, {
@@ -524,9 +519,12 @@ const TaskWiseBarChart = () => {
             team: newTeam,
           },
         });
-        setBatchCountByTeam(response.data.find((teamData) => teamData._id === newTeam)?.overallBatchCount || 0);
-        setBatchValue(null);  // Reset batch value when only team is selected
-        setEmployeeCount(null);  // Reset employee count when only team is selected
+        setBatchCountByTeam(
+          response.data.find((teamData) => teamData._id === newTeam)
+            ?.overallBatchCount || 0
+        );
+        setBatchValue(null); // Reset batch value when only team is selected
+        setEmployeeCount(null); // Reset employee count when only team is selected
       } else if (newProject !== null && newTeam !== null) {
         // If both project and team are selected, fetch batch value for the team related to the project
         const response = await axios.get(`${apiUrl}/getBatchByProjectName`, {
@@ -535,17 +533,17 @@ const TaskWiseBarChart = () => {
           },
         });
         setBatchValue(response.data.batchValue);
-        setEmployeeCount(null);  // Reset employee count when both project and team are selected
+        setEmployeeCount(null); // Reset employee count when both project and team are selected
         // Note: You might need additional logic here to set batch count by team for the specific team
       } else {
         // If no project or team is selected, fetch employee count
         const response = await axios.get(`${apiUrl}/employeeCount`);
         setEmployeeCount(response.data.count);
-        setBatchValue(null);  // Reset batch value when no project or team is selected
-        setBatchCountByTeam(null);  // Reset batch count by team when no project or team is selected
+        setBatchValue(null); // Reset batch value when no project or team is selected
+        setBatchCountByTeam(null); // Reset batch count by team when no project or team is selected
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
       // Handle error, you might want to set an error state or display an error message
     }
   };
@@ -554,7 +552,6 @@ const TaskWiseBarChart = () => {
     setSelectedProject(newProject);
     await fetchDataBasedOnProject(newProject, selectedTeam);
   };
-
 
   const handleFetchProjectsForTeam = async (team) => {
     try {
@@ -585,17 +582,17 @@ const TaskWiseBarChart = () => {
     // Fetch all project names when the component mounts
     const fetchAllProjectNames = async () => {
       try {
-        const response = await axios.get('/projectNames');  // Replace with the actual endpoint to get all project names
+        const response = await axios.get("/projectNames"); // Replace with the actual endpoint to get all project names
         setAllProjectNames(response.data);
       } catch (error) {
-        console.error('Error fetching all project names:', error);
+        console.error("Error fetching all project names:", error);
         // Handle error, you might want to set an error state or display an error message
       }
     };
 
     fetchAllProjectNames();
-    fetchDataBasedOnProject(null, null);  // Fetch initial data with no project or team selected
-  }, []); 
+    fetchDataBasedOnProject(null, null); // Fetch initial data with no project or team selected
+  }, []);
 
   const getRandomColor = () => {
     const letters = "0123456789ABCDEF";
@@ -606,120 +603,132 @@ const TaskWiseBarChart = () => {
     return color;
   };
 
-  // Function to calculate production count
-const calculateProductionCount = () => {
-  // Add your logic here to calculate the production count
-  // For example, you might fetch the production count from your state or API
-  return averageProductionCountPerDay; // Return the calculated production count
-};
-const calculateIdleCount = () => {
-  // Add your logic here to calculate the production count
-  // For example, you might fetch the production count from your state or API
-  // return totalIdleCount; // Return the calculated production count
-  return averageIdleCountPerDay;
-  
+  //   // Function to calculate production count
+  // const calculateProductionCount = () => {
+  //   // Add your logic here to calculate the production count
+  //   // For example, you might fetch the production count from your state or API
+  //   return averageProductionCountPerDay; // Return the calculated production count
+  // };
+  // const calculateIdleCount = () => {
+  //   // Add your logic here to calculate the production count
+  //   // For example, you might fetch the production count from your state or API
+  //   // return totalIdleCount; // Return the calculated production count
+  //   return averageIdleCountPerDay;
 
-};
-      
+  // };
 
-const exportChartDataToExcel = async () => {
-  try {
-    if (!selectedProject && !selectedTeam) {
-      console.error("No project or team selected for export");
-      return;
-    }
+  const exportChartDataToExcel = async () => {
+    try {
+      if (!selectedProject && !selectedTeam) {
+        console.error("No project or team selected for export");
+        return;
+      }
 
-    let response;
-    let projectName;
+      let response;
+      let projectName;
 
-    if (selectedProject) {
-      response = await axios.get(`${apiUrl}/fetch/taskwise`, {
-        params: {
-          sDate: startDate.toISOString().split("T")[0],
-          eDate: endDate.toISOString().split("T")[0],
-          projectName: selectedProject,
-        },
-      });
-      projectName = selectedProject;
-    } else if (selectedTeam) {
-      response = await axios.get(`${apiUrl}/fetch/taskwise`, {
-        params: {
-          sDate: startDate.toISOString().split("T")[0],
-          eDate: endDate.toISOString().split("T")[0],
-          teamName: selectedTeam,
-        },
-      });
-      projectName = selectedTeam;
-    }
-
-    const data = response.data;
-
-    if (data.length === 0) {
-      console.error("No data available for export");
-      return;
-    }
-
-    const wb = XLSX.utils.book_new();
-
-    const uniqueDates = [...new Set(data.map((item) => item._id.date))];
-    const formattedDates = uniqueDates.map((date) => {
-      const formattedDate = new Date(date);
-      return formattedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    });
-
-    // Sort formattedDates in order
-    formattedDates.sort((a, b) => {
-      const dateA = new Date(a);
-      const dateB = new Date(b);
-      return dateA - dateB;
-    });
-
-    const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
-
-    // Create headers with project or team name in the first cell of the first row
-    const mainHeader = [[projectName]];
-    const subHeader = ['Task', ...uniqueTasks, 'Production', 'Idle']; // Include Production and Idle headers
-    const headers = [mainHeader, subHeader];
-
-    // Initialize sheet data with headers
-    const wsData = [...headers];
-
-    // Fill sheet data with counts under respective dates and tasks
-    formattedDates.forEach((date) => {
-      const row = [date];
-      uniqueTasks.forEach((task) => {
-        const matchingItem = data.find((item) => {
-          const itemDate = new Date(item._id.date);
-          return itemDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) === date && item._id.task === task;
+      if (selectedProject) {
+        response = await axios.get(`${apiUrl}/fetch/taskwise`, {
+          params: {
+            sDate: startDate.toISOString().split("T")[0],
+            eDate: endDate.toISOString().split("T")[0],
+            projectName: selectedProject,
+          },
         });
-        row.push(matchingItem ? matchingItem.count : 0);
+        projectName = selectedProject;
+      } else if (selectedTeam) {
+        response = await axios.get(`${apiUrl}/fetch/taskwise`, {
+          params: {
+            sDate: startDate.toISOString().split("T")[0],
+            eDate: endDate.toISOString().split("T")[0],
+            teamName: selectedTeam,
+          },
+        });
+        projectName = selectedTeam;
+      }
+
+      const data = response.data;
+
+      if (data.length === 0) {
+        console.error("No data available for export");
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      const uniqueDates = [...new Set(data.map((item) => item._id.date))];
+      const formattedDates = uniqueDates.map((date) => {
+        const formattedDate = new Date(date);
+        return formattedDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
       });
-      // Calculate and add production count
-      const productionCount = calculateProductionCount(); // Use your function or logic to calculate production count
-      row.push(productionCount);
-      // Calculate and add idle count
-      const idleCount = calculateIdleCount(); // Use your function or logic to calculate idle count
-      row.push(idleCount);
-      wsData.push(row);
-    });
 
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, 'TaskWiseUserCount');
+      // Sort formattedDates in order
+      formattedDates.sort((a, b) => {
+        const dateA = new Date(a);
+        const dateB = new Date(b);
+        return dateA - dateB;
+      });
 
-    XLSX.writeFile(wb, "TaskWiseUserCount.xlsx");
-  } catch (error) {
-    console.error("Error exporting data:", error);
-  }
-};
+      const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
 
- const handleViewTable = () => {
+      // Create headers with project or team name in the first cell of the first row
+      const mainHeader = [[projectName]];
+      const subHeader = ["Date/Task", ...uniqueTasks]; // Include only Task headers initially
+
+      // Calculate production count once
+      const productionCount = calculateProductionCount();
+      const idleCount = calculateIdleCount();
+
+      // Add a new row for Production and Idle headers
+      const productionIdleHeaderRow = ["", "Production", "Idle"];
+      // Add a new row for Production and Idle counts
+      const productionIdleCountRow = ["", productionCount, idleCount];
+
+      const headers = [
+        mainHeader,
+        productionIdleHeaderRow,
+        productionIdleCountRow,
+        subHeader,
+      ]; // Combine headers and counts
+      const wsData = [...headers]; // Initialize sheet data with headers and counts
+
+      formattedDates.forEach((date) => {
+        const row = [date];
+        uniqueTasks.forEach((task) => {
+          const matchingItem = data.find((item) => {
+            const itemDate = new Date(item._id.date);
+            return (
+              itemDate.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              }) === date && item._id.task === task
+            );
+          });
+          row.push(matchingItem ? matchingItem.count : 0);
+        });
+        wsData.push(row);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, "TaskWiseUserCount");
+
+      XLSX.writeFile(wb, "TaskWiseUserCount.xlsx");
+    } catch (error) {
+      console.error("Error exporting data:", error);
+    }
+  };
+
+  const handleViewTable = () => {
     setShowTable(!showTable);
   };
 
   const labelColors = {
-    "POC": "#2196F3", // Blue
+    POC: "#2196F3", // Blue
     "NOT-Started": "#979700", // Dark Yellow
-    "Training": "#9F00FF", // Purple
+    Training: "#9F00FF", // Purple
     "In-Progress": "#FF9800", // Orange
     "Completed-Won": "#8BC34A", // Light Green
     "Completed-Lost": "#FF5722", // Deep Orange
@@ -893,18 +902,17 @@ const exportChartDataToExcel = async () => {
     let presentCount = 0;
     let absentCount = 0;
 
-    // Adjust the logic based on your actual data structure and business rules
     if (selectedProject) {
       totalAttendance = batchValue;
-      presentCount =  totalProductionCount + totalIdleCount; // Implement your own logic
+      presentCount = totalProductionCount + totalIdleCount;
       absentCount = totalAttendance - presentCount;
     } else if (selectedTeam) {
       totalAttendance = batchCountByTeam;
-      presentCount =  totalProductionCount + totalIdleCount; // Implement your own logic
+      presentCount = totalProductionCount + totalIdleCount;
       absentCount = totalAttendance - presentCount;
     } else {
       totalAttendance = employeeCount;
-      presentCount =  totalProductionCount + totalIdleCount; // Implement your own logic
+      presentCount = totalProductionCount + totalIdleCount;
       absentCount = totalAttendance - presentCount;
     }
 
@@ -921,10 +929,15 @@ const exportChartDataToExcel = async () => {
   // Create pie chart data
   const pieChartDataAtt = {
     labels: [`Present`, `Absent`],
-    datasets: [{
-      data: [totalProductionCount + totalIdleCount, attendanceData.absentCount],
-      backgroundColor: ['#36a2eb', '#FF6384'],
-    }],
+    datasets: [
+      {
+        data: [
+          totalProductionCount + totalIdleCount,
+          attendanceData.absentCount,
+        ],
+        backgroundColor: ["#36a2eb", "#FF6384"],
+      },
+    ],
   };
 
   const [data, setData] = useState([]);
@@ -946,7 +959,7 @@ const exportChartDataToExcel = async () => {
   }, [data]);
 
   const statusIcons = {
-    "POC": <SelfImprovementIcon />,
+    POC: <SelfImprovementIcon />,
     "NOT-Started": <SelfImprovementIcon />,
     "Training:": <SelfImprovementIcon />,
     "In-Progress": <DirectionsRunIcon />,
@@ -985,17 +998,109 @@ const exportChartDataToExcel = async () => {
     },
   ];
 
-  const differenceInMs = endDate.getTime() - startDate.getTime();
+  const calculateProductionCount = () => {
+    // Add your logic here to calculate the production count
+    // For example, you might fetch the production count from your state or API
+    // Include both idleBillable and totalProductionCount in the calculation
+    return (
+      (idleBillableCount + totalProductionCount) /
+      differenceInDaysWithoutWeekends
+    ); // Return the calculated production count
+  };
 
-  // Convert the difference to days
-  const differenceInDays = differenceInMs / (1000 * 3600 * 24);
-  
+  // Function to calculate idle count excluding idleBillable
+  const calculateIdleCount = () => {
+    // Add your logic here to calculate the idle count
+    // For example, you might fetch the idle count from your state or API
+    // Exclude idleBillableCount from the calculation
+    return idleNonBillableCount / differenceInDaysWithoutWeekends; // Return the calculated idle count
+  };
+
+  //   const calculateDifferenceInDaysWithData = () => {
+  //     // Filter data to include only dates within the selected range
+  //     const filteredData = data.filter(item => {
+  //       const itemDate = new Date(item._id.date);
+  //       return itemDate >= startDate && itemDate <= endDate;
+  //     });
+
+  //     // Get unique dates from the filtered data
+  //     const uniqueDatesWithData = [...new Set(filteredData.map(item => item._id.date))];
+
+  //     // Calculate the earliest and latest dates with data
+  //     const earliestDateWithData = new Date(Math.min(...uniqueDatesWithData));
+  //     const latestDateWithData = new Date(Math.max(...uniqueDatesWithData));
+
+  // // Determine the actual start and end dates based on data availability, user selection, and input dates
+  // const actualStartDate = (selectedProject || selectedTeam || startDate) ? startDate : earliestDateWithData;
+  // const actualEndDate = (selectedProject || selectedTeam || endDate) ? endDate : latestDateWithData;
+
+  // // Calculate the difference in days between the actual start and end dates
+  // const differenceInMs = actualEndDate.getTime() - actualStartDate.getTime();
+  // const differenceInDays = differenceInMs / (1000 * 3600 * 24);
+
+  //     return differenceInDays;
+  //   };
+
+  //   // Calculate difference in days based on available data range and user selection
+  //   const differenceInDays = calculateDifferenceInDaysWithData();
+
+  // const differenceInMs = endDate.getTime() - startDate.getTime();
+
+  // // Convert the difference to days
+  // const differenceInDays = differenceInMs / (1000 * 3600 * 24);
+
+  // // Calculate the average production count per day
+  // const averageProductionCountPerDay = ((idleBillableCount + totalProductionCount) / differenceInDays).toFixed(2);
+
+  // // Calculate the average idle count per day
+  // const averageIdleCountPerDay = (idleNonBillableCount / differenceInDays).toFixed(2);
+
+  const calculateDifferenceInDaysWithoutWeekends = (startDate, endDate) => {
+    let differenceInDays = 0;
+    let currentDate = new Date(startDate);
+
+    // Loop through each day between the start and end dates
+    while (currentDate <= endDate) {
+      // Check if the current day is not a Saturday (6) or Sunday (0)
+      if (currentDate.getDay() !== 6 && currentDate.getDay() !== 0) {
+        differenceInDays++;
+      }
+      // Move to the next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return differenceInDays;
+  };
+  const earliestDateWithData = new Date(
+    Math.min(...data.map((item) => new Date(item._id.date)))
+  );
+  const latestDateWithData = new Date(
+    Math.max(...data.map((item) => new Date(item._id.date)))
+  );
+
+  // Determine the actual start and end dates based on data availability and user selection
+  const actualStartDate =
+    selectedProject || selectedTeam || startDate
+      ? startDate
+      : earliestDateWithData;
+  const actualEndDate =
+    selectedProject || selectedTeam || endDate ? endDate : latestDateWithData;
+
+  // Calculate the difference in days excluding weekends
+  const differenceInDaysWithoutWeekends =
+    calculateDifferenceInDaysWithoutWeekends(actualStartDate, actualEndDate);
+
   // Calculate the average production count per day
-  const averageProductionCountPerDay = (totalProductionCount / differenceInDays).toFixed(2);
-  
+  const averageProductionCountPerDay = (
+    (idleBillableCount + totalProductionCount) /
+    differenceInDaysWithoutWeekends
+  ).toFixed(2);
+
   // Calculate the average idle count per day
-  const averageIdleCountPerDay = (totalIdleCount / differenceInDays).toFixed(2);
-  
+  const averageIdleCountPerDay = (
+    idleNonBillableCount / differenceInDaysWithoutWeekends
+  ).toFixed(2);
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -1029,7 +1134,11 @@ const exportChartDataToExcel = async () => {
             <Grid item xs={12} md={3}>
               <TextField
                 label="Start Date"
-                sx={{ backgroundColor: "#fff", borderRadius: "8px",width: "98%",  }}
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  width: "98%",
+                }}
                 type="date"
                 value={startDate.toISOString().split("T")[0]}
                 onChange={(event) => setStartDate(new Date(event.target.value))}
@@ -1054,188 +1163,176 @@ const exportChartDataToExcel = async () => {
                 color="secondary"
               />
             </Grid>
-            <Grid item xs={12} md={3} sx={{ padding: "8px",margin: "0 9px"}}>
-            <Autocomplete
-        value={selectedTeam}
-        onChange={handleTeamChange}
-        options={teams}
-        sx={{
-          backgroundColor: "#fff",
-          borderRadius: "8px",
-          width: "103%",
-          "& .MuiOutlinedInput-root": {
-            padding: 0.5,
-            
-          },
-        }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Team"
-            fullWidth
-            variant="outlined"
-            color="secondary"
-          />
-        )}
-      />
+            <Grid item xs={12} md={3} sx={{ padding: "8px", margin: "0 9px" }}>
+              <Autocomplete
+                value={selectedTeam}
+                onChange={handleTeamChange}
+                options={teams}
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  width: "103%",
+                  "& .MuiOutlinedInput-root": {
+                    padding: 0.5,
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Team"
+                    fullWidth
+                    variant="outlined"
+                    color="secondary"
+                  />
+                )}
+              />
             </Grid>
             <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
-      <Autocomplete
-        value={selectedProject}
-        onChange={handleProjectChange}
-        options={selectedTeam ? teamProjects : allProjectNames}
-        sx={{ backgroundColor: "#fff", borderRadius: "8px", "& .MuiOutlinedInput-root": {
-          padding: 0.6,
-        }, }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Project Name"
-            fullWidth
-            variant="outlined"
-            color="secondary"
-          />
-        )}
-      />
-    </Grid>
+              <Autocomplete
+                value={selectedProject}
+                onChange={handleProjectChange}
+                options={selectedTeam ? teamProjects : allProjectNames}
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  "& .MuiOutlinedInput-root": {
+                    padding: 0.6,
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Project Name"
+                    fullWidth
+                    variant="outlined"
+                    color="secondary"
+                  />
+                )}
+              />
+            </Grid>
           </Box>
         </Grid>
-        <Grid item xs={12} md={3} >
-        <Card sx={{ width: "100%", height: "100%" }}>
-          <CardActionArea>
-            <CardContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
-              <IconButton
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  right: 0,
-                  bottom: 1,
-                }}
-              >
-                <GroupIcon fontSize="large" style={{ color: "#7b69bc" }} />
-              </IconButton>
-              <h3>Employees</h3>
 
-              {selectedProject !== null ? (
-                // Render content for the selected project
-                <div>
-                  {batchValue !== null ? (
-                    <p>{batchValue}</p>
-                  ) : (
-                    <p>Loading batch value...</p>
-                  )}
-                </div>
-              ) : selectedTeam !== null ? (
-                // Render content for the selected team
-                <div>
-                  {batchCountByTeam !== null ? (
-                    <p>{batchCountByTeam}</p>
-                  ) : (
-                    <p>Loading batch count by team...</p>
-                  )}
-                </div>
-              ) : (
-                // Render content when no project or team is selected
-                <div>
-                  {employeeCount !== null ? (
-                    <p>{employeeCount}</p>
-                  ) : (
-                    <p>Loading employee count...</p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </CardActionArea>
-        </Card>
-      </Grid>
+        <Grid item xs={12} md={6} lg={2.4}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              color="primary"
+              icon="pending_actions"
+              title="Total Employees"
+              count={
+                selectedProject !== null ? (
+                  // Render content for the selected project
+                  <div>
+                    {batchValue !== null ? (
+                      <p>{batchValue}</p>
+                    ) : (
+                      <p>Loading...</p>
+                    )}
+                  </div>
+                ) : selectedTeam !== null ? (
+                  // Render content for the selected team
+                  <div>
+                    {batchCountByTeam !== null ? (
+                      <p>{batchCountByTeam}</p>
+                    ) : (
+                      <p>Loading...</p>
+                    )}
+                  </div>
+                ) : (
+                  // Render content when no project or team is selected
+                  <div>
+                    {employeeCount !== null ? (
+                      <p>{employeeCount}</p>
+                    ) : (
+                      <p>Loading...</p>
+                    )}
+                  </div>
+                )
+              }
+              percentage={{
+                color: "success",
+                amount: "",
+                label: " over all Total Employees",
+              }}
+            />
+          </MDBox>
+        </Grid>
 
-      <Grid item xs={12} md={3}>
-          <Card sx={{ width: "100%", height: "100%" }}>
-            <CardActionArea>
-              <CardContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    bottom: 1,
-                  }}
-                >
-                  {/* Material-UI icon for Idle - Non Billable */}
-                  <AccessTimeIcon
-                    fontSize="large"
-                    style={{ color: "#36a2eb" }}
-                  />
-                </IconButton>
-                <h3>Production</h3>
-                {/* <p>{productionCount}</p> */}
-                <p>{averageProductionCountPerDay}</p>
-              </CardContent>
-            </CardActionArea>
-          </Card>
+        <Grid item xs={12} md={6} lg={2.4}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              icon="more_time"
+              title="Production Count"
+              count={idleBillableCount + totalProductionCount}
+              percentage={{
+                color: "success",
+                amount: "",
+                label: `  ${averageProductionCountPerDay}% Average Production`,
+              }}
+            />
+          </MDBox>
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Card sx={{ width: "100%", height: "100%" }}>
-            <CardActionArea>
-              <CardContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    bottom: 1,
-                  }}
-                >
-                  {/* Material-UI icon for Idle - Non Billable */}
-                  <AssessmentIcon
-                    fontSize="large"
-                    style={{ color: "#FF6384" }}
-                  />
-                </IconButton>
-                <h3>Idle</h3>
-                {/* <p>{idleBillableCount + idleNonBillableCount}</p> */}
-                {/* <p>{totalIdleCount}</p> */}
-                <p>{averageIdleCountPerDay}</p>
-              </CardContent>
-            </CardActionArea>
-          </Card>
+        <Grid item xs={12} md={6} lg={2.4}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              color="warning"
+              icon="work_history"
+              title="Idle Count"
+              count={idleNonBillableCount}
+              percentage={{
+                color: "success",
+                amount: "",
+                label: `  ${averageIdleCountPerDay}% Average Idle`,
+              }}
+            />
+          </MDBox>
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Card sx={{ width: "100%", height: "100%" }}>
-            <CardActionArea>
-              <CardContent sx={{ paddingTop: 3, paddingBottom: 3 }}>
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    bottom: 1,
-                  }}
-                >
-                  {/* Material-UI icon for Idle - Non Billable */}
-                  <WorkOutlineIcon
-                    fontSize="large"
-                    style={{ color: "#42a883" }}
-                  />
-                </IconButton>
-                <h3>Projects</h3>
-                {selectedTeam ? (
+        <Grid item xs={12} md={6} lg={2.4}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              color="success"
+              icon="pending_actions"
+              title="Working Time"
+              // count= {idleNonBillableCount}
+              count={`${idleNonBillableCount}hr:${idleNonBillableCount}min`}
+              percentage={{
+                color: "success",
+                amount: "",
+                label: " over all  working Time",
+              }}
+            />
+          </MDBox>
+        </Grid>
+        <Grid item xs={12} md={6} lg={2.4}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              color="secondary"
+              icon="pending_actions"
+              title="Projects"
+              count={
+                selectedTeam ? (
                   <p>{teamProjects.length}</p>
                 ) : (
                   <p>{allProjectNames.length}</p>
-                )}
-              </CardContent>
-            </CardActionArea>
-          </Card>
+                )
+              }
+              percentage={{
+                color: "success",
+                amount: "",
+                label: " over all  Projects",
+              }}
+            />
+          </MDBox>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <MemoizedDoughnutChart pieChartDataAtt={pieChartDataAtt} />
         </Grid>
         <Grid item xs={12} md={4}>
-         <MemoizedDoughnutChart pieChartDataAtt={pieChartDataAtt} />
-      </Grid>
-        <Grid item xs={12} md={4}>
-               <MemoizedBillingChart pieChartData={pieChartData} />
+          <MemoizedBillingChart pieChartData={pieChartData} />
         </Grid>
         <Grid item xs={12} md={4}>
-            <MemoizedProjectStatusChart pieChartData1={pieChartData1} />
+          <MemoizedProjectStatusChart pieChartData1={pieChartData1} />
         </Grid>
 
         {/* DataGrid table */}
@@ -1310,7 +1407,7 @@ const exportChartDataToExcel = async () => {
               title={<h3 style={{ fontSize: "17px" }}>Task Report Status</h3>}
             />
             <CardContent>
-               <MemoizedBarChart chartData={chartData} />
+              <MemoizedBarChart chartData={chartData} />
             </CardContent>
           </Card>
         </Grid>
