@@ -66,7 +66,7 @@ function App() {
         const token = localStorage.jwtToken;
  
         if (token) {
-          console.log('Frontend Token:', token);
+          // console.log('Frontend Token:', token);
           // Set auth token header auth
           setAuthToken(token);
  
