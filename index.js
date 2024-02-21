@@ -782,6 +782,144 @@ app.get("/analyst", async (req, res) => {
     .catch((err) => res.status(400).json("Error:" + err));
 });
 
+// analyst.js projectName call
+app.get("/analyst/projectName", async (req, res) => {
+  Analyst.find()
+    .distinct("projectName") // Fetch distinct project names
+    .then((projectNames) => res.json(projectNames)) // Send project names as response
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+
+app.get("/analyst/counts", async (req, res) => {
+  try {
+    const { projectName, team, sDate, eDate } = req.query;
+    let query = {};
+
+    // If projectName and team are provided, filter analysts based on them
+    if (projectName && team) {
+      query = { projectName, team };
+    } else if (team) {
+      query = { team };
+    } else if (projectName) {
+      query = { projectName };
+    }
+
+    // If start and end dates are provided, add date filter to the query
+    if (sDate && eDate) {
+      query.dateTask = { $gte: new Date(sDate), $lte: new Date(eDate) };
+    }
+
+    const analysts = await Analyst.find(query); // Retrieve analyst documents based on the query
+    let totalProductionTasks = 0;
+    let totalIdleTasks = 0;
+
+    // Iterate through each analyst document to aggregate counts
+    analysts.forEach(analyst => {
+      totalProductionTasks += analyst.productionTasks || 0;
+      totalIdleTasks += analyst.idleTasks || 0;
+    });
+
+    // Send the aggregated counts as JSON response
+    res.json({ totalProductionTasks, totalIdleTasks });
+  } catch (err) {
+    // If there's an error, send an error response
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/getBatchByProjectName", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+
+    // Find the project in Analyst schema
+    const analystProject = await Analyst.findOne({ projectName });
+
+    if (!analystProject) {
+      return res.status(404).json({ error: "Project not found in Analyst schema" });
+    }
+
+    // Find the project in Billing schema
+    const billingProject = await Billing.findOne({ projectname: projectName });
+
+    if (!billingProject) {
+      return res.status(404).json({ error: "Project not found in Billing schema" });
+    }
+
+    // If both projects exist, send the batch value from Billing schema
+    const batchValue = billingProject.batch;
+
+    res.json({ batchValue });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to calculate the count of emp_id
+app.get('/employeeCount', async (req, res) => {
+  try {
+    // Use Mongoose aggregation to calculate the count
+    const result = await Employee.aggregate([
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Extract the count from the result
+    const count = result.length > 0 ? result[0].count : 0;
+
+    res.json({ count });
+  } catch (error) {
+    console.error('Error calculating employee count:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// New route to get overall batch count by team
+app.get("/overallBatchCountByTeam", async (req, res) => {
+  try {
+    console.log("Received request for /overallBatchCountByTeam");
+    
+    const result = await Billing.aggregate([
+      {
+        $group: {
+          _id: "$team",
+          overallBatchCount: { $sum: "$batch" },
+        },
+      },
+    ]);
+
+    console.log("Sending response:", result);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error getting overall batch count by team:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+// analyst.js route
+// app.get("/analyst", async (req, res) => {
+//   const { idleTasks, productionTasks } = req.query;
+
+//   // Constructing the query object based on the submitted parameters
+//   const query = {};
+//   if (idleTasks !== undefined) {
+//     query.idleTasks = parseInt(idleTasks); // Convert to integer
+//   }
+//   if (productionTasks !== undefined) {
+//     query.productionTasks = parseInt(productionTasks); // Convert to integer
+//   }
+
+//   Analyst.find(query)
+//     .then((analyst) => res.json(analyst))
+//     .catch((err) => res.status(400).json("Error:" + err));
+// });
+
+
 app.get("/analyst/byManagerTask/:managerTask", async (req, res) => {
   const managerTask = req.params.managerTask;
 
@@ -801,6 +939,7 @@ app.get("/analyst/byManagerTask/:managerTask", async (req, res) => {
       .json({ message: "Internal Server Error", error: error.message });
   }
 });
+
 app.delete("/delete/usertask/:id", async (req, res) => {
   try {
     // Find the task by ID and delete it
@@ -880,6 +1019,80 @@ app.get("/fetch/taskwise", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+app.get("/getBatchByProjectName", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+
+    // Find the project in Analyst schema
+    const analystProject = await Analyst.findOne({ projectName });
+
+    if (!analystProject) {
+      return res.status(404).json({ error: "Project not found in Analyst schema" });
+    }
+
+    // Find the project in Billing schema
+    const billingProject = await Billing.findOne({ projectname: projectName });
+
+    if (!billingProject) {
+      return res.status(404).json({ error: "Project not found in Billing schema" });
+    }
+
+    // If both projects exist, send the batch value from Billing schema
+    const batchValue = billingProject.batch;
+
+    res.json({ batchValue });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// API endpoint to calculate the count of emp_id
+app.get('/employeeCount', async (req, res) => {
+  try {
+    // Use Mongoose aggregation to calculate the count
+    const result = await Employee.aggregate([
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Extract the count from the result
+    const count = result.length > 0 ? result[0].count : 0;
+
+    res.json({ count });
+  } catch (error) {
+    console.error('Error calculating employee count:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// New route to get overall batch count by team
+app.get("/overallBatchCountByTeam", async (req, res) => {
+  try {
+    console.log("Received request for /overallBatchCountByTeam");
+    
+    const result = await Billing.aggregate([
+      {
+        $group: {
+          _id: "$team",
+          overallBatchCount: { $sum: "$batch" },
+        },
+      },
+    ]);
+
+    console.log("Sending response:", result);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error getting overall batch count by team:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 app.post("/add", (req, res) => {
   const userData = req.body;
@@ -936,19 +1149,48 @@ app.get("/fetch/userdata/", (req, res) => {
 
 //Fetch report of user particular team
 
-app.get("/fetch/report/", (req, res) => {
-  const sDate = req.query.sDate;
-  const eDate = req.query.eDate;
-  const name = req.query.name;
-  const team = req.query.team;
+app.get("/fetch/report/", async (req, res) => {
+  try {
+    const { sDate, eDate, name, team, projectName } = req.query;
 
-  Analyst.find({
-    name: name,
-    team: team,
-    createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
-  })
-    .then((analyst) => res.json(analyst))
-    .catch((err) => res.status(400).json("err" + err));
+    // Build the filter object based on the provided query parameters
+    const filter = {
+      name: name,
+      team: team,
+      projectName: projectName,
+      createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+    };
+
+    console.log("Filter Object:", filter); // Log the filter object
+
+    // Fetch data from the database based on the filter
+    const reportData = await Analyst.find(filter);
+
+    res.json(reportData);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+app.get("/fetch/report/projectName", async (req, res) => {
+  try {
+    const { sDate, eDate, team, projectName } = req.query;
+
+    // Build the filter object based on the provided query parameters
+    const filter = {
+      team: team,
+      projectName: projectName,
+      createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+    };
+
+    console.log("Filter Object:", filter); // Log the filter object
+
+    // Fetch data from the database based on the filter
+    const reportData = await Analyst.find(filter);
+
+    res.json(reportData);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 //Fetch report by team

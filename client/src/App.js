@@ -66,7 +66,7 @@ function App() {
         const token = localStorage.jwtToken;
  
         if (token) {
-          // console.log('Frontend Token:', token);
+          console.log('Frontend Token:', token);
           // Set auth token header auth
           setAuthToken(token);
  
@@ -87,7 +87,7 @@ function App() {
           }
         } else {
           // Handle case where token is not present in localStorage
-          // console.error('Token not found in localStorage');
+          console.error('Token not found in localStorage');
         }
       } catch (error) {
         console.error('Error fetching token:', error);
@@ -149,10 +149,10 @@ function App() {
           {/* <Route exact path="/attendance" element={<Attendance/>}/> */}
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&( role === 'admin'))}/>}>
-          <Route exact path="/task-report" element={<AdminReport/>} />
+          <Route exact path="/manager-report" element={<AdminReport/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&( role === 'superadmin'))}/>}>
-          <Route exact path="/EmpTaskReport" element={<SuperadminReport/>} />
+          <Route exact path="/report" element={<SuperadminReport/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
           <Route exact path="/employees" element={<AllEmployee/>} />
@@ -164,7 +164,7 @@ function App() {
           <Route exact path="/employee-attendance" element={<EmployeeAtt/>} />
         </Route>  
         <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin'))}/>}>
-          <Route exact path="/admin-attendance" element={<AttendanceAdmin/>} />
+          <Route exact path="/attendance" element={<AttendanceAdmin/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin'))}/>}>
           <Route exact path="/allreport" element={<AllReport/>} />
@@ -173,7 +173,7 @@ function App() {
           <Route exact path="/projects-admin" element={<AdminProjects/>} />
         </Route>    
         <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
-          <Route exact path="/attendance" element={<Attendance/>} />
+          <Route exact path="/user-attendance" element={<Attendance/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
           <Route exact path="/Settings" element={<TaskCreation/>} />
