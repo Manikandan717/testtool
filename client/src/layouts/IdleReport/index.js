@@ -20,7 +20,8 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import WorkIcon from "@mui/icons-material/Work";
 import * as XLSX from "xlsx";
-import GroupIcon from "@mui/icons-material/Group";
+import GroupIcon from '@material-ui/icons/Group';
+import CategoryIcon from '@mui/icons-material/Category';
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import MDBox from "components/MDBox";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
@@ -1213,117 +1214,99 @@ const TaskWiseBarChart = () => {
           </Box>
         </Grid>
 
-        <Grid item xs={12} md={6} lg={2.4}>
-          <MDBox mb={1.5}>
-            <ComplexStatisticsCard
-              color="primary"
-              icon="pending_actions"
-              title="Total Employees"
-              count={
-                selectedProject !== null ? (
-                  // Render content for the selected project
-                  <div>
-                    {batchValue !== null ? (
-                      <p>{batchValue}</p>
-                    ) : (
-                      <p>Loading...</p>
-                    )}
-                  </div>
-                ) : selectedTeam !== null ? (
-                  // Render content for the selected team
-                  <div>
-                    {batchCountByTeam !== null ? (
-                      <p>{batchCountByTeam}</p>
-                    ) : (
-                      <p>Loading...</p>
-                    )}
-                  </div>
-                ) : (
-                  // Render content when no project or team is selected
-                  <div>
-                    {employeeCount !== null ? (
-                      <p>{employeeCount}</p>
-                    ) : (
-                      <p>Loading...</p>
-                    )}
-                  </div>
-                )
-              }
-              percentage={{
-                color: "success",
-                amount: "",
-                label: " over all Total Employees",
-              }}
-            />
-          </MDBox>
-        </Grid>
 
-        <Grid item xs={12} md={6} lg={2.4}>
-          <MDBox mb={1.5}>
-            <ComplexStatisticsCard
-              icon="more_time"
-              title="Production Count"
-              count={idleBillableCount + totalProductionCount}
-              percentage={{
-                color: "success",
-                amount: "",
-                label: `  ${averageProductionCountPerDay}% Average Production`,
-              }}
-            />
-          </MDBox>
-        </Grid>
-        <Grid item xs={12} md={6} lg={2.4}>
-          <MDBox mb={1.5}>
-            <ComplexStatisticsCard
-              color="warning"
-              icon="work_history"
-              title="Idle Count"
-              count={idleNonBillableCount}
-              percentage={{
-                color: "success",
-                amount: "",
-                label: `  ${averageIdleCountPerDay}% Average Idle`,
-              }}
-            />
-          </MDBox>
-        </Grid>
-        <Grid item xs={12} md={6} lg={2.4}>
-          <MDBox mb={1.5}>
-            <ComplexStatisticsCard
-              color="success"
-              icon="pending_actions"
-              title="Working Time"
-              // count= {idleNonBillableCount}
-              count={`${idleNonBillableCount}hr:${idleNonBillableCount}min`}
-              percentage={{
-                color: "success",
-                amount: "",
-                label: " over all  working Time",
-              }}
-            />
-          </MDBox>
-        </Grid>
-        <Grid item xs={12} md={6} lg={2.4}>
-          <MDBox mb={1.5}>
-            <ComplexStatisticsCard
-              color="secondary"
-              icon="pending_actions"
-              title="Projects"
-              count={
-                selectedTeam ? (
-                  <p>{teamProjects.length}</p>
-                ) : (
-                  <p>{allProjectNames.length}</p>
-                )
-              }
-              percentage={{
-                color: "success",
-                amount: "",
-                label: " over all  Projects",
-              }}
-            />
-          </MDBox>
-        </Grid>
+        {/* <Grid container spacing={3}> */}
+      <Grid item xs={12} md={6} lg={3}>
+        <MDBox mb={1.5}>
+          <ComplexStatisticsCard
+            color="primary"
+            icon={<GroupIcon />}
+            title="Employees"
+            count={
+              selectedProject !== null
+                ? batchValue !== null
+                  ? batchValue
+                  : "Loading..."
+                : selectedTeam !== null
+                ? batchCountByTeam !== null
+                  ? batchCountByTeam
+                  : "Loading..."
+                : employeeCount !== null
+                ? employeeCount
+                : "Loading..."
+            }
+            percentage={{
+              color: "success",
+              amount: "",
+              label: "Total Employees",
+            }}
+          />
+        </MDBox>
+      </Grid>
+      <Grid item xs={12} md={6} lg={3}>
+        <MDBox mb={1.5}>
+          <ComplexStatisticsCard
+            icon="more_time"
+title="Production"
+            count={`${idleBillableCount + totalProductionCount}`}
+            percentage={{
+              color: "success",
+              amount: "",
+          label: `${averageProductionCountPerDay}% Average `,
+            }}
+          />
+        </MDBox>
+      </Grid>
+      <Grid item xs={12} md={6} lg={3}>
+        <MDBox mb={1.5}>
+          <ComplexStatisticsCard
+            color="warning"
+            icon="work_history"
+            title="Idle Count"
+            count={`${idleNonBillableCount}`}
+            percentage={{
+              color: "success",
+              amount: "",
+              label: `  ${averageIdleCountPerDay}% Average `,
+            }}
+          />
+        </MDBox>
+      </Grid>
+      {/* <Grid item xs={12} md={6} lg={3}>
+        <MDBox mb={1.5}>
+          <ComplexStatisticsCard
+            color="success"
+            icon={<AccessTimeIcon />}
+            title="Working Time"
+            count={`${idleNonBillableCount}hr:${idleNonBillableCount}min`}
+            percentage={{
+              color: "success",
+              amount: "",
+              label: " over all  working Time",
+            }}
+          />
+        </MDBox>
+      </Grid> */}
+  <Grid item xs={12} md={6} lg={3}>
+        <MDBox mb={1.5}>
+          <ComplexStatisticsCard
+            color="secondary"
+            icon={<WorkIcon />}
+            title="Projects"
+            count={
+              selectedTeam ? teamProjects.length : allProjectNames.length
+            }
+            percentage={{
+              color: "success",
+              amount: "",
+              label: " over all  Projects",
+            }}
+          />
+        </MDBox>
+      </Grid>
+    {/* </Grid> */}
+ 
+
 
         <Grid item xs={12} md={4}>
           <MemoizedDoughnutChart pieChartDataAtt={pieChartDataAtt} />
