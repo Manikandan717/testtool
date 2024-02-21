@@ -1293,13 +1293,11 @@ title="Production"
             color="secondary"
             icon={<WorkIcon />}
             title="Projects"
-            count={
-              selectedTeam ? teamProjects.length : allProjectNames.length
-            }
+            count={selectedProject ? 1 : selectedTeam ? teamProjects.length : allProjectNames.length}
             percentage={{
               color: "success",
               amount: "",
-              label: " over all  Projects",
+              label: selectedProject ? "Selected Project" : "Over all Projects",
             }}
           />
         </MDBox>
