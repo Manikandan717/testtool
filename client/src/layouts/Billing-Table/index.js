@@ -38,7 +38,7 @@ import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 
 export default function ColumnGroupingTable() {
 
-  const apiUrl = 'http://localhost:5000';
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   // drawer code
   const columns = [
     { field: "projectname", headerName: "Projectname", flex: 1 },

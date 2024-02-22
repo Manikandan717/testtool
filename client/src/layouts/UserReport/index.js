@@ -14,6 +14,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { useSelector } from "react-redux";
+import { useRef } from "react";
 import axios from "axios";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -24,6 +25,7 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import Typography from "@mui/material/Typography";
 import Drawer from "@mui/material/Drawer";
+import CircularProgress from "@mui/material/CircularProgress";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
@@ -66,6 +68,39 @@ function Report() {
 
     // Update the state with the new tasks
     setTasks(newTasks);
+  };
+  const [loading, setLoading] = useState(false);
+
+  const saveData = async () => {
+    // Implementation of the saveData function
+    // ...
+  };
+
+  const [dataSubmitted, setDataSubmitted] = useState(false);
+  const saveOperationRef = useRef(null);
+
+  const handleSave = async () => {
+    if (saveOperationRef.current || dataSubmitted) {
+      // Save operation is already in progress or data has already been submitted, ignore the click
+      return;
+    }
+
+    try {
+      // Set the ref to the current promise to track the ongoing save operation
+      saveOperationRef.current = saveData(); // Replace with your actual save function
+      // Perform your save operation here
+      await saveOperationRef.current;
+      // Optionally, you can reset the form or perform any other actions after saving
+      // toast.success("Data saved successfully!");
+      setDataSubmitted(true);
+    } catch (error) {
+      console.error("Error saving data:", error);
+      // Handle the error if needed
+      toast.error("Error saving data. Please try again.");
+    } finally {
+      // Reset the ref once the operation is complete
+      saveOperationRef.current = null;
+    }
   };
 
   const handleInputchange = (e) => {
@@ -111,9 +146,9 @@ function Report() {
     setDrawerOpen(true);
   };
 
-  // Function to handle closing the drawer
   const closeDrawer = () => {
     setDrawerOpen(false);
+
     // Reset project name and managerTask when the drawer is closed
     setValue((prevValues) => ({
       ...prevValues,
@@ -122,7 +157,7 @@ function Report() {
       sessionOne: "",
       // sessionMinute: ''
     }));
- 
+
     // Reset tasks to initial state when the drawer is closed without saving
     setTasks([
       {
@@ -317,62 +352,6 @@ function Report() {
     setSelectedUserData(userData);
     setDialogOpen(true);
   };
-  // function countIdleTasks() {
-  //   const uniqueIdleTasks = new Set();
-
-  //   selectedUserData.sessionOne.forEach((session) => {
-  //     // Consider any task starting with "Idle" as part of the total "Idle" count
-  //     if (session.task.startsWith("Idle")) {
-  //       uniqueIdleTasks.add("Idle");
-  //     }
-  //   });
-
-  //   return uniqueIdleTasks.size;
-  // }
-  // function countIdleTasks() {
-  //   if (selectedUserData && selectedUserData.sessionOne) {
-  //     const uniqueIdleTasks = new Set();
-
-  //     selectedUserData.sessionOne.forEach((session) => {
-  //       // Consider any task starting with "Idle" as part of the total "Idle" count
-  //       if (session.task.startsWith("Idle")) {
-  //         uniqueIdleTasks.add("Idle");
-  //       }
-  //     });
-
-  //     return uniqueIdleTasks.size;
-  //   } else {
-  //     return 0; // Return 0 if there is no sessionOne or selectedUserData
-  //   }
-  // }
-  // function countProductionTasks() {
-  //   const uniqueProductionTasks = new Set();
-
-  //   selectedUserData.sessionOne.forEach((session) => {
-  //     // Consider any task not starting with "Idle" as part of the total "Production" count
-  //     if (!session.task.startsWith("Idle")) {
-  //       uniqueProductionTasks.add("Production");
-  //     }
-  //   });
-
-  //   return uniqueProductionTasks.size;
-  // }
-  // function countProductionTasks() {
-  //   if (selectedUserData && selectedUserData.sessionOne) {
-  //     const uniqueProductionTasks = new Set();
-
-  //     selectedUserData.sessionOne.forEach((session) => {
-  //       // Consider any task not starting with "Idle" as part of the total "Production" count
-  //       if (!session.task.startsWith("Idle")) {
-  //         uniqueProductionTasks.add("Production");
-  //       }
-  //     });
-
-  //     return uniqueProductionTasks.size;
-  //   } else {
-  //     return 0; // Return 0 if there is no sessionOne or selectedUserData
-  //   }
-  // }
 
   const countIdleTasks = () => {
     const uniqueIdleTasks = new Set();
@@ -576,6 +555,7 @@ function Report() {
 
     return `${hours}:${remainingMinutes < 10 ? "0" : ""}${remainingMinutes}`;
   };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -710,7 +690,6 @@ function Report() {
               display: "flex",
               justifyContent: "center",
               fontSize: "0.7rem",
-              borderRadius: "50%",
               borderRadius: "10px",
               textAlign: "center",
               minHeight: "10px",
@@ -768,6 +747,25 @@ function Report() {
             <CloseIcon />
           </IconButton>
         </MDBox>
+
+        {loading && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              background: "rgba(255, 255, 255, 0.8)",
+              zIndex: 1300,
+            }}
+          >
+            <CircularProgress color="primary" />
+          </div>
+        )}
 
         <MDBox pb={5} component="form" role="form" onSubmit={submit}>
           <MDBox sx={{ width: 250, p: 2 }}>
@@ -961,13 +959,13 @@ function Report() {
                       disableUnderline: true,
                       sx: {
                         "&.MuiOutlinedInput-root": {
-                          padding: "4.9px", 
+                          padding: "4.9px",
                         },
                       },
                     }}
                   />
                 )}
-              />    
+              />
 
               <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
                 <TextField
@@ -1075,7 +1073,12 @@ function Report() {
             // justifyContent="end"
             alignItems="center"
           >
-            <MDButton type="submit" color="success">
+            <MDButton
+              type="submit"
+              color="success"
+              onClick={handleSave}
+              disabled={loading}
+            >
               Save
             </MDButton>
           </MDBox>
