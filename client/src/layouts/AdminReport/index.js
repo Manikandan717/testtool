@@ -20,6 +20,9 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { useSelector } from "react-redux";
+// import IconButton from "@material-ui/core/IconButton";
+// import FormControl from "@mui/material/FormControl";
+// import Select from "@mui/material/Select";
 import { useState, useEffect, useMemo } from "react";
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import Button from '@material-ui/core/Button';
@@ -29,8 +32,14 @@ import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
 import { CSVLink } from "react-csv";
 import moment from "moment";
+// import Drawer from "@mui/material/Drawer";
 import FilterListIcon from "@material-ui/icons/FilterList";
+// import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+// import Dialog from "@mui/material/Dialog";
+// import CloseIcon from "@mui/icons-material/Close";
+// import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
+// import DialogActions from "@mui/material/DialogActions";
 import Popper from "@mui/material/Popper";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import Paper from "@mui/material/Paper";
@@ -40,7 +49,10 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 
 function AdminReport() {
+
+
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+
   const initialValues = {
     startDate: "",
     endDate: "",
@@ -158,8 +170,8 @@ function AdminReport() {
       .catch((err) => console.log(err));
   };
   
-  // Call the function
-  allReport();
+  // // Call the function
+  // allReport();
   
   
   const userName = () => {
@@ -414,8 +426,8 @@ function AdminReport() {
       { field: 'nameLength', headerName: 'Id Count', width: 150 },
       { field: 'managerTask', headerName: 'Manager Name', width: 200 },
       { field: 'totalHours', headerName: 'Total Hours', width: 200 }, // Update the header to indicate it's for sessionOne
-      { field: 'idleNonBillableCount', headerName: 'Idle -Non Billable Count', width: 200 }, // New header for count of "Idle -Non Billable" tasks
-      { field: 'idleNonBillableHours', headerName: 'Idle -Non Billable Hours', width: 200 }, // New header for total hours of "Idle -Non Billable" tasks
+      { field: 'idleNonBillableCount', headerName: 'Idle Count', width: 200 }, // New header for count of "Idle -Non Billable" tasks
+      { field: 'idleNonBillableHours', headerName: 'Idle Hours', width: 200 }, // New header for total hours of "Idle -Non Billable" tasks
     ];
   
   
@@ -488,7 +500,7 @@ function AdminReport() {
               style={{
                 zIndex: 9999,
                 position: "absolute",
-                top: "120px",
+                top: "190px",
                 left: "0px",
               }}
             >

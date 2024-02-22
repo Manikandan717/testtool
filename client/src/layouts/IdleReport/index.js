@@ -20,11 +20,12 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import WorkIcon from "@mui/icons-material/Work";
 import * as XLSX from "xlsx";
-import GroupIcon from '@material-ui/icons/Group';
-import CategoryIcon from '@mui/icons-material/Category';
+import GroupIcon from "@material-ui/icons/Group";
+import CategoryIcon from "@mui/icons-material/Category";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import MDBox from "components/MDBox";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 
 const MemoizedBarChart = memo(
   ({ chartData }) =>
@@ -263,7 +264,7 @@ const TaskWiseBarChart = () => {
     datasets: [
       {
         data: [0, 0, 0], // Initial percentages set to 0
-        backgroundColor: ["#7b69bc", "#435671"],
+        backgroundColor: ["#338ded", "#435671"],
         hoverBackgroundColor: ["#7b69bc", "#435671"],
       },
     ],
@@ -357,8 +358,8 @@ const TaskWiseBarChart = () => {
         datasets: [
           {
             data: percentages,
-            backgroundColor: ["#7b69bc", "#435671"],
-            hoverBackgroundColor: ["#7b69bc", "#435671"],
+            backgroundColor: ["#fe9f1b", "#338ded"],
+            hoverBackgroundColor: ["#fe9f1b", "#338ded"],
           },
         ],
       }));
@@ -603,21 +604,6 @@ const TaskWiseBarChart = () => {
     }
     return color;
   };
-
-  //   // Function to calculate production count
-  // const calculateProductionCount = () => {
-  //   // Add your logic here to calculate the production count
-  //   // For example, you might fetch the production count from your state or API
-  //   return averageProductionCountPerDay; // Return the calculated production count
-  // };
-  // const calculateIdleCount = () => {
-  //   // Add your logic here to calculate the production count
-  //   // For example, you might fetch the production count from your state or API
-  //   // return totalIdleCount; // Return the calculated production count
-  //   return averageIdleCountPerDay;
-
-  // };
-
   const exportChartDataToExcel = async () => {
     try {
       if (!selectedProject && !selectedTeam) {
@@ -727,10 +713,10 @@ const TaskWiseBarChart = () => {
   };
 
   const labelColors = {
-    POC: "#2196F3", // Blue
-    "NOT-Started": "#979700", // Dark Yellow
-    Training: "#9F00FF", // Purple
-    "In-Progress": "#FF9800", // Orange
+    "POC": "#b75e4c", // Blue
+    "NOT-Started": "#fe9f1b", // Yellow
+    "Training": "#9F00FF", // Purple
+    "In-Progress": "#2196F3", // Blue
     "Completed-Won": "#8BC34A", // Light Green
     "Completed-Lost": "#FF5722", // Deep Orange
   };
@@ -892,8 +878,8 @@ const TaskWiseBarChart = () => {
       {
         // data: [presentPercentage, absentPercentage],
         data: [presentCount, absentCount],
-        backgroundColor: ["#38812F", "#F33C51"],
-        hoverBackgroundColor: ["#38812F", "#F04F62"],
+        backgroundColor: ["#979700", "#979700"],
+        hoverBackgroundColor: ["#38812F", "#979700"],
       },
     ],
   };
@@ -936,7 +922,8 @@ const TaskWiseBarChart = () => {
           totalProductionCount + totalIdleCount,
           attendanceData.absentCount,
         ],
-        backgroundColor: ["#36a2eb", "#FF6384"],
+        backgroundColor: ["#4caf50", "#FF6868"],
+        hoverBackgroundColor: ["#4caf50", "#FF6868"],
       },
     ],
   };
@@ -1107,7 +1094,7 @@ const TaskWiseBarChart = () => {
       <DashboardNavbar />
       <Grid container spacing={2}>
         <Grid item xs={12} md={12}>
-          <MDButton
+          {/* <MDButton
             variant="outlined"
             color="success"
             sx={{
@@ -1121,7 +1108,7 @@ const TaskWiseBarChart = () => {
             onClick={exportChartDataToExcel}
           >
             Export Analytics
-          </MDButton>
+          </MDButton> */}
           {/* Filters Container */}
           <Box
             display="flex"
@@ -1211,68 +1198,88 @@ const TaskWiseBarChart = () => {
                 )}
               />
             </Grid>
+            <Grid item xs={12} md={1.5}>
+              <MDButton
+                component="span"
+                variant="contained"
+                color="success"
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  fontSize: "0.7rem",
+                  borderRadius: "8px",
+                  textAlign: "center",
+                  minHeight: "10px",
+                  // minWidth: "120px",
+                  padding: "10px",
+                }}
+                onClick={exportChartDataToExcel}
+              >
+                <CloudDownloadIcon style={{ marginRight: "4px" }} />
+                Export Data
+              </MDButton>
+            </Grid>
           </Box>
         </Grid>
 
-
         {/* <Grid container spacing={3}> */}
-      <Grid item xs={12} md={6} lg={3}>
-        <MDBox mb={1.5}>
-          <ComplexStatisticsCard
-            color="primary"
-            icon={<GroupIcon />}
-            title="Employees"
-            count={
-              selectedProject !== null
-                ? batchValue !== null
-                  ? batchValue
+        <Grid item xs={12} md={6} lg={3}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              color="primary"
+              icon={<GroupIcon />}
+              title="Employees"
+              count={
+                selectedProject !== null
+                  ? batchValue !== null
+                    ? batchValue
+                    : "Loading..."
+                  : selectedTeam !== null
+                  ? batchCountByTeam !== null
+                    ? batchCountByTeam
+                    : "Loading..."
+                  : employeeCount !== null
+                  ? employeeCount
                   : "Loading..."
-                : selectedTeam !== null
-                ? batchCountByTeam !== null
-                  ? batchCountByTeam
-                  : "Loading..."
-                : employeeCount !== null
-                ? employeeCount
-                : "Loading..."
-            }
-            percentage={{
-              color: "success",
-              amount: "",
-              label: "Total Employees",
-            }}
-          />
-        </MDBox>
-      </Grid>
-      <Grid item xs={12} md={6} lg={3}>
-        <MDBox mb={1.5}>
-          <ComplexStatisticsCard
-            icon="more_time"
-title="Production"
-            count={`${idleBillableCount + totalProductionCount}`}
-            percentage={{
-              color: "success",
-              amount: "",
-          label: `${averageProductionCountPerDay}% Average `,
-            }}
-          />
-        </MDBox>
-      </Grid>
-      <Grid item xs={12} md={6} lg={3}>
-        <MDBox mb={1.5}>
-          <ComplexStatisticsCard
-            color="warning"
-            icon="work_history"
-            title="Idle Count"
-            count={`${idleNonBillableCount}`}
-            percentage={{
-              color: "success",
-              amount: "",
-              label: `  ${averageIdleCountPerDay}% Average `,
-            }}
-          />
-        </MDBox>
-      </Grid>
-      {/* <Grid item xs={12} md={6} lg={3}>
+              }
+              percentage={{
+                color: "success",
+                amount: "",
+                label: "Total Employees",
+              }}
+            />
+          </MDBox>
+        </Grid>
+        <Grid item xs={12} md={6} lg={3}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              icon="more_time"
+              title="Production"
+              count={`${idleBillableCount + totalProductionCount}`}
+              percentage={{
+                color: "success",
+                amount: "",
+                label: `${averageProductionCountPerDay}% Average `,
+              }}
+            />
+          </MDBox>
+        </Grid>
+        <Grid item xs={12} md={6} lg={3}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              color="warning"
+              icon="work_history"
+              title="Idle Count"
+              count={`${idleNonBillableCount}`}
+              percentage={{
+                color: "success",
+                amount: "",
+                label: `  ${averageIdleCountPerDay}% Average `,
+              }}
+            />
+          </MDBox>
+        </Grid>
+        {/* <Grid item xs={12} md={6} lg={3}>
         <MDBox mb={1.5}>
           <ComplexStatisticsCard
             color="success"
@@ -1287,24 +1294,30 @@ title="Production"
           />
         </MDBox>
       </Grid> */}
-  <Grid item xs={12} md={6} lg={3}>
-        <MDBox mb={1.5}>
-          <ComplexStatisticsCard
-            color="secondary"
-            icon={<WorkIcon />}
-            title="Projects"
-            count={selectedProject ? 1 : selectedTeam ? teamProjects.length : allProjectNames.length}
-            percentage={{
-              color: "success",
-              amount: "",
-              label: selectedProject ? "Selected Project" : "Over all Projects",
-            }}
-          />
-        </MDBox>
-      </Grid>
-    {/* </Grid> */}
- 
-
+        <Grid item xs={12} md={6} lg={3}>
+          <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              color="secondary"
+              icon={<WorkIcon />}
+              title="Projects"
+              count={
+                selectedProject
+                  ? 1
+                  : selectedTeam
+                  ? teamProjects.length
+                  : allProjectNames.length
+              }
+              percentage={{
+                color: "success",
+                amount: "",
+                label: selectedProject
+                  ? "Selected Project"
+                  : "Over all Projects",
+              }}
+            />
+          </MDBox>
+        </Grid>
+        {/* </Grid> */}
 
         <Grid item xs={12} md={4}>
           <MemoizedDoughnutChart pieChartDataAtt={pieChartDataAtt} />

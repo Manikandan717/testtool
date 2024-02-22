@@ -385,18 +385,19 @@ export default function ColumnGroupingTable() {
   const statusIcons = {
     POC: <SelfImprovementIcon />,
     "NOT-Started": <SelfImprovementIcon />,
-    Training: <SelfImprovementIcon />,
+    "Training": <SelfImprovementIcon />,
     "In-Progress": <DirectionsRunIcon />,
     "Completed-Won": <CheckIcon />,
     "Completed-Lost": <CloseIcon />,
   };
   const statusColors = {
-    POC: "#2196F3", // Blue
-    "NOT-Started": "#979700", //dark yellow
-    Training: "#9F00FF", // purple
-    "In-Progress": "#FF9800", // orange
+    "POC": "#b75e4c", // Blue
+    "NOT-Started": "#fe9f1b", // Yellow
+    "Training": "#9F00FF", // Purple
+    "In-Progress": "#2196F3", // Blue
     "Completed-Won": "#8BC34A", // Light Green
     "Completed-Lost": "#FF5722", // Deep Orange
+
   };
 
   return (
