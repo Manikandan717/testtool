@@ -38,7 +38,7 @@ import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 
 export default function ColumnGroupingTable() {
 
-  const apiUrl = process.env.REACT_APP_API_URL || 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';;
+  const apiUrl = 'http://localhost:5000';
   // drawer code
   const columns = [
     { field: "projectname", headerName: "Projectname", flex: 1 },
@@ -236,8 +236,10 @@ export default function ColumnGroupingTable() {
         });
 
         // axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
-          axios.get(`${apiUrl}/fetch/manager-name`).then((response) => {
-        setManagers(response.data);
+        //   setManagers(response.data);
+        // });
+        axios.get(`${apiUrl}/fetch/manager-name`).then((response) => {
+          setManagers(response.data);
         });
       })
       .catch((err) => toast.error(err));
@@ -324,13 +326,15 @@ export default function ColumnGroupingTable() {
       setTeamList(response.data);
     });
     // axios.get(`${apiUrl}/fetch/manager-data`).then((response) => {
-      axios.get(`${apiUrl}/fetch/manager-name`).then((response) => {
-    setManagers(response.data);
+    //   setManagers(response.data);
+    // });
+    axios.get(`${apiUrl}/fetch/manager-name`).then((response) => {
+      setManagers(response.data);
     });
   }, []); // Remove dependencies from the dependency array
 
 
-  
+
   // useEffect(() => {
   //   axios.get(`/billing/`).then((response) => {
   //     // Update initial data
@@ -411,7 +415,7 @@ export default function ColumnGroupingTable() {
   };
   const statusColors = {
     "POC": "#2196F3", // Blue
-    "NOT-Started":"#979700",//dark yellow
+    "NOT-Started": "#979700",//dark yellow
     "Training": "#9F00FF", // purple
     "In-Progress": "#FF9800", // orange
     "Completed-Won": "#8BC34A", // Light Green
@@ -590,7 +594,7 @@ export default function ColumnGroupingTable() {
               <option value="Naveen">Naveen</option>
               <option value="Sowmiya">Sowmiya</option>
             </TextField> */}
-            <Autocomplete
+            {/* <Autocomplete
               disablePortal
               id="manager"
               name="managerTeam"
@@ -608,7 +612,27 @@ export default function ColumnGroupingTable() {
                   required  // Add this line for validation
                 />
               )}
-            />
+            /> */}
+<Autocomplete
+  disablePortal
+  id="manager"
+  name="managerTeam"
+  options={(Array.isArray(managers) ? managers : []).map(({ emp_name }) => emp_name)}
+  getOptionLabel={(option) => option} // Use emp_name directly as the label
+  onChange={handleManagerChange}
+  sx={{
+    width: 305,
+    "& .MuiOutlinedInput-root": {
+      padding: 0.5,
+    },
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      required  // Add this line for validation
+    />
+  )}
+/>
             <TextField
               sx={{ width: 305, ml: 2 }}
               type="number"
