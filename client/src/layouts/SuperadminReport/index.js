@@ -46,6 +46,7 @@ function AdminReport() {
 
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
 
+
   const VISIBLE_FIELDS = ['date', 'name', 'team', 'projectName', 'taskCount', 'managerTask', 'totalHours'];
 
   const calculateTotalHours = (sessionOne) => {
@@ -303,68 +304,74 @@ function AdminReport() {
 
     // Group the report data by date and projectName
     const groupedByDateAndProject = report.reduce((acc, curr) => {
-      const date = moment(curr.dateTask).format('DD-MM-YYYY');
-      const projectName = curr.projectName;
-      const key = date + '_' + projectName;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(curr);
-      return acc;
+        const date = moment(curr.dateTask).format('DD-MM-YYYY');
+        const projectName = curr.projectName;
+        const key = date + '_' + projectName;
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(curr);
+        return acc;
     }, {});
 
     // Iterate over each date and project group
     for (const key in groupedByDateAndProject) {
-      const [date, projectName] = key.split('_');
-      const projectData = groupedByDateAndProject[key];
-      const teamSet = new Set();
-      const nameSet = new Set();
-      const managerTaskSet = new Set();
-      let totalHours = 0; // Initialize total hours for the day
-      let idleNonBillableCount = 0; // Initialize count for "Idle -Non Billable" tasks
-      let idleNonBillableHours = 0; // Initialize total hours for "Idle -Non Billable" tasks
+        const [date, projectName] = key.split('_');
+        const projectData = groupedByDateAndProject[key];
+        const teamSet = new Set();
+        const nameSet = new Set();
+        const managerTaskSet = new Set();
+        let totalHours = 0; // Initialize total hours for the day
+        let idleNonBillableCount = 0; // Initialize count for "Idle -Non Billable" tasks
+        let idleNonBillableHours = 0; // Initialize total hours for "Idle -Non Billable" tasks
 
-      // Collect unique teams, names, and manager tasks related to the project and date
-      projectData.forEach(entry => {
-        teamSet.add(entry.team);
-        managerTaskSet.add(entry.managerTask);
+        // Collect unique teams, names, and manager tasks related to the project and date
+        projectData.forEach(entry => {
+            teamSet.add(entry.team);
+            managerTaskSet.add(entry.managerTask);
 
-        // Exclude "Idle -Non Billable" tasks from name length and total hours calculations
-        if (entry.sessionOne && entry.sessionOne.length > 0) {
-          entry.sessionOne.forEach(session => {
-            // Check if the task is "Idle -Non Billable"
-            if (session.task === "Idle -Non Billable") {
-              idleNonBillableCount++; // Increment count
-              idleNonBillableHours += parseInt(session.sessionOne); // Add hours to total for "Idle -Non Billable" tasks
-            } else {
-              // For other tasks, include in name length and total hours calculations
-              nameSet.add(entry.name);
-              const [hours] = session.sessionOne.split(':'); // Extract hours
-              totalHours += parseInt(hours); // Parse hours and add to total
+            // Exclude "Idle -Non Billable" tasks from name length and total hours calculations
+            if (entry.sessionOne && entry.sessionOne.length > 0) {
+                entry.sessionOne.forEach(session => {
+                    // Check if the task is "Idle -Non Billable"
+                    if (session.task === "Idle -Non Billable") {
+                        idleNonBillableCount++; // Increment count
+                        const [hours, minutes] = session.sessionOne.split(':'); // Extract hours and minutes
+                        idleNonBillableHours += parseInt(hours) * 60 + parseInt(minutes); // Convert hours to minutes and add to total for "Idle -Non Billable" tasks
+                    } else {
+                        // For other tasks, include in name length and total hours calculations
+                        nameSet.add(entry.name);
+                        const [hours, minutes] = session.sessionOne.split(':'); // Extract hours and minutes
+                        totalHours += parseInt(hours) * 60 + parseInt(minutes); // Convert hours to minutes and add to total
+                    }
+                });
             }
-          });
-        }
-      });
+        });
 
-      const dateProjectWiseDatum = {
-        id: uuidv4(), // Generate unique ID for the row
-        date: date,
-        projectName: projectName,
-        team: Array.from(teamSet).join(', '), // Concatenate unique team names
-        nameLength: nameSet.size, // Count of unique names excluding "Idle -Non Billable"
-        managerTask: Array.from(managerTaskSet).join(', '), // Concatenate unique manager tasks
-        totalHours: totalHours, // Total hours for sessionOne for the day excluding "Idle -Non Billable"
-        idleNonBillableCount: idleNonBillableCount, // Count of "Idle -Non Billable" tasks
-        idleNonBillableHours: idleNonBillableHours, // Total hours for "Idle -Non Billable" tasks
-      };
+        // Convert totalHours and idleNonBillableHours to hours:minutes format
+        const formattedTotalHours = Math.floor(totalHours / 60) + 'hr:' + (totalHours % 60).toString().padStart(2, '0')+'min';
+        const formattedIdleNonBillableHours = Math.floor(idleNonBillableHours / 60) + ':' + (idleNonBillableHours % 60).toString().padStart(2, '0');
 
-      // Push the calculated data for the date and project to the array
-      dateProjectWiseData.push(dateProjectWiseDatum);
+        const dateProjectWiseDatum = {
+            id: uuidv4(), // Generate unique ID for the row
+            date: date,
+            projectName: projectName,
+            team: Array.from(teamSet).join(', '), // Concatenate unique team names
+            nameLength: nameSet.size, // Count of unique names excluding "Idle -Non Billable"
+            managerTask: Array.from(managerTaskSet).join(', '), // Concatenate unique manager tasks
+            totalHours: formattedTotalHours, // Total hours for sessionOne for the day excluding "Idle -Non Billable"
+            idleNonBillableCount: idleNonBillableCount, // Count of "Idle -Non Billable" tasks
+            idleNonBillableHours: formattedIdleNonBillableHours, // Total hours for "Idle -Non Billable" tasks
+        };
+
+        // Push the calculated data for the date and project to the array
+        dateProjectWiseData.push(dateProjectWiseDatum);
     }
 
     console.log(dateProjectWiseData); // Logging the calculated data
     return dateProjectWiseData;
-  };
+};
+
 
 
 
@@ -385,51 +392,71 @@ function AdminReport() {
   const dateProjectWiseData = calculateDateProjectWiseData();
 
   // Define csvReport data for CSVLink including sum values
-  // Calculate sum values for Id Count, Total Hours, Idle - Non Billable Count, and Idle - Non Billable Hours
-  const sumIdCount = dateProjectWiseData.reduce((acc, row) => acc + row.nameLength, 0);
-  const sumTotalHours = dateProjectWiseData.reduce((acc, row) => acc + row.totalHours, 0);
-  const sumIdleNonBillableCount = dateProjectWiseData.reduce((acc, row) => acc + row.idleNonBillableCount, 0);
-  const sumIdleNonBillableHours = dateProjectWiseData.reduce((acc, row) => acc + row.idleNonBillableHours, 0);
+// Calculate sum values for Id Count, Total Hours, Idle - Non Billable Count, and Idle - Non Billable Hours
+const sumIdCount = dateProjectWiseData.reduce((acc, row) => acc + row.nameLength, 0);
 
-  // Combine data with sum values
-  const dataWithSum = [
+// Function to convert hours and minutes to total minutes
+const getMinutesFromTimeString = (timeString) => {
+    const [hours, minutes] = timeString.split(':');
+    return parseInt(hours) * 60 + parseInt(minutes);
+};
+
+const sumTotalMinutes = dateProjectWiseData.reduce((acc, row) => acc + getMinutesFromTimeString(row.totalHours), 0);
+const sumIdleNonBillableCount = dateProjectWiseData.reduce((acc, row) => acc + row.idleNonBillableCount, 0);
+const sumIdleNonBillableMinutes = dateProjectWiseData.reduce((acc, row) => acc + getMinutesFromTimeString(row.idleNonBillableHours), 0);
+
+// Function to convert total minutes back to hours and minutes format
+const getTimeStringFromMinutes = (totalMinutes) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}hr:${minutes.toString().padStart(2, '0')}min`;
+};
+
+// Convert summed total minutes back to hours and minutes format
+const sumTotalHours = getTimeStringFromMinutes(sumTotalMinutes);
+const sumIdleNonBillableHours = getTimeStringFromMinutes(sumIdleNonBillableMinutes);
+
+// Combine data with sum values
+const dataWithSum = [
     ...dateProjectWiseData.map(row => ({
-      Date: row.date,
-      Project_Name: row.projectName,
-      Team: row.team,
-      Id_Count: row.nameLength,
-      Manager_Name: row.managerTask,
-      Total_Hours: row.totalHours,
-      Idle_Non_Billable_Count: row.idleNonBillableCount,
-      Idle_Non_Billable_Hours: row.idleNonBillableHours
+        Date: row.date,
+        Project_Name: row.projectName,
+        Team: row.team,
+        Id_Count: row.nameLength,
+        Manager_Name: row.managerTask,
+        Total_Hours: row.totalHours,
+        Idle_Non_Billable_Count: row.idleNonBillableCount,
+        Idle_Non_Billable_Hours: row.idleNonBillableHours
     })),
     {
-      Date: "Sum",
-      Project_Name: "",
-      Team: "",
-      Id_Count: sumIdCount,
-      Manager_Name: "",
-      Total_Hours: sumTotalHours,
-      Idle_Non_Billable_Count: sumIdleNonBillableCount,
-      Idle_Non_Billable_Hours: sumIdleNonBillableHours
+        Date: "Sum",
+        Project_Name: "",
+        Team: "",
+        Id_Count: sumIdCount,
+        Manager_Name: "",
+        Total_Hours: sumTotalHours,
+        Idle_Non_Billable_Count: sumIdleNonBillableCount,
+        Idle_Non_Billable_Hours: sumIdleNonBillableHours
     }
-  ];
+];
 
-  // Define csvReport data for CSVLink
-  const csvReport = {
+// Define csvReport data for CSVLink
+const csvReport = {
     data: dataWithSum,
     headers: [
-      { label: "Date", key: "Date" },
-      { label: "Project Name", key: "Project_Name" },
-      { label: "Team", key: "Team" },
-      { label: "Members Count", key: "Id_Count" },
-      { label: "Manager Name", key: "Manager_Name" },
-      { label: "Total Hours", key: "Total_Hours" },
-      { label: "Idle Count", key: "Idle_Non_Billable_Count" },
-      { label: "Idle Hours", key: "Idle_Non_Billable_Hours" }
+        { label: "Date", key: "Date" },
+        { label: "Project Name", key: "Project_Name" },
+        { label: "Team", key: "Team" },
+        { label: "Members Count", key: "Id_Count" },
+        { label: "Manager Name", key: "Manager_Name" },
+        { label: "Total Hours", key: "Total_Hours" },
+        { label: "Idle Count", key: "Idle_Non_Billable_Count" },
+
+        { label: "Idle Hours", key: "Idle_Non_Billable_Hours" }
     ],
     filename: "admin_report.csv"
-  };
+};
+
 
 
 
@@ -449,7 +476,7 @@ function AdminReport() {
               style={{
                 zIndex: 9999,
                 position: "absolute",
-                top: "120px",
+                top: "207px",
                 left: "0px",
               }}
             >
@@ -720,7 +747,7 @@ function AdminReport() {
               display: "flex",
               justifyContent: "center",
               fontSize: "0.7rem",
-              borderRadius: "50%",
+              // borderRadius: "50%",
               borderRadius: "10px",
               textAlign: "center",
               minHeight: "10px",
