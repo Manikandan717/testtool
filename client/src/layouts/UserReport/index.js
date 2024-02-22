@@ -14,7 +14,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { useSelector } from "react-redux";
-import { useRef } from "react";
+import { useRef } from 'react';
 import axios from "axios";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -40,7 +40,7 @@ import ClickAwayListener from "@mui/material/ClickAwayListener";
 import { fontSize } from "@mui/system";
 
 function Report() {
-  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
+  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   // task page code start
   const [data, setData] = useState([]);
   const [disable, setDisable] = useState(true);
@@ -91,12 +91,12 @@ function Report() {
       // Perform your save operation here
       await saveOperationRef.current;
       // Optionally, you can reset the form or perform any other actions after saving
-      // toast.success("Data saved successfully!");
+      toast.success("Data saved successfully!");
       setDataSubmitted(true);
     } catch (error) {
-      console.error("Error saving data:", error);
+      console.error('Error saving data:', error);
       // Handle the error if needed
-      toast.error("Error saving data. Please try again.");
+      toast.error('Error saving data. Please try again.');
     } finally {
       // Reset the ref once the operation is complete
       saveOperationRef.current = null;
@@ -148,7 +148,7 @@ function Report() {
 
   const closeDrawer = () => {
     setDrawerOpen(false);
-
+ 
     // Reset project name and managerTask when the drawer is closed
     setValue((prevValues) => ({
       ...prevValues,
@@ -157,7 +157,7 @@ function Report() {
       sessionOne: "",
       // sessionMinute: ''
     }));
-
+ 
     // Reset tasks to initial state when the drawer is closed without saving
     setTasks([
       {
@@ -167,7 +167,7 @@ function Report() {
       },
     ]);
   };
-
+ 
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
   // Function to handle opening the filter popup
@@ -352,6 +352,7 @@ function Report() {
     setSelectedUserData(userData);
     setDialogOpen(true);
   };
+  
 
   const countIdleTasks = () => {
     const uniqueIdleTasks = new Set();
@@ -383,18 +384,23 @@ function Report() {
   };
   // Fetch data when a new task is submitted
   const fetchData = () => {
-    console.log("Start Date:", values.startDate);
-    console.log("End Date:", values.endDate);
-    console.log("Team List:", teamList);
-
+    const startDate = values.startDate || "";  // Use default value if startDate is undefined or null
+    const endDate = values.endDate || "";  // Use default value if endDate is undefined or null
+    const team = teamList || "";
+  
+    console.log("Start Date:", startDate);
+    console.log("End Date:", endDate);
+    console.log("Employee ID:", empId);
+    console.log("Team List:", team);
+  
     axios
       .get(
-        `${apiUrl}/fetch/user-data/?sDate=${values.startDate}&eDate=${values.endDate}&empId=${empId}&team=${teamList}`
+        `${apiUrl}/fetch/user-data/?sDate=${startDate}&eDate=${endDate}&empId=${empId}&team=${team}`
       )
       .then((res) => {
         setReport(res.data);
       })
-      .catch((err) => console.log(`Error:${err}`));
+      .catch((err) => console.log(`Error: ${err.response?.data || err.message}`));
   };
 
   const handleSubmit = (e) => {
@@ -690,6 +696,7 @@ function Report() {
               display: "flex",
               justifyContent: "center",
               fontSize: "0.7rem",
+              // borderRadius: "50%",
               borderRadius: "10px",
               textAlign: "center",
               minHeight: "10px",
@@ -751,15 +758,15 @@ function Report() {
         {loading && (
           <div
             style={{
-              position: "fixed",
+              position: 'fixed',
               top: 0,
               left: 0,
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              background: "rgba(255, 255, 255, 0.8)",
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              background: 'rgba(255, 255, 255, 0.8)',
               zIndex: 1300,
             }}
           >
@@ -959,13 +966,13 @@ function Report() {
                       disableUnderline: true,
                       sx: {
                         "&.MuiOutlinedInput-root": {
-                          padding: "4.9px",
+                          padding: "4.9px", 
                         },
                       },
                     }}
                   />
                 )}
-              />
+              />    
 
               <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
                 <TextField
@@ -1073,12 +1080,7 @@ function Report() {
             // justifyContent="end"
             alignItems="center"
           >
-            <MDButton
-              type="submit"
-              color="success"
-              onClick={handleSave}
-              disabled={loading}
-            >
+            <MDButton type="submit" color="success" onClick={handleSave} disabled={loading}>
               Save
             </MDButton>
           </MDBox>
