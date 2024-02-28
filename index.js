@@ -1110,6 +1110,24 @@ app.post("/add", (req, res) => {
     });
 });
 
+// Backend code (Express.js route handler)
+
+// Define a route to handle the updating of existing data
+app.put('/update/analyst/:id', async (req, res) => {
+  try {
+      const updatedData = req.body;
+      const id = req.params.id;
+
+      // Update the data in the database
+      const updatedRecord = await Analyst.findByIdAndUpdate(id, updatedData, { new: true });
+
+      res.json({ message: 'Data updated successfully', data: updatedRecord });
+  } catch (error) {
+      console.error('Error updating data:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 app.get("/fetch/src/:min/:max", (req, res) => {
   const min = req.params.min;
   const max = req.params.max;
