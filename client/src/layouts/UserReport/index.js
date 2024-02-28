@@ -36,6 +36,7 @@ import DialogContent from "@mui/material/DialogContent";
 import Paper from "@mui/material/Paper";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import Popper from "@mui/material/Popper";
+import EditIcon from "@mui/icons-material/Edit";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import { fontSize } from "@mui/system";
 
@@ -71,9 +72,29 @@ function Report() {
   };
   const [loading, setLoading] = useState(false);
 
-  const saveData = async () => {
-    // Implementation of the saveData function
-    // ...
+  const saveData = async (data) => {
+    try {
+      const response = await fetch(`${apiUrl}/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // You might need to include other headers like authorization if required
+        },
+        body: JSON.stringify(data),
+      });
+  
+      if (!response.ok) {
+        // Handle the error, for example:
+        throw new Error(`Failed to save data. Server returned ${response.status}`);
+      }
+  
+      // If the request was successful, you might return some response data
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      // Handle any other errors that might occur during the fetch
+      throw new Error(`Error saving data: ${error.message}`);
+    }
   };
 
   const [dataSubmitted, setDataSubmitted] = useState(false);
@@ -96,7 +117,7 @@ function Report() {
     } catch (error) {
       console.error('Error saving data:', error);
       // Handle the error if needed
-      toast.error('Error saving data. Please try again.');
+      // toast.error('Error saving data. Please try again.');
     } finally {
       // Reset the ref once the operation is complete
       saveOperationRef.current = null;
@@ -119,6 +140,39 @@ function Report() {
       sessionOneMinutes: "",
     },
   ]);
+
+ 
+
+  const handleEdit = (rowData) => {
+    setEditMode(true); // Set edit mode to true
+    setTasks(rowData.tasks || []);
+    setRowData(rowData);
+  
+    // Set the value of the form fields based on the selected record
+    setValue({
+      name: rowData.name,
+      empId: rowData.empId,
+      team: rowData.team,
+      projectName: rowData.projectName,
+      managerTask: rowData.managerTask,
+      dateTask: rowData.dateTask,
+      // Populate other fields as needed
+    });
+  
+    // Set the tasks data in the state
+    setTasks(
+      rowData.sessionOne.map((task) => ({
+        task: task.task,
+        sessionOneHours: task.sessionOne.split(":")[0],
+        sessionOneMinutes: task.sessionOne.split(":")[1] || "",
+      }))
+    );
+  
+    // Open the drawer
+    openDrawer();
+  };
+  
+
 
   const handleTaskInputChange = (index, event) => {
     const newTasks = [...tasks];
@@ -241,11 +295,20 @@ function Report() {
       }
     });
   }, [value.projectName]);
-
+  const fetchUpdatedData = () => {
+    axios.get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
+      .then((response) => {
+        setInitialData(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching updated data:", error);
+        // Handle error if needed
+      });
+  };
   // Upload Data
   const submit = (e) => {
     e.preventDefault();
-
+  
     const userData = {
       name,
       empId,
@@ -260,42 +323,77 @@ function Report() {
       idleTasks: countIdleTasks(),
       productionTasks: countProductionTasks(),
     };
-
+  
     console.log("Submitting the following data to the backend:", userData);
+  
+    if (editMode) {
+      // If in edit mode, update existing data with a PUT request
+      axios.put(`${apiUrl}/update/analyst/${rowData._id}`, userData)
+        .then(() => {
+          toast.success("Data Updated Successfully 👌");
+          fetchUpdatedData()
+          closeDrawer();
+          fetchData(); // Assuming fetchData fetches the updated data
+          setEditMode(false); // Exit edit mode
+          // Reset form fields
+          setTasks([
+            {
+              task: "",
+              sessionOneHours: "",
+              sessionOneMinutes: "",
+            },
+          ]);
+          setValue((prevValues) => ({
+            ...prevValues,
+            dateTask: "",
+            team: "",
+            projectName: "",
+            managerTask: "",
+          }));
+        })
+        .catch((err) => {
+          console.error("Error updating data:", err);
+          toast.error("Error updating data. Please try again.");
+        });
+    } else {
+      // If not in edit mode, submit new data with a POST request
+      axios.post(`${apiUrl}/add`, userData)
+        .then(() => {
+          toast.success("Data Submitted Successfully 👌");
+          fetchUpdatedData()
+          closeDrawer();
+          fetchData(); // Assuming fetchData fetches the updated data
+          // Reset form fields
+          setTasks([
+            {
+              task: "",
+              sessionOneHours: "",
+              sessionOneMinutes: "",
+            },
+          ]);
+          setValue((prevValues) => ({
+            ...prevValues,
+            dateTask: "",
+            team: "",
+            projectName: "",
+            managerTask: "",
+          }));
+        })
+        .catch((err) => {
+          console.error("Error submitting data:", err);
+          toast.error(`Error submitting data. Please try again.`);
+        });
+    }
+  };
+  
 
-    axios
-      .post(`${apiUrl}/add`, userData)
-      .then(() => {
-        toast.success("Successfully Data Submitted 👌");
-        closeDrawer();
-        fetchData();
-        axios
-          .get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
-          .then((response) => {
-            setInitialData(response.data);
-          });
+  const [editMode, setEditMode] = useState(false);
+  const [rowData, setRowData] = useState(null); 
 
-        // Reset hours and minutes after successful submission
-        setTasks([
-          {
-            task: "",
-            sessionOneHours: "",
-            sessionOneMinutes: "",
-          },
-        ]);
-
-        setValue((prevValues) => ({
-          ...prevValues,
-          dateTask: "",
-          team: "",
-          projectName: "",
-          managerTask: "",
-        }));
-      })
-      .catch((err) => {
-        console.error("Error submitting data:", err);
-        toast.error(`All fields required☹️`);
-      });
+  const openDrawerForEdit = (rowData) => {
+    setRowData(rowData);
+    setEditMode(true);
+    // Additional code to open the drawer
   };
 
   useEffect(() => {}, [tasks, selectedUserData]);
@@ -384,23 +482,18 @@ function Report() {
   };
   // Fetch data when a new task is submitted
   const fetchData = () => {
-    const startDate = values.startDate || "";  // Use default value if startDate is undefined or null
-    const endDate = values.endDate || "";  // Use default value if endDate is undefined or null
-    const team = teamList || "";
-  
-    console.log("Start Date:", startDate);
-    console.log("End Date:", endDate);
-    console.log("Employee ID:", empId);
-    console.log("Team List:", team);
-  
+    console.log("Start Date:", values.startDate);
+    console.log("End Date:", values.endDate);
+    console.log("Team List:", teamList);
+
     axios
       .get(
-        `${apiUrl}/fetch/user-data/?sDate=${startDate}&eDate=${endDate}&empId=${empId}&team=${team}`
+        `${apiUrl}/fetch/user-data/?sDate=${values.startDate}&eDate=${values.endDate}&empId=${empId}&team=${teamList}`
       )
       .then((res) => {
         setReport(res.data);
       })
-      .catch((err) => console.log(`Error: ${err.response?.data || err.message}`));
+      .catch((err) => console.log(`Error:${err}`));
   };
 
   const handleSubmit = (e) => {
@@ -507,7 +600,23 @@ function Report() {
         </IconButton>
       ),
     },
+    {
+      field: "edit",
+      headerName: "Edit",
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (params) => (
+        <IconButton
+          style={{ color: "#4caf50" }}
+          onClick={() => handleEdit(params.row)}
+        >
+          <EditIcon />
+        </IconButton>
+      ),
+    },
   ];
+  
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
     ...initialDataColumns,
@@ -696,7 +805,7 @@ function Report() {
               display: "flex",
               justifyContent: "center",
               fontSize: "0.7rem",
-              // borderRadius: "50%",
+              borderRadius: "50%",
               borderRadius: "10px",
               textAlign: "center",
               minHeight: "10px",
@@ -746,7 +855,7 @@ function Report() {
             mb: 2, // Adjusted margin-bottom
           }}
         >
-          <Typography variant="h6"> New Task</Typography>
+  <Typography variant="h6">{editMode ? "Edit Task" : "New Task"}</Typography>
           <IconButton
             sx={{ position: "absolute", top: 10, right: 0 }} // Positioned to the top right corner
             onClick={closeDrawer}
@@ -775,6 +884,7 @@ function Report() {
         )}
 
         <MDBox pb={5} component="form" role="form" onSubmit={submit}>
+          
           <MDBox sx={{ width: 250, p: 2 }}>
             <InputLabel htmlFor="project-name">Project Name</InputLabel>
             <Autocomplete
@@ -937,124 +1047,122 @@ function Report() {
             </InputLabel>
           </MDBox>
           {tasks.map((task, index) => (
-            <MDBox
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "center",
-              }}
-              key={index}
-            >
-              <Autocomplete
-                disablePortal
-                aria-required
-                id={`task_${index}`} // Unique ID for each Autocomplete
-                name={`createTask_${index}`} // Unique name for each Autocomplete
-                options={(Array.isArray(taskList) ? taskList : []).map(
-                  (task) => task.createTask
-                )}
-                onChange={(event, value) =>
-                  handleTaskChange(index, event, value)
-                }
-                sx={{ width: "46%", mt: 1 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Select a Task"
-                    InputProps={{
-                      ...params.InputProps,
-                      disableUnderline: true,
-                      sx: {
-                        "&.MuiOutlinedInput-root": {
-                          padding: "4.9px", 
-                        },
-                      },
-                    }}
-                  />
-                )}
-              />    
+  <MDBox
+    sx={{
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "center",
+    }}
+    key={index}
+  >
+ <Autocomplete
+      disablePortal
+      aria-required
+      id={`task_${index}`} // Unique ID for each Autocomplete
+      name={`createTask_${index}`} // Unique name for each Autocomplete
+      options={taskList.map((task) => task.createTask)} // Pass taskList directly
+      value={task.task} // Set the value of Autocomplete
+      onChange={(event, value) => handleTaskChange(index, event, value)}
+      sx={{ width: "46%", mt: 1 }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          placeholder="Select a Task"
+          InputProps={{
+            ...params.InputProps,
+            disableUnderline: true,
+            sx: {
+              "&.MuiOutlinedInput-root": {
+                padding: "4.9px",
+              },
+            },
+          }}
+        />
+      )}
+    />
 
-              <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
-                <TextField
-                  id="sessionOneHours"
-                  name="sessionOneHours"
-                  sx={{
-                    width: "100%",
-                    p: 1,
-                    "& .MuiOutlinedInput-root": {
-                      padding: "0px", // Set the desired padding value
-                    },
-                  }}
-                  aria-required
-                  required
-                  value={task.sessionOneHours}
-                  onChange={(e) => handleTaskInputChange(index, e)}
-                  variant="outlined"
-                  select
-                  SelectProps={{
-                    native: true,
-                    IconComponent: () => <></>,
-                  }}
-                >
-                  <option value="" disabled>
-                    Hours
-                  </option>
-                  {[...Array(13).keys()].slice(1).map((hour) => (
-                    <option key={hour} value={hour}>
-                      {hour}
-                    </option>
-                  ))}
-                </TextField>
-              </FormControl>
+    <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
+      <TextField
+        id="sessionOneHours"
+        name="sessionOneHours"
+        sx={{
+          width: "100%",
+          p: 1,
+          "& .MuiOutlinedInput-root": {
+            padding: "0px",
+          },
+        }}
+        aria-required
+        required
+        value={task.sessionOneHours}
+        onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
+        variant="outlined"
+        select
+        SelectProps={{
+          native: true,
+          IconComponent: () => <></>,
+        }}
+      >
+        <option value="" disabled>
+          Hours
+        </option>
+        {[...Array(13).keys()].slice(1).map((hour) => (
+          <option key={hour} value={hour}>
+            {hour}
+          </option>
+        ))}
+      </TextField>
+    </FormControl>
 
-              <FormControl sx={{ minWidth: 120, width: "24%" }}>
-                <TextField
-                  id="sessionOneMinutes"
-                  name="sessionOneMinutes"
-                  sx={{
-                    width: "100%",
-                    p: 1,
-                    "& .MuiOutlinedInput-root": {
-                      padding: "0px", // Set the desired padding value
-                    },
-                  }}
-                  required
-                  value={task.sessionOneMinutes}
-                  onChange={(e) => handleTaskInputChange(index, e)}
-                  variant="outlined"
-                  aria-required
-                  select
-                  SelectProps={{
-                    native: true,
-                    IconComponent: () => <></>,
-                  }}
-                >
-                  <option value="" disabled>
-                    Minutes
-                  </option>
-                  <option value="00">00</option>
-                  <option value="15">15</option>
-                  <option value="30">30</option>
-                  <option value="45">45</option>
-                </TextField>
-              </FormControl>
+    <FormControl sx={{ minWidth: 120, width: "24%" }}>
+      <TextField
+        id="sessionOneMinutes"
+        name="sessionOneMinutes"
+        sx={{
+          width: "100%",
+          p: 1,
+          "& .MuiOutlinedInput-root": {
+            padding: "0px",
+          },
+        }}
+        required
+        value={task.sessionOneMinutes}
+        onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
+        variant="outlined"
+        aria-required
+        select
+        SelectProps={{
+          native: true,
+          IconComponent: () => <></>,
+        }}
+      >
+        <option value="" disabled>
+          Minutes
+        </option>
+        <option value="00">00</option>
+        <option value="15">15</option>
+        <option value="30">30</option>
+        <option value="45">45</option>
+      </TextField>
+    </FormControl>
 
-              {index > 0 && (
-                <div style={{ position: "relative" }}>
-                  <IconButton
-                    onClick={() => handleRemoveTaskField(index)}
-                    sx={{
-                      position: "absolute",
-                      top: 13,
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                  {/* Rest of the content for this row */}
-                </div>
-              )}
-            </MDBox>
-          ))}
+    {index > 0 && (
+      <div style={{ position: "relative" }}>
+        <IconButton
+          onClick={() => handleRemoveTaskField(index)}
+          sx={{
+            position: "absolute",
+            top: 13,
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+        {/* Rest of the content for this row */}
+      </div>
+    )}
+  </MDBox>
+))}
+
           <MDButton
             onClick={handleAddTaskField}
             color="success"
@@ -1081,7 +1189,7 @@ function Report() {
             alignItems="center"
           >
             <MDButton type="submit" color="success" onClick={handleSave} disabled={loading}>
-              Save
+            {editMode ? "Save" : "Submit"}
             </MDButton>
           </MDBox>
         </MDBox>
