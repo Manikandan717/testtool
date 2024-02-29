@@ -482,9 +482,10 @@ function Report() {
   };
   // Fetch data when a new task is submitted
   const fetchData = () => {
-    console.log("Start Date:", values.startDate);
-    console.log("End Date:", values.endDate);
-    console.log("Team List:", teamList);
+    if (!values.startDate || !values.endDate) {
+        console.log(); // Empty console.log()
+        return;
+    }
 
     axios
       .get(
@@ -493,8 +494,8 @@ function Report() {
       .then((res) => {
         setReport(res.data);
       })
-      .catch((err) => console.log(`Error:${err}`));
-  };
+      .catch((err) => console.log(`Error: ${err.message}`));
+};
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -668,7 +669,9 @@ function Report() {
     const hours = Math.floor(totalMinutes / 60);
     const remainingMinutes = totalMinutes % 60;
 
-    return `${hours}:${remainingMinutes < 10 ? "0" : ""}${remainingMinutes}`;
+    const formattedTotalHours = `${hours}hr:${remainingMinutes.toString().padStart(2, '0')}min`;
+
+    return formattedTotalHours;
   };
 
   return (
@@ -855,7 +858,9 @@ function Report() {
             mb: 2, // Adjusted margin-bottom
           }}
         >
-  <Typography variant="h6">{editMode ? "Edit Task" : "New Task"}</Typography>
+          <Typography variant="h6">
+            {editMode ? "Edit Task" : "New Task"}
+          </Typography>
           <IconButton
             sx={{ position: "absolute", top: 10, right: 0 }} // Positioned to the top right corner
             onClick={closeDrawer}
@@ -867,15 +872,15 @@ function Report() {
         {loading && (
           <div
             style={{
-              position: 'fixed',
+              position: "fixed",
               top: 0,
               left: 0,
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.8)',
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              background: "rgba(255, 255, 255, 0.8)",
               zIndex: 1300,
             }}
           >
@@ -884,7 +889,6 @@ function Report() {
         )}
 
         <MDBox pb={5} component="form" role="form" onSubmit={submit}>
-          
           <MDBox sx={{ width: 250, p: 2 }}>
             <InputLabel htmlFor="project-name">Project Name</InputLabel>
             <Autocomplete
@@ -1047,121 +1051,123 @@ function Report() {
             </InputLabel>
           </MDBox>
           {tasks.map((task, index) => (
-  <MDBox
-    sx={{
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "center",
-    }}
-    key={index}
-  >
- <Autocomplete
-      disablePortal
-      aria-required
-      id={`task_${index}`} // Unique ID for each Autocomplete
-      name={`createTask_${index}`} // Unique name for each Autocomplete
-      options={taskList.map((task) => task.createTask)} // Pass taskList directly
-      value={task.task} // Set the value of Autocomplete
-      onChange={(event, value) => handleTaskChange(index, event, value)}
-      sx={{ width: "46%", mt: 1 }}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          placeholder="Select a Task"
-          InputProps={{
-            ...params.InputProps,
-            disableUnderline: true,
-            sx: {
-              "&.MuiOutlinedInput-root": {
-                padding: "4.9px",
-              },
-            },
-          }}
-        />
-      )}
-    />
+            <MDBox
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+              }}
+              key={index}
+            >
+              <Autocomplete
+                disablePortal
+                aria-required
+                id={`task_${index}`} // Unique ID for each Autocomplete
+                name={`createTask_${index}`} // Unique name for each Autocomplete
+                options={taskList.map((task) => task.createTask)} // Pass taskList directly
+                value={task.task} // Set the value of Autocomplete
+                onChange={(event, value) =>
+                  handleTaskChange(index, event, value)
+                }
+                sx={{ width: "46%", mt: 1 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select a Task"
+                    InputProps={{
+                      ...params.InputProps,
+                      disableUnderline: true,
+                      sx: {
+                        "&.MuiOutlinedInput-root": {
+                          padding: "4.9px",
+                        },
+                      },
+                    }}
+                  />
+                )}
+              />
 
-    <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
-      <TextField
-        id="sessionOneHours"
-        name="sessionOneHours"
-        sx={{
-          width: "100%",
-          p: 1,
-          "& .MuiOutlinedInput-root": {
-            padding: "0px",
-          },
-        }}
-        aria-required
-        required
-        value={task.sessionOneHours}
-        onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
-        variant="outlined"
-        select
-        SelectProps={{
-          native: true,
-          IconComponent: () => <></>,
-        }}
-      >
-        <option value="" disabled>
-          Hours
-        </option>
-        {[...Array(13).keys()].slice(1).map((hour) => (
-          <option key={hour} value={hour}>
-            {hour}
-          </option>
-        ))}
-      </TextField>
-    </FormControl>
+              <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
+                <TextField
+                  id="sessionOneHours"
+                  name="sessionOneHours"
+                  sx={{
+                    width: "100%",
+                    p: 1,
+                    "& .MuiOutlinedInput-root": {
+                      padding: "0px",
+                    },
+                  }}
+                  aria-required
+                  required
+                  value={task.sessionOneHours}
+                  onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
+                  variant="outlined"
+                  select
+                  SelectProps={{
+                    native: true,
+                    IconComponent: () => <></>,
+                  }}
+                >
+                  <option value="" disabled>
+                    Hours
+                  </option>
+                  {[...Array(13).keys()].slice(1).map((hour) => (
+                    <option key={hour} value={hour}>
+                      {hour}
+                    </option>
+                  ))}
+                </TextField>
+              </FormControl>
 
-    <FormControl sx={{ minWidth: 120, width: "24%" }}>
-      <TextField
-        id="sessionOneMinutes"
-        name="sessionOneMinutes"
-        sx={{
-          width: "100%",
-          p: 1,
-          "& .MuiOutlinedInput-root": {
-            padding: "0px",
-          },
-        }}
-        required
-        value={task.sessionOneMinutes}
-        onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
-        variant="outlined"
-        aria-required
-        select
-        SelectProps={{
-          native: true,
-          IconComponent: () => <></>,
-        }}
-      >
-        <option value="" disabled>
-          Minutes
-        </option>
-        <option value="00">00</option>
-        <option value="15">15</option>
-        <option value="30">30</option>
-        <option value="45">45</option>
-      </TextField>
-    </FormControl>
+              <FormControl sx={{ minWidth: 120, width: "24%" }}>
+                <TextField
+                  id="sessionOneMinutes"
+                  name="sessionOneMinutes"
+                  sx={{
+                    width: "100%",
+                    p: 1,
+                    "& .MuiOutlinedInput-root": {
+                      padding: "0px",
+                    },
+                  }}
+                  required
+                  value={task.sessionOneMinutes}
+                  onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
+                  variant="outlined"
+                  aria-required
+                  select
+                  SelectProps={{
+                    native: true,
+                    IconComponent: () => <></>,
+                  }}
+                >
+                  <option value="" disabled>
+                    Minutes
+                  </option>
+                  <option value="00">00</option>
+                  <option value="15">15</option>
+                  <option value="30">30</option>
+                  <option value="45">45</option>
+                </TextField>
+              </FormControl>
 
-    {index > 0 && (
-      <div style={{ position: "relative" }}>
-        <IconButton
-          onClick={() => handleRemoveTaskField(index)}
-          sx={{
-            position: "absolute",
-            top: 13,
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-        {/* Rest of the content for this row */}
-      </div>
-    )}
-  </MDBox>
-))}
+              {index > 0 && (
+                <div style={{ position: "relative" }}>
+                  <IconButton
+                    onClick={() => handleRemoveTaskField(index)}
+                    sx={{
+                      position: "absolute",
+                      top: 13,
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                  {/* Rest of the content for this row */}
+                </div>
+              )}
+            </MDBox>
+          ))}
 
           <MDButton
             onClick={handleAddTaskField}
@@ -1188,8 +1194,13 @@ function Report() {
             // justifyContent="end"
             alignItems="center"
           >
-            <MDButton type="submit" color="success" onClick={handleSave} disabled={loading}>
-            {editMode ? "Save" : "Submit"}
+            <MDButton
+              type="submit"
+              color="success"
+              onClick={handleSave}
+              disabled={loading}
+            >
+              {editMode ? "Save" : "Submit"}
             </MDButton>
           </MDBox>
         </MDBox>
@@ -1284,7 +1295,10 @@ function Report() {
                             </MDTypography>
                             <Autocomplete
                               options={list}
-                              onChange={handleTeamChange}
+                              value={teamlist}
+                              onChange={(event, value) =>
+                                handleTeamchange(event, value)
+                              }
                               id="movie-customized-option-demo"
                               disableCloseOnSelect
                               sx={{ width: "100%" }}
@@ -1299,6 +1313,9 @@ function Report() {
                                   {props.children}
                                 </Popper>
                               )}
+                              // isOptionEqualToValue={(option, value) =>
+                              //   option === value
+                              // }
                               renderInput={(params) => (
                                 <TextField {...params} variant="standard" />
                               )}
