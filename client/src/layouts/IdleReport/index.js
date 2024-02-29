@@ -225,7 +225,6 @@ const MemoizedProjectStatusChart = memo(
 
 const TaskWiseBarChart = () => {
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
-
   const getCurrentMonthStartDate = () => {
     const currentDate = new Date();
     return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -350,7 +349,7 @@ const TaskWiseBarChart = () => {
 
   const fetchPieChartData = useCallback(async () => {
     try {
-      const totalProduction = idleBillableCount + totalProductionCount; // Include idleBillableCount in production count
+      const totalProduction =  totalProductionCount; // Include idleBillableCount in production count
       const total = totalProduction + idleNonBillableCount; // Include idleNonBillableCount separately
       const percentages = [idleNonBillableCount, totalProduction]; // Include totalProduction
 
@@ -870,7 +869,7 @@ const TaskWiseBarChart = () => {
   // const presentPercentage = ((idleBillableCount + idleNonBillableCount + productionCount) / totalEmployees) * 100;
   // const absentPercentage = ((totalEmployees - (idleBillableCount + idleNonBillableCount + productionCount)) / totalEmployees) * 100;
   const presentCount =
-    idleBillableCount + idleNonBillableCount + productionCount;
+     idleNonBillableCount + productionCount;
   const absentCount = totalEmployees - presentCount;
   // Prepare data for the Doughnut chart
   const doughnutChartData = {
@@ -892,15 +891,15 @@ const TaskWiseBarChart = () => {
 
     if (selectedProject) {
       totalAttendance = batchValue;
-      presentCount = totalProductionCount + totalIdleCount;
+      presentCount = totalProductionCount + idleNonBillableCount;
       absentCount = totalAttendance - presentCount;
     } else if (selectedTeam) {
       totalAttendance = batchCountByTeam;
-      presentCount = totalProductionCount + totalIdleCount;
+      presentCount = totalProductionCount + idleNonBillableCount;
       absentCount = totalAttendance - presentCount;
     } else {
       totalAttendance = employeeCount;
-      presentCount = totalProductionCount + totalIdleCount;
+      presentCount = totalProductionCount + idleNonBillableCount;
       absentCount = totalAttendance - presentCount;
     }
 
@@ -920,7 +919,7 @@ const TaskWiseBarChart = () => {
     datasets: [
       {
         data: [
-          totalProductionCount + totalIdleCount,
+          totalProductionCount + idleNonBillableCount,
           attendanceData.absentCount,
         ],
         backgroundColor: ["#4caf50", "#FF6868"],
@@ -1081,7 +1080,7 @@ const TaskWiseBarChart = () => {
 
   // Calculate the average production count per day
   const averageProductionCountPerDay = (
-    (idleBillableCount + totalProductionCount) /
+    ( totalProductionCount) /
     differenceInDaysWithoutWeekends
   ).toFixed(2);
 
@@ -1256,7 +1255,7 @@ const TaskWiseBarChart = () => {
             <ComplexStatisticsCard
               icon="more_time"
               title="Production"
-              count={`${idleBillableCount + totalProductionCount}`}
+              count={`${totalProductionCount}`}
               percentage={{
                 color: "success",
                 amount: "",
