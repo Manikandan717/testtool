@@ -23,7 +23,7 @@ import Box from "@mui/material/Box";
 import { useSelector } from "react-redux";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Button from '@material-ui/core/Button';
 import "react-datepicker/dist/react-datepicker.css";
 import TextField from "@mui/material/TextField";
@@ -46,7 +46,6 @@ function AdminReport() {
 
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
 
-
   const VISIBLE_FIELDS = ['date', 'name', 'team', 'projectName', 'taskCount', 'managerTask', 'totalHours'];
 
   const calculateTotalHours = (sessionOne) => {
@@ -60,7 +59,9 @@ function AdminReport() {
     const hours = Math.floor(totalMinutes / 60);
     const remainingMinutes = totalMinutes % 60;
 
-    return `${hours}:${remainingMinutes < 10 ? '0' : ''}${remainingMinutes}`;
+    const formattedTotalHours = `${hours}hr:${remainingMinutes.toString().padStart(2, '0')}min`;
+
+    return formattedTotalHours
   };
 
   const initialValues = {
@@ -101,26 +102,31 @@ function AdminReport() {
         console.error('Error fetching project names:', error);
       });
   }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+  
+    // If the clicked input is a date input, set anchorEl
+    if (e.target.type === 'date') {
+      setAnchorEl(e.currentTarget);
+    }
+  
     setValues({
       ...values,
       [name]: value,
     });
   };
-
   const handleChange = (event, value) => setEmpName(value);
   const handleTeamChange = (event, value) => setTeamList(value);
 
-  const allReport = (e) => {
-    axios
-      .get(`${apiUrl}/analyst`)
-      .then((res) => {
-        setReport(res.data);
-      })
-      .catch((err) => console.log(err));
-  };
+  // const allReport = (e) => {
+  //   axios
+  //     .get(`${apiUrl}/analyst`)
+  //     .then((res) => {
+  //       setReport(res.data);
+  //     })
+  //     .catch((err) => console.log(err));
+  // };
 
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -184,30 +190,56 @@ function AdminReport() {
     closeFilterDialog();
   };
 
-
-
-
-
-
-  const userName = () => {
-    return axios.get(`${apiUrl}/users`).then((res) => {
-      setName(res.data);
-    });
-  };
+  let isComponentMounted = true;
 
   useEffect(() => {
+    const abortController = new AbortController();
+  
     const fetchData = async () => {
       try {
-        await Promise.all([allReport(), userName()]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
+        const reportResponse = await axios.get(`${apiUrl}/analyst`, { signal: abortController.signal });
+        const userNameResponse = await axios.get(`${apiUrl}/users`, { signal: abortController.signal });
+  
+        setReport(reportResponse.data);
+        setName(userNameResponse.data);
         setLoading(false);
+      } catch (error) {
+        if (!abortController.signal.aborted) {
+          console.error('Error fetching data:', error);
+          setLoading(false);
+        }
       }
     };
-
+  
     fetchData();
-  }, []);
+  
+    // Cleanup function to abort ongoing requests when the component is unmounted
+    return () => {
+      abortController.abort();
+    };
+  }, []); // Empty dependency array means this effect will run once on mount
+  
+
+
+  // const userName = () => {
+  //   return axios.get(`${apiUrl}/users`).then((res) => {
+  //     setName(res.data);
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       await Promise.all([allReport(), userName()]);
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
 
   const openDialog = (userData) => {
     setSelectedUserData(userData);
@@ -222,14 +254,17 @@ function AdminReport() {
 
   const handleDelete = (_id) => {
     // Perform the deletion in MongoDB using the _id
-    axios.delete(`${apiUrl}/delete/usertask/${_id}`).then((response) => {
-      // Handle success, e.g., refetch the data
-      allReport()
-      toast.success('Successfully deleted.');
-    }).catch((error) => {
-      // Handle error
-      toast.error('Error deleting the record.');
-    });
+    axios.delete(`${apiUrl}/delete/usertask/${_id}`)
+      .then((response) => {
+        // Handle success, e.g., update local state immediately
+        const updatedReport = report.filter(item => item._id !== _id);
+        setReport(updatedReport);
+        toast.success('Successfully deleted.');
+      })
+      .catch((error) => {
+        // Handle error
+        toast.error('Error deleting the record.');
+      });
   };
 
   const columns = VISIBLE_FIELDS.map((field) => ({
@@ -288,10 +323,19 @@ function AdminReport() {
   const list = ["CV", "NLP", "CM", "SOURCING"];
 
   const [popperOpen, setPopperOpen] = useState(false);
+  const anchorRef = useRef(null);
 
-  const handlePopperToggle = () => {
-    setPopperOpen((prev) => !prev);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handlePopperToggle = (clickEvent) => {
+    setPopperOpen(!popperOpen);
+  
+    // Check if clickEvent.currentTarget is a valid element before setting anchorEl
+    if (clickEvent && clickEvent.currentTarget instanceof Element) {
+      setAnchorEl(clickEvent.currentTarget);
+    }
   };
+  
 
   const handlePopperClose = () => {
     setPopperOpen(false);
@@ -350,7 +394,7 @@ function AdminReport() {
 
         // Convert totalHours and idleNonBillableHours to hours:minutes format
         const formattedTotalHours = Math.floor(totalHours / 60) + 'hr:' + (totalHours % 60).toString().padStart(2, '0')+'min';
-        const formattedIdleNonBillableHours = Math.floor(idleNonBillableHours / 60) + ':' + (idleNonBillableHours % 60).toString().padStart(2, '0');
+        const formattedIdleNonBillableHours = Math.floor(idleNonBillableHours / 60) + 'hr:' + (idleNonBillableHours % 60).toString().padStart(2, '0')+'min';
 
         const dateProjectWiseDatum = {
             id: uuidv4(), // Generate unique ID for the row
@@ -368,7 +412,7 @@ function AdminReport() {
         dateProjectWiseData.push(dateProjectWiseDatum);
     }
 
-    console.log(dateProjectWiseData); // Logging the calculated data
+    // console.log(dateProjectWiseData); // Logging the calculated data
     return dateProjectWiseData;
 };
 
@@ -469,7 +513,8 @@ const csvReport = {
           <Box>
             <Popper
               open={popperOpen}
-              // anchorEl={/* Provide the reference to the element that triggers the popper */}
+              anchorEl={anchorEl}
+              onClose={handlePopperClose}
               role={undefined}
               transition
               disablePortal
@@ -747,7 +792,7 @@ const csvReport = {
               display: "flex",
               justifyContent: "center",
               fontSize: "0.7rem",
-              // borderRadius: "50%",
+              borderRadius: "50%",
               borderRadius: "10px",
               textAlign: "center",
               minHeight: "10px",
