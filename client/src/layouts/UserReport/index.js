@@ -306,9 +306,98 @@ function Report() {
       });
   };
   // Upload Data
-  const submit = (e) => {
-    e.preventDefault();
+  // const submit = (e) => {
+  //   e.preventDefault();
   
+  //   const userData = {
+  //     name,
+  //     empId,
+  //     team: value.team,
+  //     projectName: value.projectName,
+  //     managerTask: value.managerTask,
+  //     dateTask: value.dateTask,
+  //     sessionOne: tasks.map((task) => ({
+  //       task: task.task,
+  //       sessionOne: `${task.sessionOneHours}:${task.sessionOneMinutes || "00"}`,
+  //     })),
+  //     idleTasks: countIdleTasks(),
+  //     productionTasks: countProductionTasks(),
+  //   };
+  
+  //   console.log("Submitting the following data to the backend:", userData);
+  
+  //   if (editMode) {
+  //     // If in edit mode, update existing data with a PUT request
+  //     axios.put(`${apiUrl}/update/analyst/${rowData._id}`, userData)
+  //       .then(() => {
+  //         toast.success("Data Updated Successfully 👌");
+  //         fetchUpdatedData()
+  //         closeDrawer();
+  //         fetchData(); // Assuming fetchData fetches the updated data
+  //         setEditMode(false); // Exit edit mode
+  //         // Reset form fields
+  //         setTasks([
+  //           {
+  //             task: "",
+  //             sessionOneHours: "",
+  //             sessionOneMinutes: "",
+  //           },
+  //         ]);
+  //         setValue((prevValues) => ({
+  //           ...prevValues,
+  //           dateTask: "",
+  //           team: "",
+  //           projectName: "",
+  //           managerTask: "",
+  //         }));
+  //       })
+  //       .catch((err) => {
+  //         console.error("Error updating data:", err);
+  //         toast.error("Error updating data. Please try again.");
+  //       });
+  //   } else {
+  //     // If not in edit mode, submit new data with a POST request
+  //     axios.post(`${apiUrl}/add`, userData)
+  //       .then(() => {
+  //         toast.success("Data Submitted Successfully 👌");
+  //         fetchUpdatedData()
+  //         closeDrawer();
+  //         fetchData(); // Assuming fetchData fetches the updated data
+  //         // Reset form fields
+  //         setTasks([
+  //           {
+  //             task: "",
+  //             sessionOneHours: "",
+  //             sessionOneMinutes: "",
+  //           },
+  //         ]);
+  //         setValue((prevValues) => ({
+  //           ...prevValues,
+  //           dateTask: "",
+  //           team: "",
+  //           projectName: "",
+  //           managerTask: "",
+  //         }));
+  //       })
+  //       .catch((err) => {
+  //         console.error("Error submitting data:", err);
+  //         toast.error(`Error submitting data. Please try again.`);
+  //       });
+  //   }
+  // };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+
+    // If submission is already in progress, do nothing
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
     const userData = {
       name,
       empId,
@@ -323,68 +412,50 @@ function Report() {
       idleTasks: countIdleTasks(),
       productionTasks: countProductionTasks(),
     };
-  
+
     console.log("Submitting the following data to the backend:", userData);
-  
-    if (editMode) {
-      // If in edit mode, update existing data with a PUT request
-      axios.put(`${apiUrl}/update/analyst/${rowData._id}`, userData)
-        .then(() => {
-          toast.success("Data Updated Successfully 👌");
-          fetchUpdatedData()
-          closeDrawer();
-          fetchData(); // Assuming fetchData fetches the updated data
-          setEditMode(false); // Exit edit mode
-          // Reset form fields
-          setTasks([
-            {
-              task: "",
-              sessionOneHours: "",
-              sessionOneMinutes: "",
-            },
-          ]);
-          setValue((prevValues) => ({
-            ...prevValues,
-            dateTask: "",
-            team: "",
-            projectName: "",
-            managerTask: "",
-          }));
-        })
-        .catch((err) => {
-          console.error("Error updating data:", err);
-          toast.error("Error updating data. Please try again.");
-        });
-    } else {
-      // If not in edit mode, submit new data with a POST request
-      axios.post(`${apiUrl}/add`, userData)
-        .then(() => {
-          toast.success("Data Submitted Successfully 👌");
-          fetchUpdatedData()
-          closeDrawer();
-          fetchData(); // Assuming fetchData fetches the updated data
-          // Reset form fields
-          setTasks([
-            {
-              task: "",
-              sessionOneHours: "",
-              sessionOneMinutes: "",
-            },
-          ]);
-          setValue((prevValues) => ({
-            ...prevValues,
-            dateTask: "",
-            team: "",
-            projectName: "",
-            managerTask: "",
-          }));
-        })
-        .catch((err) => {
-          console.error("Error submitting data:", err);
-          toast.error(`Error submitting data. Please try again.`);
-        });
+
+    try {
+      if (editMode) {
+        // If in edit mode, update existing data with a PUT request
+        await axios.put(`${apiUrl}/update/analyst/${rowData._id}`, userData);
+        toast.success("Data Updated Successfully 👌");
+        fetchUpdatedData();
+        closeDrawer();
+        fetchData(); // Assuming fetchData fetches the updated data
+        setEditMode(false);
+      } else {
+        // If not in edit mode, submit new data with a POST request
+        await axios.post(`${apiUrl}/add`, userData);
+        toast.success("Data Submitted Successfully 👌");
+        fetchUpdatedData();
+        closeDrawer();
+        fetchData(); // Assuming fetchData fetches the updated data
+      }
+
+      // Reset form fields
+      setTasks([
+        {
+          task: "",
+          sessionOneHours: "",
+          sessionOneMinutes: "",
+        },
+      ]);
+      setValue((prevValues) => ({
+        ...prevValues,
+        dateTask: "",
+        team: "",
+        projectName: "",
+        managerTask: "",
+      }));
+    } catch (err) {
+      console.error("Error updating/submitting data:", err);
+      toast.error(`Error updating/submitting data. Please try again.`);
+    } finally {
+      setIsSubmitting(false); // Reset the state to allow future submissions
     }
   };
+
   
 
   const [editMode, setEditMode] = useState(false);
@@ -1198,9 +1269,9 @@ function Report() {
               type="submit"
               color="success"
               onClick={handleSave}
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {editMode ? "Save" : "Submit"}
+              {isSubmitting ? 'Loading...' : (editMode ? 'Update' : 'Save')}
             </MDButton>
           </MDBox>
         </MDBox>
