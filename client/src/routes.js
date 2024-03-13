@@ -1,5 +1,6 @@
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
+import DashboardUser from "layouts/Dashboard-user";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 import Resetpwd from "layouts/authentication/resetpwd";
@@ -22,17 +23,36 @@ import PeopleIcon from "@mui/icons-material/People";
 import Homepage from "./layouts/IdleReport";
 import SuperadminReport from "./layouts/SuperadminReport";
 import AttendanceAdmin from "./layouts/Attendance-Admin";
+import DashboardUserNew from "./layouts/dashboard-new";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
 const routes = [
+  // {
+  //   type: "collapse",
+  //   name: "Dashboard",
+  //   key: "dashboard",
+  //   icon: <Icon fontSize="small">dashboard</Icon>,
+  //   route: "/dashboard",
+  //   component: <Dashboard />,
+  //   role: "analyst",
+  // },
+  // {
+  //   type: "collapse",
+  //   name: "Dashboard User",
+  //   key: "dashboard-user",
+  //   icon: <Icon fontSize="small">dashboard</Icon>,
+  //   route: "/dashboard-user",
+  //   component: <DashboardUser />,
+  //   role: "analyst",
+  // },
   {
     type: "collapse",
-    name: "Dashboard",
-    key: "dashboard",
+name: "DashboardUser",
+key: "dashboardUser",
     icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard",
-    component: <Dashboard />,
+route: "/dashboardUser",
+    component: <DashboardUserNew />,
     role: "analyst",
   },
   {
