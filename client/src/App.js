@@ -19,6 +19,7 @@ import themeDark from "./assets/theme-dark";
 import brandWhite from "./assets/images/logo-ct.png";
 import brandDark from "./assets/images/logo-ct-dark.png";
 import Dashboard from "./layouts/dashboard";
+import DashboardUser from "layouts/Dashboard-user";
 import Tables from "./layouts/tables";
 import Auth from "./Auth";
 import setAuthToken from "./utils/setAuthToken";
@@ -43,7 +44,8 @@ import 'layouts/Attendance/calendar.css';
 import { from } from "stylis";
 import SuperadminReport from "./layouts/SuperadminReport";
 import AttendanceAdmin from "./layouts/Attendance-Admin"
- 
+import DashboardUserNew from "./layouts/dashboard-new";
+
 function App() {
   const [controller] = useMaterialUIController();
   const {
@@ -125,17 +127,22 @@ function App() {
       <Routes>
       <Route
       path="/"
-      element={
+      element = {
         isLoggedIn ? (
           role === 'superadmin' ? (
             <Navigate to="/homepage" />
           ) : (
-            <Navigate to="/dashboard" />
+            role === 'analyst' ? (
+              <Navigate to="/dashboardUser" />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
           )
         ) : (
           <Navigate to="/authentication/sign-in" />
         )
       }
+      
     />
         <Route exact path={"/auth"} element={<Auth/>}/>
         <Route exact path="/authentication/sign-in" element={<SignIn />} />
@@ -175,8 +182,14 @@ function App() {
         <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
           <Route exact path="/user-attendance" element={<Attendance/>} />
         </Route>
+        <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
+          <Route exact path="/dashboard-user" element={<DashboardUser/>} />
+        </Route>
         <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
           <Route exact path="/Settings" element={<TaskCreation/>} />
+        </Route>
+        <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
+          <Route exact path="/dashboardUser" element={<DashboardUserNew/>} />
         </Route>
         {/* <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
           <Route exact path="/LastLogin" element={<LastLogin/>} />
@@ -194,13 +207,18 @@ function App() {
         <Route
         exact
         path="*"
-        element={
+        element = {
           isLoggedIn && (role === 'analyst' || role === 'admin') ? (
-            <Dashboard/>
+            <Dashboard />
           ) : (
-            <Navigate to="/dashboard" />
+            role === 'analyst' ? (
+              <Navigate to="/dashboardUser" />
+            ) : (
+              <Navigate to="/dashboard" />
+            )
           )
         }
+        
       />
       
      

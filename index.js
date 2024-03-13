@@ -790,6 +790,41 @@ app.get("/analyst/projectName", async (req, res) => {
     .catch((err) => res.status(400).json("Error:" + err));
 });
 
+// analyst.js projectName call filtered by managerTask
+app.get("/analyst-manager/projectName", async (req, res) => {
+  const managerTask = req.query.managerTask; // Extract managerTask from query params
+
+  let filter = {}; // Initialize an empty filter object
+
+  // If managerTask is provided, include it in the filter
+  if (managerTask) {
+    filter.managerTask = managerTask;
+  }
+
+  Analyst.find(filter)
+    .distinct("projectName") // Fetch distinct project names
+    .then((projectNames) => res.json(projectNames)) // Send project names as response
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.get('/analyst-manager/team', async (req, res) => {
+  try {
+    // Extract managerTask from query parameters
+    const { managerTask } = req.query;
+
+    // Build the filter object based on the provided managerTask
+    const filter = {
+      managerTask: managerTask,
+    };
+
+    // Fetch team data from the database based on the filter
+    const teamData = await Analyst.find(filter).select('team');
+
+    res.json(teamData); // Send the team data as a JSON response
+  } catch (error) {
+    res.status(400).json({ error: error.message }); // Send an error response if there's an error
+  }
+});
 
 app.get("/analyst/counts", async (req, res) => {
   try {
@@ -1189,6 +1224,7 @@ app.get("/fetch/report/", async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
 app.get("/fetch/report/projectName", async (req, res) => {
   try {
     const { sDate, eDate, team, projectName } = req.query;
@@ -1240,15 +1276,27 @@ app.get("/fetch/report/user/", (req, res) => {
     .catch((err) => res.status(400).json("err" + err));
 });
 
-//Fetch Report by date
-app.get("/fetch/report/date/", (req, res) => {
-  const sDate = req.query.sDate;
-  const eDate = req.query.eDate;
+app.get("/fetch/report/date/", async (req, res) => {
+  try {
+    const { sDate, eDate, managerTask } = req.query;
 
-  Analyst.find({ createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) } })
-    .then((analyst) => res.json(analyst))
-    .catch((err) => res.status(400).json("err" + err));
+    // Build the filter object based on the provided query parameters
+    const filter = {
+      managerTask: managerTask,
+      createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+    };
+
+    console.log("Filter Object:", filter); // Log the filter object
+
+    // Fetch data from the database based on the filter
+    const reportData = await Analyst.find(filter);
+
+    res.json(reportData);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
+
 app.get("/fetch/user-data/", (req, res) => {
   const empId = req.params.empId;
   const sDate = req.query.sDate;
@@ -1929,7 +1977,456 @@ app.get("/fetch/att-data", (req, res) => {
     .then((attendance) => res.json(attendance))
     .catch((err) => res.status(400).json("err" + err));
 });
+
+app.get('/fetch/att-data/dashboard', async (req, res) => {
+  const { empId } = req.query;
+
+  try {
+    // Find the latest attendance record for the specified employee ID
+    const latestAttendance = await Attendance.findOne({ empId }, {}, { sort: { 'currentDate': -1 } });
+
+    if (!latestAttendance) {
+      return res.status(404).json({ message: 'Attendance data not found' });
+    }
+
+    res.status(200).json({ latestAttendance });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 //task.js route
+
+
+// Route to get project counts by empId with start date and end date filtering
+app.get('/project-counts/analyst', async (req, res) => {
+  const { empId, startDate, endDate } = req.query;
+
+  try {
+    let matchQuery = { empId };
+    
+    // If start date and end date are provided, add them to the match query
+    if (startDate && endDate) {
+      matchQuery.dateTask = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    }
+
+    // Find documents matching the empId and date range
+    const projectCounts = await Analyst.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: "$empId",
+          projects: {
+            $addToSet: {
+              projectName: "$projectName",
+              count: { $sum: 1 }
+            }
+          }
+        }
+      }
+    ]);
+
+    res.json(projectCounts);
+  } catch (error) {
+    console.error('Error fetching project counts:', error);
+    res.status(500).json({ error: 'Failed to fetch project counts' });
+  }
+});
+
+
+// Route to get task count by empId with date filtering
+app.get('/task-count/:empId', async (req, res) => {
+  const { empId } = req.params;
+  const { startDate, endDate } = req.query;
+
+  try {
+    const taskCount = await Analyst.aggregate([
+      { $match: { empId: empId, dateTask: { $gte: new Date(startDate), $lte: new Date(endDate) } } },
+      { $unwind: "$sessionOne" },
+      { $group: { _id: null, count: { $sum: 1 } } }
+    ]);
+
+    // If there are no tasks for the given empId, return 0
+    if (taskCount.length === 0) {
+      return res.json({ count: 0 });
+    }
+
+    // Return the count of tasks
+    res.json({ count: taskCount[0].count });
+  } catch (error) {
+    console.error('Error fetching task count:', error);
+    res.status(500).json({ error: 'Failed to fetch task count' });
+  }
+});
+
+// Route to get tasks by empId with date filtering
+app.get('/tasks/:empId', async (req, res) => {
+  const { empId } = req.params;
+  const { startDate, endDate } = req.query;
+
+  try {
+    // Find tasks matching the empId and date range
+    const tasks = await Analyst.find({ empId: empId, dateTask: { $gte: new Date(startDate), $lte: new Date(endDate) } }, { 'sessionOne.task': 1 });
+
+    if (!tasks) {
+      return res.status(404).json({ error: 'Tasks not found' });
+    }
+
+    res.json({ tasks: tasks.map(task => task.sessionOne) });
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    res.status(500).json({ error: 'Failed to fetch tasks' });
+  }
+});
+
+
+// Assuming you have already set up your Express application and imported necessary modules
+app.get('/sessionOneWeek/:empId', async (req, res) => {
+  const empId = req.params.empId;
+ 
+  // Calculate the start and end dates of the current week
+  const currentDate = moment();
+  const startOfWeek = currentDate.startOf('week').toDate();
+  const endOfWeek = currentDate.endOf('week').toDate();
+ 
+  try {
+    const result = await Analyst.aggregate([
+      {
+        $match: {
+          empId: empId,
+          dateTask: { $gte: startOfWeek, $lte: endOfWeek }
+        }
+      },
+      {
+        $unwind: "$sessionOne"
+      },
+      {
+        $group: {
+          _id: null,
+          totalHours: {
+            $sum: {
+              $add: [
+                {
+                  $toInt: {
+                    $substr: ["$sessionOne.sessionOne", 0, { $indexOfBytes: ["$sessionOne.sessionOne", ":"] }]
+                  }
+                },
+                {
+                  $divide: [
+                    {
+                      $toInt: {
+                        $substr: ["$sessionOne.sessionOne", { $add: [{ $indexOfBytes: ["$sessionOne.sessionOne", ":"] }, 1] }, 2]
+                      }
+                    },
+                    60
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]);
+ 
+    if (result.length > 0) {
+      const totalHours = result[0].totalHours;
+      const hours = Math.floor(totalHours);
+      const minutes = Math.round((totalHours - hours) * 60);
+      res.json({ totalHours: `${hours}:${minutes}` });
+    } else {
+      res.json({ totalHours: "0:00" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+app.get('/total-session-hours/:empId', async (req, res) => {
+  try {
+    const { empId } = req.params;
+    const { startDate, endDate } = req.query;
+ 
+    // Perform aggregation to group sessionOne by task
+    const result = await Analyst.aggregate([
+      {
+        $match: {
+          empId: empId,
+          dateTask: {
+            $gte: new Date(startDate),
+            $lte: new Date(endDate)
+          }
+        }
+      },
+      {
+        $unwind: "$sessionOne"
+      },
+      {
+        $group: {
+          _id: "$sessionOne.task", // Group by task
+          totalSessionOneHours: { $sum: { $toDouble: { $arrayElemAt: [{ $split: ["$sessionOne.sessionOne", ":"] }, 0] } } },
+          dates: { $addToSet: { $dateToString: { format: "%Y-%m-%d", date: "$dateTask" } } } // Collect dates for each task
+        }
+      }
+    ]);
+ 
+    // Transform the data for the Bar chart
+    const labels = Array.from(new Set(result.flatMap(entry => entry.dates))); // Unique dates for x-axis labels
+    const data = result.map(entry => ({
+      label: entry._id,
+      data: labels.map(date => entry.dates.includes(date) ? entry.totalSessionOneHours : 0) // Fill data with 0 for missing dates
+    }));
+ 
+    // Send the transformed data as a response
+    res.json({ labels, data });
+  } catch (error) {
+    console.error('Error fetching sessionOne by task:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+// app.get('/sessionOneData/:empId/:selectedMonth', async (req, res) => {
+//   const empId = req.params.empId;
+//   const selectedMonth = moment(req.params.selectedMonth, 'YYYY-MM');
+
+//   const startOfMonth = selectedMonth.startOf('month').toDate();
+//   const endOfMonth = selectedMonth.endOf('month').toDate();
+
+//   try {
+//     const result = await Analyst.aggregate([
+//       {
+//         $match: {
+//           empId: empId,
+//           dateTask: { $gte: startOfMonth, $lte: endOfMonth }
+//         }
+//       },
+//       {
+//         $unwind: "$sessionOne"
+//       },
+//       {
+//         $group: {
+//           _id: {
+//             week: { $week: "$dateTask" },
+//             day: { $dayOfMonth: "$dateTask" }
+//           },
+//           totalHours: {
+//             $sum: {
+//               $add: [
+//                 {
+//                   $toInt: { $substr: ["$sessionOne.sessionOne", 0, { $indexOfBytes: ["$sessionOne.sessionOne", ":"] }] }
+//                 },
+//                 {
+//                   $divide: [
+//                     {
+//                       $toInt: { $substr: ["$sessionOne.sessionOne", { $add: [{ $indexOfBytes: ["$sessionOne.sessionOne", ":"] }, 1] }, 2] }
+//                     },
+//                     60
+//                   ]
+//                 }
+//               ]
+//             }
+//           }
+//         }
+//       }
+//     ]);
+
+//     const weekWiseData = {};
+//     const currentDateWiseData = {};
+
+//     result.forEach(item => {
+//       const week = item._id.week;
+//       const day = item._id.day;
+//       const totalHours = item.totalHours;
+
+//       if (!weekWiseData[week]) {
+//         weekWiseData[week] = 0;
+//       }
+//       if (!currentDateWiseData[day]) {
+//         currentDateWiseData[day] = 0;
+//       }
+
+//       weekWiseData[week] += totalHours;
+//       currentDateWiseData[day] += totalHours;
+//     });
+
+//     res.json({ weekWiseSessionOne: weekWiseData, currentDateWiseSessionOne: currentDateWiseData });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
+
+// Endpoint to get total sessionOne hours for a specific month
+app.get('/sessionOneSum/:empId/:selectedMonth', async (req, res) => {
+  const empId = req.params.empId;
+  const selectedMonth = moment(req.params.selectedMonth, 'YYYY-MM');
+
+  const startOfMonth = selectedMonth.startOf('month').toDate();
+  const endOfMonth = selectedMonth.endOf('month').toDate();
+
+  try {
+    const result = await Analyst.aggregate([
+      {
+        $match: {
+          empId: empId,
+          dateTask: { $gte: startOfMonth, $lte: endOfMonth }
+        }
+      },
+      {
+        $unwind: "$sessionOne"
+      },
+      {
+        $group: {
+          _id: null,
+          totalHours: {
+            $sum: {
+              $add: [
+                {
+                  $toInt: { $substr: ["$sessionOne.sessionOne", 0, { $indexOfBytes: ["$sessionOne.sessionOne", ":"] }] }
+                },
+                {
+                  $divide: [
+                    { $toInt: { $substr: ["$sessionOne.sessionOne", { $add: [{ $indexOfBytes: ["$sessionOne.sessionOne", ":"] }, 1] }, 2] } },
+                    60
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    if (result.length > 0) {
+      const totalHours = result[0].totalHours;
+      const hours = Math.floor(totalHours);
+      const minutes = Math.round((totalHours - hours) * 60);
+      res.json({ totalHours: `${hours}:${minutes}` });
+    } else {
+      res.json({ totalHours: "0:00" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Endpoint to get week-wise sessionOne hours for a specific month
+app.get('/weeklySessionOne/:empId/:selectedMonth', async (req, res) => {
+  const empId = req.params.empId;
+  const selectedMonth = moment(req.params.selectedMonth, 'YYYY-MM');
+
+  const startOfMonth = selectedMonth.startOf('month').toDate();
+  const endOfMonth = selectedMonth.endOf('month').toDate();
+
+  try {
+    const result = await Analyst.aggregate([
+      {
+        $match: {
+          empId: empId,
+          dateTask: { $gte: startOfMonth, $lte: endOfMonth }
+        }
+      },
+      {
+        $unwind: "$sessionOne"
+      },
+      {
+        $group: {
+          _id: { $week: "$dateTask" },
+          totalHours: {
+            $sum: {
+              $add: [
+                {
+                  $toInt: { $substr: ["$sessionOne.sessionOne", 0, { $indexOfBytes: ["$sessionOne.sessionOne", ":"] }] }
+                },
+                {
+                  $divide: [
+                    { $toInt: { $substr: ["$sessionOne.sessionOne", { $add: [{ $indexOfBytes: ["$sessionOne.sessionOne", ":"] }, 1] }, 2] } },
+                    60
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    const weeklySessionOne = {};
+    result.forEach(weekData => {
+      weeklySessionOne[weekData._id] = weekData.totalHours;
+    });
+
+    res.json(weeklySessionOne);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Endpoint to get current date sessionOne hours
+app.get('/sessionOneDate/:empId/:selectedDate', async (req, res) => {
+  const empId = req.params.empId;
+  const selectedDate = moment(req.params.selectedDate, 'YYYY-MM-DD');
+
+  const startOfDay = selectedDate.startOf('day').toDate();
+  const endOfDay = selectedDate.endOf('day').toDate();
+
+  try {
+    const result = await Analyst.aggregate([
+      {
+        $match: {
+          empId: empId,
+          dateTask: { $gte: startOfDay, $lte: endOfDay }
+        }
+      },
+      {
+        $unwind: "$sessionOne"
+      },
+      {
+        $group: {
+          _id: null,
+          totalHours: { 
+            $sum: { 
+              $add: [
+                { 
+                  $toInt: { 
+                    $substr: ["$sessionOne.sessionOne", 0, { $indexOfBytes: ["$sessionOne.sessionOne", ":"] }] 
+                  } 
+                },
+                {
+                  $divide: [
+                    { 
+                      $toInt: { 
+                        $substr: ["$sessionOne.sessionOne", { $add: [{ $indexOfBytes: ["$sessionOne.sessionOne", ":"] }, 1] }, 2] 
+                      } 
+                    },
+                    60
+                  ]
+                }
+              ]
+            } 
+          }
+        }
+      }
+    ]);
+
+    if (result.length > 0) {
+      const totalHours = result[0].totalHours;
+      const hours = Math.floor(totalHours);
+      const minutes = Math.round((totalHours - hours) * 60);
+      res.json({ totalHours: `${hours}:${minutes}` });
+    } else {
+      res.json({ totalHours: "0:00" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
 
 //add task
 app.get("/fetch/task-data", (req, res) => {

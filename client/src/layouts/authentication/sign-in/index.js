@@ -56,9 +56,11 @@ const Basic = function (props) {
   useEffect(() => {
     if (props.auth.isAuthenticated) {
       const { role } = props.auth.user;
-
+      
       if (role === "superadmin") {
         navigate("/allreport");
+      } else if (role === "analyst") {
+        navigate("/dashboardUser");
       } else {
         navigate("/dashboard");
       }

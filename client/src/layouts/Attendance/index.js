@@ -249,7 +249,7 @@ function Attendance() {
       <MDTypography mb={3}  variant="caption" color="info" fontWeight="regular">
         <h1>ATTENDANCE</h1>
       </MDTypography>
-      <MDBox
+      {/* <MDBox
         display="flex"
         width="850px"
         flexDirection="column"
@@ -277,7 +277,7 @@ function Attendance() {
             </MDTypography>
           </MDBox>
         </Grid>
-      </MDBox>
+      </MDBox> */}
     </MDBox>
   </Grid>
 </Grid>
