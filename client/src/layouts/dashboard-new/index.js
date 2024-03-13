@@ -103,8 +103,6 @@ const YourComponent = () => {
   const [quote, setQuote] = useState(null);
   const [error, setError] = useState(null);
 
- 
-
   const quotes = () => {
     setIsLoading(true);
     axios
@@ -162,8 +160,8 @@ const YourComponent = () => {
         setTaskCount(taskCountResponse.data.count);
         setTasks(tasksResponse.data.tasks);
 
-        console.log("Task Count:", taskCountResponse.data.count);
-        console.log("Tasks:", tasksResponse.data.tasks);
+        // console.log("Task Count:", taskCountResponse.data.count);
+        // console.log("Tasks:", tasksResponse.data.tasks);
       } catch (error) {
         console.error("Error fetching task data:", error);
       }
@@ -219,7 +217,7 @@ const YourComponent = () => {
       });
 
       if (response.ok) {
-        console.log("Check-in time saved successfully");
+        // console.log("Check-in time saved successfully");
         await fetchLatestAttendance();
         // Update mode to "checkout" after successful check-in
         setMode("checkout");
@@ -249,7 +247,7 @@ const YourComponent = () => {
       });
 
       if (response.ok) {
-        console.log("Check-out time saved successfully");
+        // console.log("Check-out time saved successfully");
         await fetchLatestAttendance();
       } else {
         console.error("Failed to save check-out time");
@@ -342,7 +340,7 @@ const YourComponent = () => {
           );
           setCurrentDateSessionOne(response.data.totalHours);
         }
-        console.log("Total Session One:", totalSessionOne);
+        // console.log("Total Session One:", totalSessionOne);
       } catch (error) {
         console.error("Error fetching sessionOne data:", error);
       }
@@ -401,7 +399,7 @@ const YourComponent = () => {
 
     // Calculate total available hours based on report type
     if (reportType === "month") {
-      totalAvailableHoursNumeric = 176 * 60; // Total available minutes for the month
+      totalAvailableHoursNumeric = 186 * 60; // Total available minutes for the month
     } else if (reportType === "day") {
       totalAvailableHoursNumeric = 12 * 60; // Total available minutes for the day
     }
@@ -463,13 +461,13 @@ const YourComponent = () => {
       const response = await axios.get(
         `${apiUrl}/sessionOneDate/${empId}/${date}`
       );
-      console.log("API Response:", response.data); // Log the API response to inspect it
+      // console.log("API Response:", response.data); // Log the API response to inspect it
 
       // Assuming response.data.totalHours is in the format "hours:minutes"
       const [hours, minutes] = response.data.totalHours.split(":");
       const totalHoursNumeric = parseFloat(hours) + parseFloat(minutes) / 60;
 
-      const totalAvailableHours = 8;
+const totalAvailableHours = 9.30;
       const sessionOneHours = totalHoursNumeric;
       const sessionOnePercentage =
         totalAvailableHours !== 0
@@ -496,12 +494,12 @@ const YourComponent = () => {
     const fetchCurrentWeekData = async () => {
       try {
         const response = await axios.get(`${apiUrl}/sessionOneWeek/${empId}`);
-        console.log("API Response:", response.data); // Log the API response to inspect it
+        // console.log("API Response:", response.data); // Log the API response to inspect it
 
         const [hours, minutes] = response.data.totalHours.split(":");
         const totalHoursNumeric = parseFloat(hours) + parseFloat(minutes) / 60;
 
-        const totalAvailableHours = 40; // Assuming 40 hours in a typical workweek
+        const totalAvailableHours = 46.50; // Assuming 40 hours in a typical workweek
         const sessionOneHours = totalHoursNumeric;
         const sessionOnePercentage =
           totalAvailableHours !== 0
@@ -593,9 +591,14 @@ const YourComponent = () => {
                   color="info"
                   fontWeight="regular"
                 >
-                  <h1> Attendance</h1>
+                  <h2> Attendance</h2>
                 </MDTypography>
-                <Box display="flex" justifyContent="center" alignItems="center">
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  mb={2}
+                >
                   {/* Circular progress bar with total time */}
                   <CircularProgress
                     variant="determinate"
@@ -615,13 +618,10 @@ const YourComponent = () => {
                     <Typography
                       variant="h6"
                       component="div"
-                      color="textSecondary"
+                      color="dark"
+                      style={{ fontSize: "14px", textAlign: "center" }}
                     >
-                      <Typography
-                        variant="body1"
-                        component="div"
-                        align="center"
-                      >
+                      <Typography variant="h5" component="div" align="center">
                         {/* {moment.utc(elapsedTime).format("HH:mm:ss")} */}
                         {latestAttendance ? `${latestAttendance.total}` : "."}
                       </Typography>
@@ -632,7 +632,8 @@ const YourComponent = () => {
 
                 <Grid>
                   <Button
-                    variant="contained"
+                    variant="h6"
+                    align="center"
                     style={{
                       backgroundColor: mode === "checkin" ? "green" : "red",
                       borderRadius: 10,
@@ -650,7 +651,7 @@ const YourComponent = () => {
                       isCheckinButtonDisabled || isCheckoutButtonDisabled
                     }
                   >
-                    {mode === "checkin" ? "Punch-In" : "Punch-Out"}
+                    {mode === "checkin" ? "Punch In" : "Punch Out"}
                   </Button>
                 </Grid>
               </CardContent>
@@ -782,7 +783,7 @@ const YourComponent = () => {
 
               {/* Right side */}
               <Grid item xs={6}>
-                <MDBox pt={1} px={2}>
+                <MDBox pt={2} px={2}>
                   <MDBox
                     display="flex"
                     flexDirection="row"
@@ -790,11 +791,11 @@ const YourComponent = () => {
                     justifyContent="flex-end"
                   >
                     <MDBox color="text" mr={0.5} lineHeight={1}>
-                      <Icon color="info" fontSize="large">
+                      <Icon color="info" fontSize="45px">
                         schedule
                       </Icon>
                     </MDBox>
-                    <MDTypography color="warning" fontWeight="regular">
+                    <MDTypography color="warning" fontWeight="regular" style={{ fontSize: "18px" }}>
                       {today.format("LT")}
                     </MDTypography>
                   </MDBox>
@@ -819,7 +820,7 @@ const YourComponent = () => {
               <Grid container justifyContent="center">
                 <Grid item xs={12}>
                   <MDBox
-                    mt={1}
+                    mt={3}
                     display="flex"
                     flexDirection="column"
                     textAlign="center"
@@ -836,7 +837,7 @@ const YourComponent = () => {
                         >
                           {quote.content}
                         </MDTypography>
-                        <MDTypography variant="h6" color="textSecondary">
+                        <MDTypography variant="h6" color="dark">
                           - {quote.author}
                         </MDTypography>
                       </div>
@@ -890,7 +891,7 @@ const YourComponent = () => {
                     Previous Day
                   </Typography>
                   {/* Previous Day's Session One */}
-                  <Grid container xs={12} style={{ marginTop: "5px" }}>
+                  <Grid container style={{ marginTop: "5px" }}>
                     <Grid item xs={7} style={{ paddingRight: "10px" }}>
                       {/* Display the skill bar with calculated percentage */}
                       <SkillBar
@@ -929,7 +930,7 @@ const YourComponent = () => {
                   >
                     This Week
                   </Typography>
-                  <Grid container xs={12}>
+                  <Grid container>
                     <Grid item xs={7} marginTop={0}>
                       {/* Display the skill bar with calculated percentage */}
                       <SkillBar
@@ -970,7 +971,7 @@ const YourComponent = () => {
                     This Month
                   </Typography>
                   {/* Monthly Session One */}
-                  <Grid container xs={12}>
+                <Grid container spacing={2}>
                     <Grid item xs={7} marginTop={0}>
                       {/* Display the skill bar with calculated percentage */}
                       <SkillBar percentage={calculatePercentage()} />
@@ -984,7 +985,7 @@ const YourComponent = () => {
                         style={{ fontSize: "13px", fontWeight: "bolder" }}
                         variant="body1"
                       >
-                        {totalSessionOne} hrs / 176 hrs
+                        {totalSessionOne} hrs / 186 hrs
                       </Typography>
                     </Grid>
                   </Grid>
@@ -997,10 +998,10 @@ const YourComponent = () => {
       <Grid container spacing={2} marginTop={1}>
         {/* Bar Chart */}
         <Grid item xs={12}>
-      <Card xs={{ height: '100px' }}>
-            <CardContent>
+          <Card xs={{ height: "100px" }}>
+            <CardContent >
               <MDTypography
-                mb={3}
+                mb={5}
                 variant="caption"
                 color="info"
                 fontWeight="regular"
@@ -1016,7 +1017,6 @@ const YourComponent = () => {
               >
                 {/* Project Count */}
                 <div style={{ marginTop: "25px" }}>
-                  
                   <Typography variant="h6" gutterBottom>
                     Project Count ({totalCount})  Task Count ({taskCount})
                   </Typography>
@@ -1078,77 +1078,9 @@ const YourComponent = () => {
                   alignItems: "center",
                 }}
               ></div>
-
-              {/* {chartData ? (
-                <Bar
-                  data={{
-                    labels: chartData.labels.map((date) => formatDate(date)),
-                    datasets: chartData.data.map((dataset) => ({
-                      label: dataset.label,
-                      data: dataset.data,
-                      backgroundColor: "rgba(54, 162, 235, 0.6)",
-                      borderColor: "rgba(54, 162, 235, 1)",
-                      borderWidth: 1,
-                      hoverBackgroundColor: "rgba(54, 162, 235, 0.8)",
-                      hoverBorderColor: "rgba(54, 162, 235, 1)",
-                    })),
-                  }}
-                  options={{
-                    scales: {
-                      x: {
-                        stacked: true,
-                      },
-                      y: {
-                        stacked: true,
-                        beginAtZero: true,
-                      },
-                    },
-                    barThickness: 30,
-                    // height: 100 ,
-                  }}
-                />
-              ) : (
-                <p>Loading...</p>
-              )} */}
-
-{/* <div style={{ height: "333px", overflowY: "auto" }}>
-  {chartData ? (
-    <Bar
-      data={{
-        labels: chartData.labels.map((date) => formatDate(date)),
-        datasets: chartData.data.map((dataset) => ({
-          label: dataset.label,
-          data: dataset.data,
-          backgroundColor: "rgba(54, 162, 235, 0.6)",
-          borderColor: "rgba(54, 162, 235, 1)",
-          borderWidth: 1,
-          hoverBackgroundColor: "rgba(54, 162, 235, 0.8)",
-          hoverBorderColor: "rgba(54, 162, 235, 1)",
-        })),
-      }}
-      options={{
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: { stacked: true },
-          y: { stacked: true },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: "top",
-          },
-        },
-        barThickness: 30,
-      }}
-    />
-  ) : (
-    <p>Loading...</p>
-  )}
-</div> */}
-<CardContent>
-              <MemoizedBarChart chartData={chartData} />
-            </CardContent>
+              <CardContent>
+                <MemoizedBarChart chartData={chartData} />
+              </CardContent>
             </CardContent>
           </Card>
         </Grid>
