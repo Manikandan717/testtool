@@ -1183,7 +1183,7 @@ function Report() {
                   <option value="" disabled>
                     Hours
                   </option>
-                  {[...Array(13).keys()].slice(1).map((hour) => (
+                  {[...Array(13).keys()].slice(0, 13).map((hour) => (
                     <option key={hour} value={hour}>
                       {hour}
                     </option>

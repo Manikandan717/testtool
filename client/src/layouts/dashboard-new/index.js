@@ -682,7 +682,7 @@ const totalAvailableHours = 9.30;
                     >
                       {latestAttendance
                         ? `${latestAttendance.checkInTime}`
-                        : "No attendance data found."}
+                        : "No data found."}
                     </Typography>
                   </Box>
                 </Grid>
@@ -705,7 +705,7 @@ const totalAvailableHours = 9.30;
                     >
                       {latestAttendance
                         ? `${latestAttendance.checkOutTime}`
-                        : "No attendance data found."}
+                        : "No data found."}
                     </Typography>
                   </Box>
                 </Grid>
@@ -825,7 +825,7 @@ const totalAvailableHours = 9.30;
                     flexDirection="column"
                     textAlign="center"
                   >
-                    {isLoading && <p></p>}
+                    {isLoading && <p>loading...</p>}
                     {quote && (
                       <div
                         style={{ overflow: "hidden", textOverflow: "ellipsis" }}
