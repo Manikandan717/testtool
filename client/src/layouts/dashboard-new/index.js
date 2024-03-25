@@ -33,7 +33,7 @@ import cartoon from "assets/images/cartoon.png";
 import SkillBar from "./skillbar"; // Import the SkillBar component
 import CircularProgress from "@mui/material/CircularProgress";
 import FilterListIcon from "@material-ui/icons/FilterList";
-
+ 
 const MemoizedBarChart = memo(({ chartData }) => {
   const formatDate = (dateString) => {
     return moment(dateString).format("DD MMM"); // Format date with day and month
@@ -76,7 +76,7 @@ const MemoizedBarChart = memo(({ chartData }) => {
     </div>
   );
 });
-
+ 
 const YourComponent = () => {
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   const name = useSelector((state) => state.auth.user.name);
@@ -102,7 +102,7 @@ const YourComponent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [quote, setQuote] = useState(null);
   const [error, setError] = useState(null);
-
+ 
   const quotes = () => {
     setIsLoading(true);
     axios
@@ -117,11 +117,11 @@ const YourComponent = () => {
         setIsLoading(false);
       });
   };
-
+ 
   useEffect(() => {
     quotes();
   }, []);
-
+ 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -129,22 +129,22 @@ const YourComponent = () => {
           fetch(`${apiUrl}/att/mode?empId=${empId}`),
           fetch(`${apiUrl}/fetch/att-data/dashboard?empId=${empId}`),
         ]);
-
+ 
         const [modeData, attendanceData] = await Promise.all([
           modeResponse.json(),
           attendanceResponse.json(),
         ]);
-
+ 
         setMode(modeData.mode);
         setLatestAttendance(attendanceData.latestAttendance);
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
     };
-
+ 
     fetchInitialData();
   }, [empId]);
-
+ 
   useEffect(() => {
     const fetchTaskData = async () => {
       try {
@@ -156,20 +156,20 @@ const YourComponent = () => {
             `${apiUrl}/tasks/${empId}?startDate=${startDate}&endDate=${endDate}`
           ),
         ]);
-
+ 
         setTaskCount(taskCountResponse.data.count);
         setTasks(tasksResponse.data.tasks);
-
+ 
         // console.log("Task Count:", taskCountResponse.data.count);
         // console.log("Tasks:", tasksResponse.data.tasks);
       } catch (error) {
         console.error("Error fetching task data:", error);
       }
     };
-
+ 
     fetchTaskData();
   }, [empId, startDate, endDate]);
-
+ 
   useEffect(() => {
     // Fetch project counts from the backend API with start date and end date
     const fetchProjectCounts = async () => {
@@ -186,10 +186,10 @@ const YourComponent = () => {
         console.error("Error fetching project counts:", error);
       }
     };
-
+ 
     fetchProjectCounts();
   }, [apiUrl, empId, startDate, endDate]);
-
+ 
   useEffect(() => {
     // Calculate total count when projectCounts change
     let count = 0;
@@ -200,7 +200,7 @@ const YourComponent = () => {
     });
     setTotalCount(count);
   }, [projectCounts]);
-
+ 
   const handleCheckin = async () => {
     try {
       setCheckinButtonDisabled(true);
@@ -215,7 +215,7 @@ const YourComponent = () => {
           checkInTime: timeNow,
         }),
       });
-
+ 
       if (response.ok) {
         // console.log("Check-in time saved successfully");
         await fetchLatestAttendance();
@@ -230,7 +230,7 @@ const YourComponent = () => {
       setCheckinButtonDisabled(false);
     }
   };
-
+ 
   const handleCheckout = async () => {
     try {
       setCheckinButtonDisabled(true);
@@ -245,7 +245,7 @@ const YourComponent = () => {
           checkOutTime: checkTime,
         }),
       });
-
+ 
       if (response.ok) {
         // console.log("Check-out time saved successfully");
         await fetchLatestAttendance();
@@ -258,7 +258,7 @@ const YourComponent = () => {
       setCheckinButtonDisabled(false);
     }
   };
-
+ 
   const handleToggleButtonClick = async () => {
     try {
       if (mode === "checkin") {
@@ -273,33 +273,33 @@ const YourComponent = () => {
       console.error("Error:", error);
     }
   };
-
+ 
   const fetchLatestAttendance = async () => {
     try {
       const response = await fetch(
         `${apiUrl}/fetch/att-data/dashboard?empId=${empId}`
       );
-
+ 
       if (!response.ok) {
         throw new Error(`Error fetching data: ${response.statusText}`);
       }
-
+ 
       const data = await response.json();
       setLatestAttendance(data.latestAttendance);
     } catch (error) {
       console.error("Error fetching latest attendance:", error);
     }
   };
-
+ 
   const date = new Date();
   const hours = date.getHours();
   const today = moment();
-
+ 
   let greet;
   const styles = {
     fontSize: 35,
   };
-
+ 
   if (hours < 12) {
     greet = "morning";
     styles.color = "#D90000";
@@ -313,18 +313,18 @@ const YourComponent = () => {
     greet = "night";
     styles.color = "#04756F";
   }
-
+ 
   useEffect(() => {
     // Set start date to yesterday's date
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     setStartDate(yesterday.toISOString().slice(0, 10));
-
+ 
     // Set end date to today
     const today = new Date();
     setEndDate(yesterday.toISOString().slice(0, 10));
   }, []);
-
+ 
   useEffect(() => {
     const fetchSessionOneData = async () => {
       try {
@@ -345,68 +345,68 @@ const YourComponent = () => {
         console.error("Error fetching sessionOne data:", error);
       }
     };
-
+ 
     fetchSessionOneData();
   }, [empId, selectedMonth, selectedDate, reportType]);
-
+ 
   useEffect(() => {
     // Set the default selected month to the current month (YYYY-MM format)
     setSelectedMonth(moment().format("YYYY-MM"));
-
+ 
     // Set the default selected date to yesterday's date (YYYY-MM-DD format)
     const yesterday = moment().subtract(1, "days").format("YYYY-MM-DD");
     setSelectedDate(yesterday);
   }, []);
-
+ 
   const totalAvailableHoursMap = {
     day: 12, // Assuming 12 hours in a day
     week: 12 * 7, // Assuming 12 hours in a day multiplied by 7 days in a week
     month: 12 * moment().daysInMonth(), // Assuming 12 hours in a day multiplied by the number of days in the current month
   };
-
+ 
   // Calculate total available hours based on report type
   useEffect(() => {
     setTotalAvailableHours(totalAvailableHoursMap[reportType]);
   }, [reportType]);
-
+ 
   const convertToNumeric = (timeString) => {
     // Validate if timeString is a string
     if (typeof timeString !== "string") {
       console.error("Invalid timeString. Expected a string.");
       return NaN;
     }
-
+ 
     // Split the timeString into hours and minutes
     const [hoursStr, minutesStr] = timeString.split(":");
-
+ 
     // Convert hours and minutes to numbers
     const hours = parseInt(hoursStr, 10);
     const minutes = parseInt(minutesStr, 10);
-
+ 
     // Check if hours and minutes are valid numbers
     if (isNaN(hours) || isNaN(minutes)) {
       console.error("Unable to parse hours or minutes from timeString.");
       return NaN;
     }
-
+ 
     // Calculate the total minutes
     const totalMinutes = hours * 60 + minutes;
-
+ 
     return totalMinutes;
   };
   const calculatePercentage = () => {
     let totalAvailableHoursNumeric = 0;
-
+ 
     // Calculate total available hours based on report type
     if (reportType === "month") {
       totalAvailableHoursNumeric = 186 * 60; // Total available minutes for the month
     } else if (reportType === "day") {
       totalAvailableHoursNumeric = 12 * 60; // Total available minutes for the day
     }
-
+ 
     // Convert totalSessionOne to numeric format (in minutes)
     const totalSessionOneNumeric = convertToNumeric(totalSessionOne);
-
+ 
     // Validate numeric values
     if (!isNaN(totalSessionOneNumeric) && !isNaN(totalAvailableHoursNumeric)) {
       // Calculate percentage based on totalSessionOne and totalAvailableHours
@@ -418,12 +418,12 @@ const YourComponent = () => {
       return 0; // Return default value or handle error as needed
     }
   };
-
+ 
   const [previousDateSessionOne, setPreviousDateSessionOne] = useState({
     sessionOneHours: 0,
     totalAvailableHours: 0,
   });
-
+ 
   useEffect(() => {
     const fetchPreviousDayData = async () => {
       try {
@@ -431,7 +431,7 @@ const YourComponent = () => {
         const today = new Date();
         const previousDay = new Date(today);
         previousDay.setDate(today.getDate() - 1);
-
+ 
         // Format the previous day's date as 'YYYY-MM-DD'
         const formattedPreviousDay = `${previousDay.getFullYear()}-${(
           previousDay.getMonth() + 1
@@ -441,17 +441,17 @@ const YourComponent = () => {
           .getDate()
           .toString()
           .padStart(2, "0")}`;
-
+ 
         // Fetch data for the previous day
         const previousDayData = await fetchDataForDate(formattedPreviousDay);
-
+ 
         // Update state with the data for the previous day
         setPreviousDateSessionOne(previousDayData);
       } catch (error) {
         console.error("Error fetching data for the previous day:", error);
       }
     };
-
+ 
     fetchPreviousDayData();
   }, []);
   // Function to fetch data for a specific date
@@ -462,18 +462,18 @@ const YourComponent = () => {
         `${apiUrl}/sessionOneDate/${empId}/${date}`
       );
       // console.log("API Response:", response.data); // Log the API response to inspect it
-
+ 
       // Assuming response.data.totalHours is in the format "hours:minutes"
       const [hours, minutes] = response.data.totalHours.split(":");
       const totalHoursNumeric = parseFloat(hours) + parseFloat(minutes) / 60;
-
+ 
 const totalAvailableHours = 9.30;
       const sessionOneHours = totalHoursNumeric;
       const sessionOnePercentage =
         totalAvailableHours !== 0
           ? (sessionOneHours / totalAvailableHours) * 100
           : 0;
-
+ 
       return {
         sessionOneHours,
         totalAvailableHours,
@@ -484,28 +484,28 @@ const totalAvailableHours = 9.30;
       throw error; // Rethrow the error to handle it upstream if necessary
     }
   };
-
+ 
   const [currentWeekSessionOne, setCurrentWeekSessionOne] = useState({
     sessionOneHours: 0,
     totalAvailableHours: 0,
   });
-
+ 
   useEffect(() => {
     const fetchCurrentWeekData = async () => {
       try {
         const response = await axios.get(`${apiUrl}/sessionOneWeek/${empId}`);
         // console.log("API Response:", response.data); // Log the API response to inspect it
-
+ 
         const [hours, minutes] = response.data.totalHours.split(":");
         const totalHoursNumeric = parseFloat(hours) + parseFloat(minutes) / 60;
-
+ 
         const totalAvailableHours = 46.50; // Assuming 40 hours in a typical workweek
         const sessionOneHours = totalHoursNumeric;
         const sessionOnePercentage =
           totalAvailableHours !== 0
             ? (sessionOneHours / totalAvailableHours) * 100
             : 0;
-
+ 
         setCurrentWeekSessionOne({
           sessionOneHours,
           totalAvailableHours,
@@ -515,14 +515,14 @@ const totalAvailableHours = 9.30;
         console.error("Error fetching data:", error);
       }
     };
-
+ 
     fetchCurrentWeekData();
   }, [apiUrl, empId]);
-
+ 
   const handleFilterToggle = () => {
     setFilterOpen(!isFilterOpen);
   };
-
+ 
   const [chartData, setChartData] = useState(null);
   useEffect(() => {
     const fetchData = async () => {
@@ -541,18 +541,18 @@ const totalAvailableHours = 9.30;
         console.error("Error fetching data:", error);
       }
     };
-
+ 
     fetchData();
   }, [empId, startDate, endDate]);
-
+ 
   const formatDate = (dateString) => {
     return moment(dateString).format("DD MMM"); // Format date with day and month
   };
-
+ 
   return (
     <DashboardLayout>
       <DashboardNavbar />
-
+ 
       <Grid container spacing={2}>
         <Grid item xs={12} md={3.5}>
           <Grid
@@ -606,7 +606,7 @@ const totalAvailableHours = 9.30;
                     thickness={2}
                     size={170}
                   />
-
+ 
                   <Box
                     position="absolute"
                     display="flex"
@@ -622,14 +622,13 @@ const totalAvailableHours = 9.30;
                       style={{ fontSize: "14px", textAlign: "center" }}
                     >
                       <Typography variant="h5" component="div" align="center">
-                        {/* {moment.utc(elapsedTime).format("HH:mm:ss")} */}
-                        {latestAttendance ? `${latestAttendance.total}` : "."}
-                      </Typography>
+  {latestAttendance ? (  latestAttendance.total !== undefined ? (  `${latestAttendance.total}` ) : ( "Counting..." ) ) : ( "No data"  )}
+</Typography>
                       Working Hours
                     </Typography>
                   </Box>
                 </Box>
-
+ 
                 <Grid>
                   <Button
                     variant="h6"
@@ -655,7 +654,7 @@ const totalAvailableHours = 9.30;
                   </Button>
                 </Grid>
               </CardContent>
-
+ 
               <Grid
                 container
                 spacing={1}
@@ -682,7 +681,7 @@ const totalAvailableHours = 9.30;
                     >
                       {latestAttendance
                         ? `${latestAttendance.checkInTime}`
-                        : "No data found."}
+                        : "No data"}
                     </Typography>
                   </Box>
                 </Grid>
@@ -699,14 +698,13 @@ const totalAvailableHours = 9.30;
                       Punch out
                     </Typography>
                     <Typography
-                      variant="subtitle1"
-                      color="text.secondary"
-                      style={{ fontSize: "16px", fontWeight: "bold" }}
-                    >
-                      {latestAttendance
-                        ? `${latestAttendance.checkOutTime}`
-                        : "No data found."}
-                    </Typography>
+  variant="subtitle1"
+  color="text.secondary"
+  style={{ fontSize: "16px", fontWeight: "bold" }}
+>
+  {latestAttendance ? ( latestAttendance.checkOutTime !== undefined ? (`${latestAttendance.checkOutTime}` ) : ( "Counting..." ) ) : (  "No data" )}
+</Typography>
+
                   </Box>
                 </Grid>
               </Grid>
@@ -780,7 +778,7 @@ const totalAvailableHours = 9.30;
                   </MDBox>
                 </MDBox>
               </Grid>
-
+ 
               {/* Right side */}
               <Grid item xs={6}>
                 <MDBox pt={2} px={2}>
@@ -816,7 +814,7 @@ const totalAvailableHours = 9.30;
                   </MDBox>
                 </MDBox>
               </Grid>
-
+ 
               <Grid container justifyContent="center">
                 <Grid item xs={12}>
                   <MDBox
@@ -825,7 +823,7 @@ const totalAvailableHours = 9.30;
                     flexDirection="column"
                     textAlign="center"
                   >
-                    {isLoading && <p>loading...</p>}
+                    {isLoading && <p></p>}
                     {quote && (
                       <div
                         style={{ overflow: "hidden", textOverflow: "ellipsis" }}
@@ -848,7 +846,7 @@ const totalAvailableHours = 9.30;
             </Grid>
           </Card>
         </Grid>
-
+ 
         <Grid item xs={12} md={3.5}>
           <Grid item xs={12}>
             <Card
@@ -871,7 +869,7 @@ const totalAvailableHours = 9.30;
                     <h2> Statistics</h2>
                   </MDTypography>
                 </Grid>
-
+ 
                 {/* Heading for Previous Day's Session One */}
                 <div
                   style={{
@@ -1075,6 +1073,7 @@ const totalAvailableHours = 9.30;
                 style={{
                   display: "flex",
                   justifyContent: "end",
+                  
                   alignItems: "center",
                 }}
               ></div>
@@ -1088,5 +1087,5 @@ const totalAvailableHours = 9.30;
     </DashboardLayout>
   );
 };
-
+ 
 export default YourComponent;
