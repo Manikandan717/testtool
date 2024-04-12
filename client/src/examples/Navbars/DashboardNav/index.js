@@ -27,7 +27,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import Typography from "@mui/material/Typography";
 // import MDButton from "components/MDButton";
 import MDInput from "components/MDInput";
-import Attendance from "layouts/Attendance";
 import MDAvatar from "components/MDAvatar";
 // Material Dashboard 2 React example components
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -56,20 +55,21 @@ import MDButton from "components/MDButton";
 import { logoutUser } from "actions/authAction";
 import { connect, useSelector } from "react-redux";
 
-function DashboardNavbar(props) {
+function DashboardNavbar(props, { absolute, light, isMini }) {
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
-  const { absolute, light, isMini, notificationCount, setNotificationCount } = props;
-  const teamLeadName = useSelector((state) => state.auth.user.name);
-  const [report, setReport] = useState([]);
+  const [navbarType, setNavbarType] = useState();
+  const [openRejectPopup, setOpenRejectPopup] = useState(false);
+  const [rejectionReasons, setRejectionReasons] = useState([]);
+  const [rejectionDescription, setRejectionDescription] = useState('');
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [navbarType, setNavbarType] = useState();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const teamLeadName = useSelector((state) => state.auth.user.name);
   useEffect(() => {
     allReport();
   }, []);
-  
   const allReport = () => {
     setLoading(true);
     const teamLead = teamLeadName.trim();
@@ -84,6 +84,7 @@ function DashboardNavbar(props) {
       .finally(() => setLoading(false));
   };
 
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -101,8 +102,93 @@ function DashboardNavbar(props) {
   };
 
 
+  const handleApprove = (taskId) => {
+    axios.put(`${apiUrl}/tasks/${taskId}/approve`)
+      .then((response) => {
+        console.log('Task approved successfully:', response.data);
+        if (response.data.approvalStatus !== 'pending') {
+          setNotificationCount((prevCount) => prevCount - 1); // Decrease count only if status changed from pending
+          setSnackbarMessage('Task approved successfully');
+          setSnackbarOpen(true);
+        }
+        allReport(); // Refresh report data
+      })
+      .catch((error) => {
+        console.error('Error approving task:', error);
+      });
+  };
+
+  const handleReject = (taskId) => {
+    // Set the selected task ID to state
+    setSelectedTaskId(taskId);
+    // Open the reject popup/modal
+    setOpenRejectPopup(true);
+  };
+  const cancelClose = () => {
+    // Open the reject popup/modal
+    setOpenRejectPopup(false);
+  };
+  // Function to submit rejection with reason and description
+  const submitRejection = () => {
+    axios.put(`${apiUrl}/tasks/${selectedTaskId}/reject`, {
+      rejectionReason,
+      rejectionDescription
+    })
+    .then((response) => {
+      console.log('Task rejected successfully:', response.data);
+      // Handle success or close popup
+      setOpenRejectPopup(false);
+      // Refresh report data
+      allReport();
+      setOpenRejectPopup(false);
+    })
+    .catch((error) => {
+      console.error('Error rejecting task:', error);
+      // Handle error or show error message
+    });
+  };
+
+  const handleOpenRejectPopup = (taskId) => {
+    setSelectedTaskId(taskId);
+    setOpenRejectPopup(true);
+  };
+
+  const handleCloseRejectPopup = () => {
+    setOpenRejectPopup(false);
+  };
+  const openDialog = (userData) => {
+    setSelectedUserData(userData);
+    setDialogOpen(true);
+  };
+
+  // Function to handle closing the dialog
+  const closeDialog = () => {
+    setSelectedUserData(null);
+    setDialogOpen(false);
+  };
   
-  const params = { row: { _id: 'task_id', approvalStatus: 'pending' } };
+  const [popperOpen, setPopperOpen] = useState(false);
+
+  const handlePopperToggle = () => {
+    setPopperOpen((prev) => !prev);
+  };
+
+  const handlePopperClose = () => {
+    setPopperOpen(false);
+  };
+  const handleReasonChange = (event) => {
+    const { value } = event.target;
+    if (value.includes('Other')) {
+      setOpenRejectPopup(false);
+      setRejectionReasons(value.filter(reason => reason !== 'Other'));
+      setRejectionDescription(value.join(', '));
+    } else {
+      setRejectionReasons(value);
+      setRejectionDescription(value.join(', '));
+    }
+  };
+  
+    const params = { row: { _id: 'task_id', approvalStatus: 'pending' } };
   const [controller, dispatch] = useMaterialUIController();
   // eslint-disable-next-line no-unused-vars
   const { miniSidenav, transparentNavbar, fixedNavbar, darkMode } = controller;
@@ -200,7 +286,7 @@ function DashboardNavbar(props) {
                       {/* Notification icon with badge */}
                       <Link to="/teamLeadReport">
       <IconButton aria-label="notifications" style={{ marginRight: '10px' }} onClick={handleClick}>
-        <Badge badgeContent={notificationCount} color="primary" >
+        <Badge badgeContent={notificationCount} color="primary">
           <NotificationsIcon />
         </Badge>
       </IconButton>
@@ -221,20 +307,13 @@ function DashboardNavbar(props) {
         PaperProps={{
           style: {
             backgroundColor: 'white',
-            maxHeight: '50vh', // Set maximum height for the popover
+            maxHeight: '60vh', // Set maximum height for the popover
             overflowY: 'auto', // Enable vertical scrollbar if needed
-            paddingLeft: '20px',
-            paddingRight: '20px',
-            marginRight:'20px',
-            width: 'auto',
-            display: 'flex',
-            flexDirection: 'column'
-
           },
         }}
       >
         {report.filter(item => item.approvalStatus === 'pending').map((pendingReport) => (
-          <Typography key={pendingReport.id} style={{ fontSize: '16px' }}>{pendingReport.name}</Typography>
+          <Typography key={pendingReport.id}>{pendingReport.name}</Typography>
         ))}
       </Popover>
             {/* Snackbar for notifications */}
@@ -294,24 +373,24 @@ function DashboardNavbar(props) {
           </MDBox>
         )}
       </Toolbar>
-      
+
  
     </AppBar>
   );
 }
 
-DashboardNavbar.propTypes = {
-  absolute: PropTypes.bool,
-  light: PropTypes.bool,
-  isMini: PropTypes.bool,
-  notificationCount: PropTypes.number.isRequired,
-  setNotificationCount: PropTypes.func.isRequired,
-};
-
+// Setting default values for the props of DashboardNavbar
 DashboardNavbar.defaultProps = {
   absolute: false,
   light: false,
   isMini: false,
+};
+
+// Typechecking props for the DashboardNavbar
+DashboardNavbar.propTypes = {
+  absolute: PropTypes.bool,
+  light: PropTypes.bool,
+  isMini: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

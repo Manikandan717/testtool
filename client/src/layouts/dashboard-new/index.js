@@ -23,7 +23,7 @@ import {
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import { Doughnut, Bar } from "react-chartjs-2";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import DashboardNav from "examples/Navbars/DashboardNav";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import Icon from "@mui/material/Icon";
@@ -77,8 +77,8 @@ const MemoizedBarChart = memo(({ chartData }) => {
   );
 });
  
-const YourComponent = () => {
-  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+const YourComponent = ({notificationCount}) => {
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   const name = useSelector((state) => state.auth.user.name);
   const empId = useSelector((state) => state.auth.user.empId);
   const [mode, setMode] = useState("");
@@ -422,6 +422,7 @@ const YourComponent = () => {
   const [previousDateSessionOne, setPreviousDateSessionOne] = useState({
     sessionOneHours: 0,
     totalAvailableHours: 0,
+    status: ''
   });
  
   useEffect(() => {
@@ -431,56 +432,60 @@ const YourComponent = () => {
         const today = new Date();
         const previousDay = new Date(today);
         previousDay.setDate(today.getDate() - 1);
- 
+
         // Format the previous day's date as 'YYYY-MM-DD'
         const formattedPreviousDay = `${previousDay.getFullYear()}-${(
           previousDay.getMonth() + 1
         )
           .toString()
-          .padStart(2, "0")}-${previousDay
+          .padStart(2, '0')}-${previousDay
           .getDate()
           .toString()
-          .padStart(2, "0")}`;
- 
+          .padStart(2, '0')}`;
+
         // Fetch data for the previous day
         const previousDayData = await fetchDataForDate(formattedPreviousDay);
- 
+
         // Update state with the data for the previous day
         setPreviousDateSessionOne(previousDayData);
       } catch (error) {
-        console.error("Error fetching data for the previous day:", error);
+        console.error('Error fetching data for the previous day:', error);
       }
     };
- 
+
     fetchPreviousDayData();
   }, []);
+
   // Function to fetch data for a specific date
-  // Function to fetch data for a specific date
-  const fetchDataForDate = async (date) => {
+  const fetchDataForDate = async date => {
     try {
       const response = await axios.get(
         `${apiUrl}/sessionOneDate/${empId}/${date}`
       );
-      // console.log("API Response:", response.data); // Log the API response to inspect it
- 
+
       // Assuming response.data.totalHours is in the format "hours:minutes"
-      const [hours, minutes] = response.data.totalHours.split(":");
+      const [hours, minutes] = response.data.totalHours.split(':');
       const totalHoursNumeric = parseFloat(hours) + parseFloat(minutes) / 60;
- 
-const totalAvailableHours = 9.30;
+
+      // Assuming total available hours is fixed to 9.30
+      const totalAvailableHours = 9.30;
       const sessionOneHours = totalHoursNumeric;
       const sessionOnePercentage =
         totalAvailableHours !== 0
           ? (sessionOneHours / totalAvailableHours) * 100
           : 0;
- 
+
+      // Determine the status based on sessionOneHours
+      const status = sessionOneHours === 0 ? 'pending' : '';
+
       return {
         sessionOneHours,
         totalAvailableHours,
         sessionOnePercentage,
+        status
       };
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching data:', error);
       throw error; // Rethrow the error to handle it upstream if necessary
     }
   };
@@ -551,7 +556,7 @@ const totalAvailableHours = 9.30;
  
   return (
     <DashboardLayout>
-      <DashboardNavbar />
+     <DashboardNav notificationCount={notificationCount} />
  
       <Grid container spacing={2}>
         <Grid item xs={12} md={3.5}>
@@ -818,7 +823,7 @@ const totalAvailableHours = 9.30;
               <Grid container justifyContent="center">
                 <Grid item xs={12}>
                   <MDBox
-                    mt={3}
+                    // mt={3}
                     display="flex"
                     flexDirection="column"
                     textAlign="center"
@@ -872,45 +877,37 @@ const totalAvailableHours = 9.30;
  
                 {/* Heading for Previous Day's Session One */}
                 <div
-                  style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "10px",
-                    width: "100%",
-                    padding: "5px",
-                    margin: "auto",
-                    marginTop: "15px",
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    style={{ marginTop: "0px", fontSize: "15px" }}
-                  >
-                    Previous Day
-                  </Typography>
-                  {/* Previous Day's Session One */}
-                  <Grid container style={{ marginTop: "5px" }}>
-                    <Grid item xs={7} style={{ paddingRight: "10px" }}>
-                      {/* Display the skill bar with calculated percentage */}
-                      <SkillBar
-                        percentage={
-                          (previousDateSessionOne.sessionOneHours /
-                            previousDateSessionOne.totalAvailableHours) *
-                          100
-                        }
-                      />
-                    </Grid>
-                    <Grid item xs={5} style={{ textAlign: "right" }}>
-                      <Typography
-                        variant="body1"
-                        style={{ fontSize: "13px", fontWeight: "bolder" }}
-                      >
-                        {previousDateSessionOne.sessionOneHours} hrs /{" "}
-                        {previousDateSessionOne.totalAvailableHours} hrs
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </div>
+      style={{
+        border: '1px solid #ccc',
+        borderRadius: '10px',
+        width: '100%',
+        padding: '5px',
+        margin: 'auto',
+        marginTop: '15px',
+      }}
+    >
+      <Typography variant="h6" gutterBottom style={{ marginTop: '0px', fontSize: '15px' }}>
+        Previous Day
+      </Typography>
+      {/* Previous Day's Session One */}
+      <Grid container style={{ marginTop: '5px' }}>
+        <Grid item xs={7} style={{ paddingRight: '10px' }}>
+          {/* Display the skill bar with calculated percentage */}
+          <SkillBar percentage={(previousDateSessionOne.sessionOneHours / previousDateSessionOne.totalAvailableHours) * 100} />
+        </Grid>
+        <Grid item xs={5} style={{ textAlign: 'right' }}>
+          {previousDateSessionOne.status === 'pending' ? (
+            <Typography variant="body1" style={{ fontSize: '13px', fontWeight: 'bolder' }}>
+              Your status is pending
+            </Typography>
+          ) : (
+            <Typography variant="body1" style={{ fontSize: '13px', fontWeight: 'bolder' }}>
+              {previousDateSessionOne.sessionOneHours} hrs / {previousDateSessionOne.totalAvailableHours} hrs
+            </Typography>
+          )}
+        </Grid>
+      </Grid>
+    </div>
                 <div
                   style={{
                     border: "1px solid #ccc",

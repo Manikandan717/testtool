@@ -24,6 +24,7 @@ import Homepage from "./layouts/IdleReport";
 import SuperadminReport from "./layouts/SuperadminReport";
 import AttendanceAdmin from "./layouts/Attendance-Admin";
 import DashboardUserNew from "./layouts/dashboard-new";
+import TeamLeadReport from "./layouts/TeamLeadReport";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -48,12 +49,30 @@ const routes = [
   // },
   {
     type: "collapse",
-name: "DashboardUser",
-key: "dashboardUser",
+    name: "DashboardUser",
+    key: "dashboardUser",
     icon: <Icon fontSize="small">dashboard</Icon>,
-route: "/dashboardUser",
+    route: "/dashboardUser",
     component: <DashboardUserNew />,
     role: "analyst",
+  },
+  {
+    type: "collapse",
+    name: "DashboardUser",
+    key: "dashboardUser",
+    icon: <Icon fontSize="small">dashboard</Icon>,
+    route: "/dashboardUser",
+    component: <DashboardUserNew />,
+    role: "Team Leader",
+  },
+  {
+    type: "collapse",
+    name: "TeamLeadReport",
+    key: "teamLeadReport",
+    icon: <Icon fontSize="small">switch_account</Icon>,
+    route: "/teamLeadReport",
+    component: <TeamLeadReport />,
+    role: "Team Leader",
   },
   {
     type: "collapse",
@@ -120,12 +139,30 @@ route: "/dashboardUser",
   },
   {
     type: "collapse",
+    name: "Attendance",
+    key: "user-attendance",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/user-attendance",
+    component: <Attendance />,
+    role: "Team Leader",
+  },
+  {
+    type: "collapse",
     name: "UserTask",
     key: "user-task",
     icon: <Icon fontSize="small">leaderboard</Icon>,
     route: "/user-task",
     component: <UserReport />,
     role: "analyst",
+  },
+  {
+    type: "collapse",
+    name: "UserTask",
+    key: "user-task",
+    icon: <Icon fontSize="small">leaderboard</Icon>,
+    route: "/user-task",
+    component: <UserReport />,
+    role: "Team Leader",
   },
   {
     type: "collapse",

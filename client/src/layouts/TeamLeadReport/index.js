@@ -1,7 +1,7 @@
 import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbarManager";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import DeleteIcon from '@mui/icons-material/Delete'; // Assuming you're using Material-UI
 // import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
@@ -17,22 +17,25 @@ import IconButton from "@mui/material/IconButton";
 import * as React from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { Select, MenuItem, Input, Chip } from '@mui/material';
-import { Badge, Popover, List, ListItem, ListItemText, Snackbar } from '@mui/material';
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import Attendance from "layouts/Attendance"
 import { useSelector } from "react-redux";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 // import IconButton from "@material-ui/core/IconButton";
 // import FormControl from "@mui/material/FormControl";
 // import Select from "@mui/material/Select";
+import { Select, MenuItem, Input, Chip } from '@mui/material';
 import { useState, useEffect, useMemo } from "react";
+import { Badge, Popover, List, ListItem, ListItemText, Snackbar } from '@mui/material';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import Button from '@material-ui/core/Button';
 import "react-datepicker/dist/react-datepicker.css";
+import MuiAlert from '@material-ui/lab/Alert';
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import axios from "axios";
 import { CSVLink } from "react-csv";
 import moment from "moment";
@@ -70,9 +73,19 @@ function AdminReport() {
   const [selectedUserData, setSelectedUserData] = useState(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [rejectionReasons, setRejectionReasons] = useState([]);
   const [projectNames, setProjectNames] = useState([]);
   const [projectName, setProjectName] = useState(null);
   const managerName = useSelector((state) => state.auth.user.name);
+  const teamLeadName = useSelector((state) => state.auth.user.name);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [openRejectPopup, setOpenRejectPopup] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionDescription, setRejectionDescription] = useState('');
+  const [showNotification, setShowNotification] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
@@ -86,6 +99,8 @@ function AdminReport() {
       [name]: value,
     });
   };
+
+
 
   useEffect(() => {
     axios.get(`${apiUrl}/analyst-manager/projectName`, {
@@ -106,7 +121,7 @@ function AdminReport() {
 
   useEffect(() => {
     // Fetch team data from the backend
-    axios.get(`/api/fetch/team?managerTask=${managerName}`)
+    axios.get(`${apiUrl}/api/fetch/team?managerTask=${managerName}`)
       .then((response) => {
         setTeamData(response.data);
       })
@@ -176,30 +191,42 @@ function AdminReport() {
     // Close the filter dialog
     closeFilterDialog();
   };
+  const [newReports, setNewReports] = useState([]);
+
+  const handleNewReport = (report) => {
+    setNewReports(prevReports => [...prevReports, report]);
+  };
   useEffect(() => {
     allReport();
   }, []);
 
   const allReport = () => {
-    const managerTask = managerName.trim();
-
-    return axios
-      .get(`${apiUrl}/analyst/byManagerTask/${managerTask}`)
+    setLoading(true);
+    const teamLead = teamLeadName.trim();
+    axios.get(`${apiUrl}/analyst/byTeamLead/${teamLead}`)
       .then((res) => {
         setReport(res.data);
         // Calculate notification count
         const pendingReports = res.data.filter(item => item.approvalStatus === 'pending');
         setNotificationCount(pendingReports.length);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   };
+
   const [anchorEl, setAnchorEl] = useState(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
 
   const open = Boolean(anchorEl);
+  // // Call the function
+  // allReport();
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -208,12 +235,27 @@ function AdminReport() {
     setSnackbarOpen(false);
   };
 
-  const [notificationCount, setNotificationCount] = useState(0);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [openRejectPopup, setOpenRejectPopup] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [rejectionDescription, setRejectionDescription] = useState('');
+  const userName = () => {
+    return axios.get(`${apiUrl}/users`).then((res) => {
+      setName(res.data);
+    });
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await Promise.all([allReport(), userName()]);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
 
   const handleApprove = (taskId) => {
     axios.put(`${apiUrl}/tasks/${taskId}/approve`)
@@ -261,30 +303,42 @@ function AdminReport() {
       });
   };
 
+  const handleOpenRejectPopup = (taskId) => {
+    setSelectedTaskId(taskId);
+    setOpenRejectPopup(true);
+  };
+
   const handleCloseRejectPopup = () => {
     setOpenRejectPopup(false);
   };
-
-  const userName = () => {
-    return axios.get(`${apiUrl}/users`).then((res) => {
-      setName(res.data);
-    });
+  // const rejectionPopup = (
+  //   <div>
+  //     <div>Reason: 
+  //       <select value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)}>
+  //         <option value="Reason1">Reason1</option>
+  //         <option value="Reason2">Reason2</option>
+  //         <option value="Reason3">Reason3</option>
+  //       </select>
+  //     </div>
+  //     <div>Description: 
+  //       <textarea value={rejectionDescription} onChange={(e) => setRejectionDescription(e.target.value)} />
+  //     </div>
+  //     <button onClick={submitRejection}>Submit</button>
+  //     <button onClick={cancelClose}>Cancel</button>
+  //   </div>
+  // );
+  const getStatusColor = (approvalStatus) => {
+    switch (approvalStatus.toLowerCase()) {
+      case 'pending':
+        return 'orange';
+      case 'approved':
+        return 'green';
+      case 'rejected':
+        return 'red';
+      default:
+        return 'inherit'; // Default color
+    }
   };
-
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await Promise.all([allReport(), userName()]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   const openDialog = (userData) => {
     setSelectedUserData(userData);
@@ -306,19 +360,6 @@ function AdminReport() {
       // Handle error
       toast.error('Error deleting the record.');
     });
-  };
-
-  const getStatusColor = (approvalStatus) => {
-    switch (approvalStatus.toLowerCase()) {
-      case 'pending':
-        return 'orange';
-      case 'approved':
-        return 'green';
-      case 'rejected':
-        return 'red';
-      default:
-        return 'inherit'; // Default color
-    }
   };
   // tabel report
   const columns = [
@@ -358,7 +399,7 @@ function AdminReport() {
       editable: false,
       renderCell: (params) => (
         <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-          {params.row.sessionOne.length}
+          {params.row.taskCount}
         </Typography>
       ),
       align: "center",
@@ -386,6 +427,7 @@ function AdminReport() {
       field: 'approvalStatus',
       headerName: 'Approval Status',
       width: 150,
+
       renderCell: (params) => (
         <div>
           {params.row.approvalStatus === 'pending' && (
@@ -400,21 +442,16 @@ function AdminReport() {
           )}
           {/* {params.row.approvalStatus !== 'pending' && (
             <Typography>{params.row.approvalStatus}</Typography>
+            
           )} */}
-                     {params.row.approvalStatus !== 'pending' && (
-      <Typography style={{ color: getStatusColor(params.row.approvalStatus), fontSize: 15 }}>
-        {params.row.approvalStatus.toUpperCase()}
-      </Typography>
-    )}
+          {params.row.approvalStatus !== 'pending' && (
+            <Typography style={{ color: getStatusColor(params.row.approvalStatus), fontSize: 15 }}>
+              {params.row.approvalStatus.toUpperCase()}
+            </Typography>
+          )}
         </div>
+
       ),
-    },
-    {
-      field: "teamLead",
-      headerName: "Approved By",
-      width: 150,
-      editable: false,
-      flex: 1,
     },
     {
       field: "view",
@@ -428,22 +465,28 @@ function AdminReport() {
         </IconButton>
       ),
     },
-    {
-      field: 'delete',
-      headerName: 'Delete',
-      sortable: false,
-      filterable: false,
-      width: 100,
-      renderCell: (params) => (
-        <IconButton
-          style={{ color: 'red' }}
-          onClick={() => handleDelete(params.row._id)}
-        >
-          <DeleteIcon />
-        </IconButton>
-      ),
-    },
+    // {
+    //   field: 'delete',
+    //   headerName: 'Delete',
+    //   sortable: false,
+    //   filterable: false,
+    //   width: 100,
+    //   renderCell: (params) => (
+    //     <IconButton 
+    //       style={{ color: 'red' }}
+    //       onClick={() => handleDelete(params.row._id)}
+    //     >
+    //       <DeleteIcon />
+    //     </IconButton>
+    //   ),
+    // },
+
   ];
+
+  // Function to calculate taskCount for each row
+  const calculateTaskCount = (sessionOne) => {
+    return sessionOne.length;
+  };
 
   const row = useMemo(
     () =>
@@ -457,9 +500,11 @@ function AdminReport() {
         task: item.task,
         managerTask: item.managerTask,
         sessionOne: item.sessionOne,
+        taskCount: calculateTaskCount(item.sessionOne),
       })),
     [report]
   );
+
 
   // Team List
   const list = ["CV", "NLP", "CM", "SOURCING", "DEVELOPMENT"];
@@ -486,6 +531,8 @@ function AdminReport() {
 
     return `${hours}:${remainingMinutes < 10 ? "0" : ""}${remainingMinutes}`;
   };
+
+
 
   // Billing report Datagrid table
 
@@ -520,19 +567,19 @@ function AdminReport() {
 
       // Collect unique teams, names, and manager tasks related to the project and date
       projectData.forEach(entry => {
-                // Check if the entry has an 'approved' status
-                if (entry.approvalStatus === 'approved') {
-                  approvedCount++;
-                } else if (entry.approvalStatus === 'rejected') {
-                  rejectedCount++;
-                } else {
-                  pendingCount++;
-                }
+        // Check if the entry has an 'approved' status
+        if (entry.approvalStatus === 'approved') {
+          approvedCount++;
+        } else if (entry.approvalStatus === 'rejected') {
+          rejectedCount++;
+        } else {
+          pendingCount++;
+        }
         // Check if the entry has an 'approved' status
         if (entry.approvalStatus === 'approved') {
           teamSet.add(entry.team);
           managerTaskSet.add(entry.managerTask);
-      
+
           // Exclude "Idle -Non Billable" tasks from name length and total hours calculations
           if (entry.sessionOne && entry.sessionOne.length > 0) {
             entry.sessionOne.forEach(session => {
@@ -552,6 +599,7 @@ function AdminReport() {
         }
       });
 
+
       // Convert totalHours and idleNonBillableHours to hours:minutes format
       const formattedTotalHours = Math.floor(totalHours / 60) + 'hr:' + (totalHours % 60).toString().padStart(2, '0') + 'min';
       const formattedIdleNonBillableHours = Math.floor(idleNonBillableHours / 60) + ':' + (idleNonBillableHours % 60).toString().padStart(2, '0');
@@ -564,6 +612,8 @@ function AdminReport() {
           rejectedCount++;
         }
       });
+
+
       const dateProjectWiseDatum = {
         id: uuidv4(), // Generate unique ID for the row
         date: date,
@@ -578,7 +628,11 @@ function AdminReport() {
         approvedCount: approvedCount,
         rejectedCount: rejectedCount
       };
-      
+
+
+
+
+
       // Push the calculated data for the date and project to the array
       dateProjectWiseData.push(dateProjectWiseDatum);
     }
@@ -586,6 +640,7 @@ function AdminReport() {
     console.log(dateProjectWiseData); // Logging the calculated data
     return dateProjectWiseData;
   };
+
 
   // Define columns for the new DataGrid
   const dateProjectWiseColumns = [
@@ -602,8 +657,6 @@ function AdminReport() {
     { field: 'rejectedCount', headerName: 'Rejected Count', width: 150 }, // New header for count of rejected analysts
   ];
 
-
-  // Calculate date and project-wise data
   const dateProjectWiseData = calculateDateProjectWiseData();
 
 
@@ -666,13 +719,12 @@ function AdminReport() {
       { label: "Manager Name", key: "Manager_Name" },
       { label: "Total Hours", key: "Total_Hours" },
       { label: "Idle Count", key: "Idle_Non_Billable_Count" },
-
+      { label: "Task Count", key: "taskCount" },
+      { label: "Total Hours", key: "Total_Hours" },
       { label: "Idle Hours", key: "Idle_Non_Billable_Hours" }
     ],
     filename: "admin_report.csv"
   };
-
-  const [rejectionReasons, setRejectionReasons] = useState([]);
 
   const handleReasonChange = (event) => {
     const { value } = event.target;
@@ -686,16 +738,19 @@ function AdminReport() {
     }
   };
 
+  const params = { row: { _id: 'task_id', approvalStatus: 'pending' } };
+
   return (
     <DashboardLayout>
       <DashboardNavbar notificationCount={notificationCount} />
+      {/* <Attendance notificationCount={notificationCount} /> */}
       <div>
 
         <Dialog open={openRejectPopup} onClose={handleCloseRejectPopup} maxWidth="sm" fullWidth>
-          <DialogTitle>Reject Task</DialogTitle>
+          <DialogTitle>Comments</DialogTitle>
           <DialogContent>
             <div>
-              <div>Reason:
+              {/* <div>Reason:
                 <Select
                   multiple
                   value={rejectionReasons}
@@ -714,8 +769,8 @@ function AdminReport() {
                   <MenuItem value="Reason3">Reason3</MenuItem>
                   <MenuItem value="Others">Others</MenuItem>
                 </Select>
-              </div>
-              <div>Description:
+              </div> */}
+              <div>
                 <TextField
                   value={rejectionDescription}
                   onChange={(e) => setRejectionDescription(e.target.value)}
@@ -727,15 +782,20 @@ function AdminReport() {
             </div>
           </DialogContent>
           <DialogActions>
-            <Button onClick={submitRejection} variant="contained" color="primary">Submit</Button>
-            <Button onClick={handleCloseRejectPopup} variant="outlined" color="secondary">Cancel</Button>
+            <MDButton onClick={submitRejection} variant="contained" color="success">Submit</MDButton>
+            <MDButton onClick={handleCloseRejectPopup} variant="outlined" color="primary">Cancel</MDButton>
           </DialogActions>
         </Dialog>
       </div>
-
+      {/* Notification icon with badge */}
+      {/* <IconButton aria-label="notifications" onClick={handleClick}>
+        <Badge badgeContent={notificationCount} color="secondary">
+          <NotificationsIcon />
+        </Badge>
+      </IconButton> */}
       {/* Popover to display pending report names */}
 
-
+      {/* Snackbar for notifications */}
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         open={snackbarOpen}
@@ -926,6 +986,7 @@ function AdminReport() {
                 </strong>{" "}
                 {selectedUserData.projectName}
               </Typography>
+
               <div
                 style={{
                   maxHeight: "300px", // Set a fixed height for the scrollable area
@@ -990,32 +1051,43 @@ function AdminReport() {
                     ))}
                   </tbody>
                 </table>
-                <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
-                  <strong style={{ fontSize: "18px" }}>Rejection Description:</strong>
-                  <table style={{ marginTop: "10px" }}>
-                    <tbody>
-                      <tr>
-                        <td>{selectedUserData.rejectionDescription}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </Typography>
+                {/* <Typography
+          style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}
+        >
+          <strong style={{ fontSize: "18px" }}>
+            Description 
+          </strong>{" "}
+          {selectedUserData.rejectionDescription}
+        </Typography> */}
                 {selectedUserData !== null && (
-  <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
-    {selectedUserData.description && ( // Check if description exists
-      <strong style={{ fontSize: "18px" }}>Description</strong>
-    )}
-    <table style={{ marginTop: "10px" }}>
-      <tbody>
-        <tr>
-          <td>{selectedUserData.description}</td>
-        </tr>
-      </tbody>
-    </table>
-  </Typography>
-)}
+                  <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
+                    {selectedUserData.rejectionDescription && ( // Check if description exists
+                      <strong style={{ fontSize: "18px" }}>Comments</strong>
+                    )}
+                    <table style={{ marginTop: "10px" }}>
+                      <tbody>
+                        <tr>
+                          <td>{selectedUserData.rejectionDescription}</td>
+                        </tr>
 
-
+                      </tbody>
+                    </table>
+                  </Typography>
+                )}
+                {selectedUserData !== null && (
+                  <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
+                    {selectedUserData.description && ( // Check if description exists
+                      <strong style={{ fontSize: "18px" }}>Description</strong>
+                    )}
+                    <table style={{ marginTop: "10px" }}>
+                      <tbody>
+                        <tr>
+                          <td>{selectedUserData.description}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </Typography>
+                )}
               </div>
             </div>
           )}
@@ -1081,7 +1153,8 @@ function AdminReport() {
                                   marginLeft: "10px",
                                 }}
                               >
-                                <FilterListIcon
+                                {/* below date filter have a bug for tl need to update next verion*/}
+                                {/* <FilterListIcon
                                   className="team-filter-icon"
                                   style={{
                                     cursor: "pointer",
@@ -1090,8 +1163,9 @@ function AdminReport() {
                                   }}
                                   onClick={handlePopperToggle}
                                   aria-label="Team Filter"
-                                />
-                                <MDTypography
+                                /> */}
+
+                                {/* <MDTypography
                                   variant="h6"
                                   onClick={handlePopperToggle}
                                   style={{
@@ -1101,7 +1175,7 @@ function AdminReport() {
                                   }}
                                 >
                                   DATE FILTER
-                                </MDTypography>
+                                </MDTypography> */}
                               </div>
 
                               <GridToolbar />
@@ -1133,7 +1207,8 @@ function AdminReport() {
                                   marginLeft: "10px",
                                 }}
                               >
-                                <FilterListIcon
+                                {/* below date filter have a bug for tl need to update next verion*/}
+                                {/* <FilterListIcon
                                   className="team-filter-icon"
                                   style={{
                                     cursor: "pointer",
@@ -1153,7 +1228,7 @@ function AdminReport() {
                                   }}
                                 >
                                   DATE FILTER
-                                </MDTypography>
+                                </MDTypography> */}
                               </div>
 
                               <GridToolbar />
@@ -1175,6 +1250,7 @@ function AdminReport() {
       </Grid>
       {/* <Footer /> */}
       <ToastContainer />
+
     </DashboardLayout>
   );
 }

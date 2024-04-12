@@ -40,9 +40,9 @@ import moment from "moment";
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "5000mb" })); // adjust the limit as needed
+app.use(express.json({ limit: "500000mb" })); // adjust the limit as needed
 app.use(cookieParser());
-app.use(express.urlencoded({ limit: "5000mb", extended: false })); // adjust the limit as needed
+app.use(express.urlencoded({ limit: "500000mb", extended: false })); // adjust the limit as needed
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
@@ -165,19 +165,25 @@ const determineRoleFromDesignation = (designation) => {
   // Your logic to determine the role based on the designation
   // For example, if designation is "DEV", return "admin"
   // If designation is "SUPERADMIN", return "superadmin"
+  // If designation is "PROJECT MANAGER", return "admin"
+  // If designation is "TEAMLEAD", return "teamlead"
   // Otherwise, return "analyst"
 
   const adminDesignations = ["PROJECT MANAGER"];
   const superAdminDesignation = "SUPERADMIN";
+  const teamLeadDesignation = "TEAM LEADER";
 
   if (adminDesignations.includes(designation.toUpperCase())) {
     return "admin";
   } else if (designation.toUpperCase() === superAdminDesignation) {
     return "superadmin";
+  } else if (designation.toUpperCase() === teamLeadDesignation) {
+    return "Team Leader";
   } else {
     return "analyst";
   }
 };
+
 
 app.post("/register", async (req, res) => {
   try {
@@ -806,6 +812,56 @@ app.get("/analyst-manager/projectName", async (req, res) => {
     .then((projectNames) => res.json(projectNames)) // Send project names as response
     .catch((err) => res.status(400).json("Error:" + err));
 });
+app.get("/team-leader/projectName", async (req, res) => {
+  const teamLead = req.query.teamLead; // Extract managerTask from query params
+
+  let filter = {}; // Initialize an empty filter object
+
+  // If managerTask is provided, include it in the filter
+  if (teamLead) {
+    filter.teamLead =  teamLead;
+  }
+
+  Analyst.find(filter)
+    .distinct("projectName") // Fetch distinct project names
+    .then((projectNames) => res.json(projectNames)) // Send project names as response
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+// Backend code
+app.put('/approve/:id', async (req, res) => {
+  try {
+    const analystId = req.params.id;
+    // Check if analystId is valid before proceedingn 
+
+    
+    if (!mongoose.Types.ObjectId.isValid(analystId)) {
+      return res.status(400).json({ message: 'Invalid analyst ID' });
+    }
+
+    const updatedAnalyst = await Analyst.findByIdAndUpdate(analystId, { approvalStatus: 'approved' }, { new: true });
+    res.json(updatedAnalyst);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.put('/reject/:id', async (req, res) => {
+  try {
+    const analystId = req.params.id;
+    // Check if analystId is valid before proceeding
+    if (!mongoose.Types.ObjectId.isValid(analystId)) {
+      return res.status(400).json({ message: 'Invalid analyst ID' });
+    }
+
+    const updatedAnalyst = await Analyst.findByIdAndUpdate(analystId, { approvalStatus: 'rejected' }, { new: true });
+    res.json(updatedAnalyst);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 app.get('/analyst-manager/team', async (req, res) => {
   try {
@@ -974,6 +1030,48 @@ app.get("/analyst/byManagerTask/:managerTask", async (req, res) => {
       .json({ message: "Internal Server Error", error: error.message });
   }
 });
+
+
+// Define the endpoint handler function
+app.get("/analyst/byTeamLead/:teamLead", async (req, res) => {
+  const teamLead = req.params.teamLead; // Extract the teamLead parameter from the request
+
+  try {
+    // Find analysts with the specified teamLead
+    const analysts = await Analyst.find({ teamLead });
+
+    // If no analysts are found, return a 404 error
+    if (analysts.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No analysts found for the specified team lead." });
+    }
+
+    // If analysts are found, return them in the response
+    res.json(analysts);
+  } catch (error) {
+    // If an error occurs, return a 500 internal server error
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+});
+// Assuming you're using Express.js
+app.get('/api/teamleads', async (req, res) => {
+  try {
+    const teamleads = await Employee.find({ designation: 'Team Leader' }); // Querying employees with designation 'teamlead'
+    
+    // Extracting emp_name from the result
+    const teamleadNames = teamleads.map(employee => employee.emp_name);
+
+    // Sending the formatted response
+    res.json({ teamleads: teamleadNames });
+  } catch (error) {
+    console.error('Error fetching teamleads:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 app.delete("/delete/usertask/:id", async (req, res) => {
   try {
@@ -1150,18 +1248,22 @@ app.post("/add", (req, res) => {
 // Define a route to handle the updating of existing data
 app.put('/update/analyst/:id', async (req, res) => {
   try {
-      const updatedData = req.body;
-      const id = req.params.id;
+    const updatedData = req.body;
+    const id = req.params.id;
 
-      // Update the data in the database
-      const updatedRecord = await Analyst.findByIdAndUpdate(id, updatedData, { new: true });
+    // Set approvalStatus to "pending" in the updatedData
+    updatedData.approvalStatus = 'pending';
 
-      res.json({ message: 'Data updated successfully', data: updatedRecord });
+    // Update the data in the database
+    const updatedRecord = await Analyst.findByIdAndUpdate(id, updatedData, { new: true });
+
+    res.json({ message: 'Data updated successfully', data: updatedRecord });
   } catch (error) {
-      console.error('Error updating data:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    console.error('Error updating data:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 app.get("/fetch/src/:min/:max", (req, res) => {
   const min = req.params.min;
@@ -1189,6 +1291,8 @@ app.get("/fetch/user-data/", (req, res) => {
     .then((analyst) => res.json(analyst))
     .catch((err) => res.status(400).json("err" + err));
 });
+
+
 app.get("/fetch/userdata/", (req, res) => {
   // console.log("entered in the code <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
@@ -1276,6 +1380,7 @@ app.get("/fetch/report/user/", (req, res) => {
     .catch((err) => res.status(400).json("err" + err));
 });
 
+
 app.get("/fetch/report/date/", async (req, res) => {
   try {
     const { sDate, eDate, managerTask } = req.query;
@@ -1297,22 +1402,7 @@ app.get("/fetch/report/date/", async (req, res) => {
   }
 });
 
-app.get("/fetch/user-data/", (req, res) => {
-  const empId = req.params.empId;
-  const sDate = req.query.sDate;
-  const eDate = req.query.eDate;
-  const team = req.query.team;
 
-  const query = {
-    empId: empId,
-    team: team,
-    createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
-  };
-
-  Analyst.find(query)
-    .then((analyst) => res.json(analyst))
-    .catch((err) => res.status(400).json("err" + err));
-});
 
 app.get("/fetch", (req, res) => {
   Analyst.find(req.query)
@@ -2140,6 +2230,7 @@ app.get('/sessionOneWeek/:empId', async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 app.get('/total-session-hours/:empId', async (req, res) => {
   try {
     const { empId } = req.params;
@@ -2377,7 +2468,8 @@ app.get('/sessionOneDate/:empId/:selectedDate', async (req, res) => {
       {
         $match: {
           empId: empId,
-          dateTask: { $gte: startOfDay, $lte: endOfDay }
+          dateTask: { $gte: startOfDay, $lte: endOfDay },
+          approvalStatus: { $in: ['approved', 'rejected'] } // Filter only approved or rejected statuses
         }
       },
       {
@@ -2516,7 +2608,38 @@ app.post("/add-status/new", async (req, res) => {
   }
 });
 
-//delete funtions
+// PUT route to approve a task
+app.put('/tasks/:taskId/approve', async (req, res) => {
+  try {
+    const taskId = req.params.taskId;
+    // Update the approval status of the task to "approved"
+    await Analyst.findByIdAndUpdate(taskId, { approvalStatus: 'approved' });
+    res.status(200).json({ message: 'Task approved successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// PUT route to reject a task with reason and description
+app.put('/tasks/:taskId/reject', async (req, res) => {
+  try {
+    const taskId = req.params.taskId;
+    const { rejectionReason, rejectionDescription } = req.body;
+    
+    // Update the approval status and rejection details of the task
+    await Analyst.findByIdAndUpdate(taskId, { 
+      approvalStatus: 'rejected',
+      rejectionReason,
+      rejectionDescription
+    });
+
+    res.status(200).json({ message: 'Task rejected successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+
 // Delete task
 app.delete("/delete/task/:id", async (req, res) => {
   try {

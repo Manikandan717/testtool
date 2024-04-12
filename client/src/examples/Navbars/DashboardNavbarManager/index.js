@@ -73,7 +73,7 @@ function DashboardNavbar(props) {
   const allReport = () => {
     setLoading(true);
     const teamLead = teamLeadName.trim();
-    axios.get(`${apiUrl}/analyst/byTeamLead/${teamLead}`)
+    axios.get(`${apiUrl}/analyst/byManagerTask/${teamLead}`)
       .then((res) => {
         setReport(res.data);
         // Calculate notification count
@@ -198,7 +198,7 @@ function DashboardNavbar(props) {
             </MDBox> */}
             <MDBox color={light ? "white" : "inherit"}>
                       {/* Notification icon with badge */}
-                      <Link to="/teamLeadReport">
+                      <Link to="/manager-report">
       <IconButton aria-label="notifications" style={{ marginRight: '10px' }} onClick={handleClick}>
         <Badge badgeContent={notificationCount} color="primary" >
           <NotificationsIcon />
@@ -221,15 +221,8 @@ function DashboardNavbar(props) {
         PaperProps={{
           style: {
             backgroundColor: 'white',
-            maxHeight: '50vh', // Set maximum height for the popover
+            maxHeight: '60vh', // Set maximum height for the popover
             overflowY: 'auto', // Enable vertical scrollbar if needed
-            paddingLeft: '20px',
-            paddingRight: '20px',
-            marginRight:'20px',
-            width: 'auto',
-            display: 'flex',
-            flexDirection: 'column'
-
           },
         }}
       >

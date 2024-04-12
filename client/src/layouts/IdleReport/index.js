@@ -224,7 +224,7 @@ const MemoizedProjectStatusChart = memo(
 );
 
 const TaskWiseBarChart = () => {
-  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   const getCurrentMonthStartDate = () => {
     const currentDate = new Date();
     return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -349,9 +349,9 @@ const TaskWiseBarChart = () => {
 
   const fetchPieChartData = useCallback(async () => {
     try {
-      const totalProduction =  totalProductionCount; // Include idleBillableCount in production count
+      const totalProduction =  averageProductionCountPerDay; // Include idleBillableCount in production count
       const total = totalProduction + idleNonBillableCount; // Include idleNonBillableCount separately
-      const percentages = [idleNonBillableCount, totalProduction]; // Include totalProduction
+      const percentages = [averageIdleCountPerDay, totalProduction]; // Include totalProduction
 
       setPieChartData((prevData) => ({
         ...prevData,
@@ -884,49 +884,7 @@ const TaskWiseBarChart = () => {
     ],
   };
 
-  const calculateAttendanceData = () => {
-    let totalAttendance = 0;
-    let presentCount = 0;
-    let absentCount = 0;
 
-    if (selectedProject) {
-      totalAttendance = batchValue;
-      presentCount = totalProductionCount + idleNonBillableCount;
-      absentCount = totalAttendance - presentCount;
-    } else if (selectedTeam) {
-      totalAttendance = batchCountByTeam;
-      presentCount = totalProductionCount + idleNonBillableCount;
-      absentCount = totalAttendance - presentCount;
-    } else {
-      totalAttendance = employeeCount;
-      presentCount = totalProductionCount + idleNonBillableCount;
-      absentCount = totalAttendance - presentCount;
-    }
-
-    return {
-      totalAttendance,
-      presentCount,
-      absentCount,
-    };
-  };
-
-  // Get the attendance data
-  const attendanceData = calculateAttendanceData();
-
-  // Create pie chart data
-  const pieChartDataAtt = {
-    labels: [`Present`, `Absent`],
-    datasets: [
-      {
-        data: [
-          totalProductionCount + idleNonBillableCount,
-          attendanceData.absentCount,
-        ],
-        backgroundColor: ["#4caf50", "#FF6868"],
-        hoverBackgroundColor: ["#4caf50", "#FF6868"],
-      },
-    ],
-  };
 
   const [data, setData] = useState([]);
   const [dataTwo, setInitialData] = useState([]);
@@ -1082,13 +1040,91 @@ const TaskWiseBarChart = () => {
   const averageProductionCountPerDay = (
     ( totalProductionCount) /
     differenceInDaysWithoutWeekends
-  ).toFixed(2);
+  ).toFixed(0);
 
   // Calculate the average idle count per day
   const averageIdleCountPerDay = (
     idleNonBillableCount / differenceInDaysWithoutWeekends
-  ).toFixed(2);
+  ).toFixed(0);
 
+  const calculatePercentage = (averageProductionCountPerDay) => {
+    if (selectedProject !== null) {
+      return ((averageProductionCountPerDay / batchValue) * 100).toFixed(2);
+    } else if (selectedTeam !== null) {
+      return ((averageProductionCountPerDay / batchCountByTeam) * 100).toFixed(2);
+    } else {
+      return ((averageProductionCountPerDay / employeeCount) * 100).toFixed(2);
+    }
+  };
+
+  // Convert the string representations to numbers for summing
+const productionCountAdmin = parseInt(averageProductionCountPerDay);
+const idleCount = parseInt(averageIdleCountPerDay);
+
+// Sum of production and idle counts
+const sumOfCounts = productionCountAdmin + idleCount;
+
+  const calculatePercentageIdle = (averageIdleCountPerDay) => {
+    if (selectedProject !== null) {
+      return ((averageIdleCountPerDay / batchValue) * 100).toFixed(2);
+    } else if (selectedTeam !== null) {
+      return ((averageIdleCountPerDay/ batchCountByTeam) * 100).toFixed(2);
+    } else {
+      return ((averageIdleCountPerDay / employeeCount) * 100).toFixed(2);
+    }
+  };
+  
+  const productionPercentage = parseFloat(calculatePercentage(averageProductionCountPerDay));
+  const idlePercentage = parseFloat(calculatePercentageIdle(averageIdleCountPerDay));
+  
+  // Calculate the sum of percentages
+  const sumOfPercentages = (productionPercentage + idlePercentage).toFixed(2);
+  const calculateAttendanceData = () => {
+    let totalAttendance = 0;
+    let presentCount = 0;
+    let absentCount = 0;
+
+    if (selectedProject) {
+      totalAttendance = batchValue;
+      presentCount = sumOfCounts;
+      absentCount = totalAttendance - presentCount;
+    } else if (selectedTeam) {
+      totalAttendance = batchCountByTeam;
+      presentCount = sumOfCounts;
+      absentCount = totalAttendance - presentCount;
+    } else {
+      totalAttendance = employeeCount;
+      presentCount = sumOfCounts;
+      absentCount = totalAttendance - presentCount;
+    }
+
+    return {
+      totalAttendance,
+      presentCount,
+      absentCount,
+    };
+  };
+
+  // Get the attendance data
+  const attendanceData = calculateAttendanceData();
+
+  // Create pie chart data
+  const pieChartDataAtt = {
+    labels: [`Present`, `Absent`],
+    datasets: [
+      {
+        data: [
+          // totalProductionCount + idleNonBillableCount,
+          sumOfCounts,
+          attendanceData.absentCount,
+        ],
+        backgroundColor: ["#4caf50", "#FF6868"],
+        hoverBackgroundColor: ["#4caf50", "#FF6868"],
+      },
+    ],
+  };
+
+  
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -1228,7 +1264,7 @@ const TaskWiseBarChart = () => {
             <ComplexStatisticsCard
               color="primary"
               icon={<GroupIcon />}
-              title="Employees"
+              title="Total Employees"
               count={
                 selectedProject !== null
                   ? batchValue !== null
@@ -1245,13 +1281,31 @@ const TaskWiseBarChart = () => {
               percentage={{
                 color: "success",
                 amount: "",
-                label: "Total Employees",
+                label: `${sumOfCounts} Employees : Avg ${sumOfPercentages}%`,
+                
               }}
+              
             />
+{/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+  <div style={{ 
+    width: '100%', 
+    height: '10px', 
+    outline: '2px solid grey',
+    borderRadius: '5px', 
+    boxShadow: `0 0 0 2px grey`, // Add the boxShadow property for the outline
+  }}>
+    <div style={{ width: `${sumOfPercentages}%`, height: '100%', borderRadius: '5px' , backgroundColor: sumOfPercentages < 40 ? 'red' : sumOfPercentages < 70 ? 'yellow' : 'green', 
+    borderRadius: '5px', 
+    marginRight: '5px',
+    }} />
+  </div>
+  <span>{sumOfPercentages}%</span>
+</div> */}
+
           </MDBox>
         </Grid>
         <Grid item xs={12} md={6} lg={3}>
-          <MDBox mb={1.5}>
+          {/* <MDBox mb={1.5}>
             <ComplexStatisticsCard
               icon="more_time"
               title="Production"
@@ -1262,21 +1316,46 @@ const TaskWiseBarChart = () => {
                 label: `${averageProductionCountPerDay}% Average `,
               }}
             />
-          </MDBox>
+          </MDBox> */}
+            <MDBox mb={1.5}>
+    <ComplexStatisticsCard
+      icon="more_time"
+      title="Production Employees"
+      count={`${averageProductionCountPerDay}`}
+      percentage={{
+        color: "success",
+        amount: "",
+        label: `${totalProductionCount} Tasks`,
+      }}
+    />
+    {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+      <div style={{ width: '100%', height: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px', marginRight: '5px' }}>
+        <div style={{ width: `${calculatePercentage(averageProductionCountPerDay)}%`, height: '100%', backgroundColor: 'green', borderRadius: '5px' }} />
+      </div>
+      <span>{calculatePercentage(averageProductionCountPerDay)}%</span>
+    </div> */}
+  </MDBox>
         </Grid>
-        <Grid item xs={12} md={6} lg={3}>
+
+<Grid item xs={12} md={6} lg={3}>
           <MDBox mb={1.5}>
             <ComplexStatisticsCard
               color="warning"
               icon="work_history"
-              title="Idle Count"
-              count={`${idleNonBillableCount}`}
+              title="Idle Employees"
+              count={`${averageIdleCountPerDay}`}
               percentage={{
                 color: "success",
                 amount: "",
-                label: `  ${averageIdleCountPerDay}% Average `,
+                label: `  ${idleNonBillableCount } Tasks `,
               }}
             />
+                {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+      <div style={{ width: '100%', height: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px', marginRight: '5px' }}>
+        <div style={{ width: `${calculatePercentage(averageIdleCountPerDay)}%`, height: '100%', backgroundColor: 'green', borderRadius: '5px' }} />
+      </div>
+      <span>{calculatePercentageIdle(averageIdleCountPerDay)}%</span>
+    </div> */}
           </MDBox>
         </Grid>
         {/* <Grid item xs={12} md={6} lg={3}>

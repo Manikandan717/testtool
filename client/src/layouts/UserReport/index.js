@@ -12,7 +12,7 @@ import FormControl from "@mui/material/FormControl";
 import { useState, useMemo, useEffect } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import DashboardNav from "examples/Navbars/DashboardNav";
 import { useSelector } from "react-redux";
 import { useRef } from 'react';
 import axios from "axios";
@@ -39,9 +39,10 @@ import Popper from "@mui/material/Popper";
 import EditIcon from "@mui/icons-material/Edit";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import { fontSize } from "@mui/system";
+import { ms } from "date-fns/locale";
 
-function Report() {
-  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+function Report({ notificationCount }) {
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   // task page code start
   const [data, setData] = useState([]);
   const [disable, setDisable] = useState(true);
@@ -53,14 +54,22 @@ function Report() {
   const [managers, setManagers] = useState([]);
   const name = useSelector((state) => state.auth.user.name);
   const empid = useSelector((state) => state.auth.user.empId);
+  const [teamleads, setTeamLeads] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTeamLead, setSelectedTeamLead] = useState('');
   const initialvalues = {
+    editMode: false,
     team: "",
     projectName: "",
     task: "",
     managerTask: "",
+    teamLead: "",
     dateTask: "",
+    description: "",
     sessionOne: "",
   };
+
   const [value, setValue] = useState(initialvalues);
   const handleTeamchange = (event, value) => setTeamlist(value);
   const handleTaskChange = (index, event, value) => {
@@ -70,6 +79,28 @@ function Report() {
     // Update the state with the new tasks
     setTasks(newTasks);
   };
+  useEffect(() => {
+    const fetchTeamLeads = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/api/teamleads`);
+        setTeamLeads(response.data.teamleads);
+      } catch (error) {
+        console.error('Error fetching team leads:', error);
+      }
+    };
+
+    fetchTeamLeads();
+  }, []);
+
+  const handleSearchTermChange = (event, value) => {
+    setSearchTerm(value);
+  };
+
+  const handleTeamLeadSelect = (event, value) => {
+    setSelectedTeamLead(value);
+  };
+
+
   const [loading, setLoading] = useState(false);
 
   const saveData = async (data) => {
@@ -82,12 +113,12 @@ function Report() {
         },
         body: JSON.stringify(data),
       });
-  
+
       if (!response.ok) {
         // Handle the error, for example:
         throw new Error(`Failed to save data. Server returned ${response.status}`);
       }
-  
+
       // If the request was successful, you might return some response data
       const responseData = await response.json();
       return responseData;
@@ -141,24 +172,28 @@ function Report() {
     },
   ]);
 
- 
+
 
   const handleEdit = (rowData) => {
     setEditMode(true); // Set edit mode to true
     setTasks(rowData.tasks || []);
     setRowData(rowData);
-  
+
     // Set the value of the form fields based on the selected record
     setValue({
       name: rowData.name,
       empId: rowData.empId,
       team: rowData.team,
+      teamLead: rowData.teamLead,
       projectName: rowData.projectName,
       managerTask: rowData.managerTask,
-      dateTask: rowData.dateTask,
+      dateTask: moment(rowData.dateTask).format("YYYY-MM-DD"),
       // Populate other fields as needed
     });
-  
+
+    // Set the selected team lead to the team lead of the selected record
+    setSelectedTeamLead(rowData.teamLead);
+
     // Set the tasks data in the state
     setTasks(
       rowData.sessionOne.map((task) => ({
@@ -167,11 +202,12 @@ function Report() {
         sessionOneMinutes: task.sessionOne.split(":")[1] || "",
       }))
     );
-  
+
     // Open the drawer
     openDrawer();
   };
-  
+
+
 
 
   const handleTaskInputChange = (index, event) => {
@@ -202,16 +238,17 @@ function Report() {
 
   const closeDrawer = () => {
     setDrawerOpen(false);
- 
+
     // Reset project name and managerTask when the drawer is closed
     setValue((prevValues) => ({
       ...prevValues,
       projectName: "",
       managerTask: "",
       sessionOne: "",
+      teamLead: "",
       // sessionMinute: ''
     }));
- 
+
     // Reset tasks to initial state when the drawer is closed without saving
     setTasks([
       {
@@ -220,8 +257,11 @@ function Report() {
         sessionOneMinutes: "",
       },
     ]);
+
+    // Reset selectedTeamLead state
+    setSelectedTeamLead(null); // or setSelectedTeamLead("")
   };
- 
+
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
 
   // Function to handle opening the filter popup
@@ -267,8 +307,6 @@ function Report() {
       setProjectNames(projects);
       setManagers(managers);
 
-      const currentDate = getCurrentDate();
-
       // Find the selected project in the response data
       const selectedProject = response.data.find(
         (item) => item.projectname === value.projectName
@@ -280,10 +318,17 @@ function Report() {
 
         setValue((prevValues) => ({
           ...prevValues,
-          dateTask: currentDate,
           managerTask: projectManager || "",
           team: projectTeam || "", // Set the team based on the selected project
         }));
+
+        if (!editMode) {
+          const currentDate = getCurrentDate();
+          setValue((prevValues) => ({
+            ...prevValues,
+            dateTask: currentDate,
+          }));
+        }
       } else {
         // Reset date, manager, and team when another project name is selected
         setValue((prevValues) => ({
@@ -291,10 +336,12 @@ function Report() {
           dateTask: "",
           managerTask: "",
           team: "", // Reset team value
+          teamLead: "",
         }));
       }
     });
-  }, [value.projectName]);
+  }, [value.projectName, editMode]);
+
   const fetchUpdatedData = () => {
     axios.get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
       .then((response) => {
@@ -306,97 +353,19 @@ function Report() {
       });
   };
   // Upload Data
-  // const submit = (e) => {
-  //   e.preventDefault();
-  
-  //   const userData = {
-  //     name,
-  //     empId,
-  //     team: value.team,
-  //     projectName: value.projectName,
-  //     managerTask: value.managerTask,
-  //     dateTask: value.dateTask,
-  //     sessionOne: tasks.map((task) => ({
-  //       task: task.task,
-  //       sessionOne: `${task.sessionOneHours}:${task.sessionOneMinutes || "00"}`,
-  //     })),
-  //     idleTasks: countIdleTasks(),
-  //     productionTasks: countProductionTasks(),
-  //   };
-  
-  //   console.log("Submitting the following data to the backend:", userData);
-  
-  //   if (editMode) {
-  //     // If in edit mode, update existing data with a PUT request
-  //     axios.put(`${apiUrl}/update/analyst/${rowData._id}`, userData)
-  //       .then(() => {
-  //         toast.success("Data Updated Successfully 👌");
-  //         fetchUpdatedData()
-  //         closeDrawer();
-  //         fetchData(); // Assuming fetchData fetches the updated data
-  //         setEditMode(false); // Exit edit mode
-  //         // Reset form fields
-  //         setTasks([
-  //           {
-  //             task: "",
-  //             sessionOneHours: "",
-  //             sessionOneMinutes: "",
-  //           },
-  //         ]);
-  //         setValue((prevValues) => ({
-  //           ...prevValues,
-  //           dateTask: "",
-  //           team: "",
-  //           projectName: "",
-  //           managerTask: "",
-  //         }));
-  //       })
-  //       .catch((err) => {
-  //         console.error("Error updating data:", err);
-  //         toast.error("Error updating data. Please try again.");
-  //       });
-  //   } else {
-  //     // If not in edit mode, submit new data with a POST request
-  //     axios.post(`${apiUrl}/add`, userData)
-  //       .then(() => {
-  //         toast.success("Data Submitted Successfully 👌");
-  //         fetchUpdatedData()
-  //         closeDrawer();
-  //         fetchData(); // Assuming fetchData fetches the updated data
-  //         // Reset form fields
-  //         setTasks([
-  //           {
-  //             task: "",
-  //             sessionOneHours: "",
-  //             sessionOneMinutes: "",
-  //           },
-  //         ]);
-  //         setValue((prevValues) => ({
-  //           ...prevValues,
-  //           dateTask: "",
-  //           team: "",
-  //           projectName: "",
-  //           managerTask: "",
-  //         }));
-  //       })
-  //       .catch((err) => {
-  //         console.error("Error submitting data:", err);
-  //         toast.error(`Error submitting data. Please try again.`);
-  //       });
-  //   }
-  // };
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
 
-    // If submission is already in progress, do nothing
     if (isSubmitting) {
       return;
     }
 
     setIsSubmitting(true);
+
+    // Get the selected team lead
+    const selectedTeamlead = selectedTeamLead || teamleads[0]; // Default to the first team lead if none selected
 
     const userData = {
       name,
@@ -411,29 +380,27 @@ function Report() {
       })),
       idleTasks: countIdleTasks(),
       productionTasks: countProductionTasks(),
+      teamLead: selectedTeamlead, // Correct field name
+      description: value.description
     };
 
-    console.log("Submitting the following data to the backend:", userData);
 
     try {
       if (editMode) {
-        // If in edit mode, update existing data with a PUT request
         await axios.put(`${apiUrl}/update/analyst/${rowData._id}`, userData);
         toast.success("Data Updated Successfully 👌");
         fetchUpdatedData();
         closeDrawer();
-        fetchData(); // Assuming fetchData fetches the updated data
+        fetchData();
         setEditMode(false);
       } else {
-        // If not in edit mode, submit new data with a POST request
         await axios.post(`${apiUrl}/add`, userData);
         toast.success("Data Submitted Successfully 👌");
         fetchUpdatedData();
         closeDrawer();
-        fetchData(); // Assuming fetchData fetches the updated data
+        fetchData();
       }
 
-      // Reset form fields
       setTasks([
         {
           task: "",
@@ -447,19 +414,21 @@ function Report() {
         team: "",
         projectName: "",
         managerTask: "",
+        teamLead: "",
       }));
     } catch (err) {
       console.error("Error updating/submitting data:", err);
       toast.error(`Error updating/submitting data. Please try again.`);
     } finally {
-      setIsSubmitting(false); // Reset the state to allow future submissions
+      setIsSubmitting(false);
     }
   };
 
-  
 
-  const [editMode, setEditMode] = useState(false);
-  const [rowData, setRowData] = useState(null); 
+
+
+
+  const [rowData, setRowData] = useState(null);
 
   const openDrawerForEdit = (rowData) => {
     setRowData(rowData);
@@ -467,7 +436,7 @@ function Report() {
     // Additional code to open the drawer
   };
 
-  useEffect(() => {}, [tasks, selectedUserData]);
+  useEffect(() => { }, [tasks, selectedUserData]);
 
   const listtask = ["CV", "NLP", "CM"];
 
@@ -521,7 +490,7 @@ function Report() {
     setSelectedUserData(userData);
     setDialogOpen(true);
   };
-  
+
 
   const countIdleTasks = () => {
     const uniqueIdleTasks = new Set();
@@ -554,8 +523,8 @@ function Report() {
   // Fetch data when a new task is submitted
   const fetchData = () => {
     if (!values.startDate || !values.endDate) {
-        console.log(); // Empty console.log()
-        return;
+      console.log(); // Empty console.log()
+      return;
     }
 
     axios
@@ -566,7 +535,7 @@ function Report() {
         setReport(res.data);
       })
       .catch((err) => console.log(`Error: ${err.message}`));
-};
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -639,12 +608,34 @@ function Report() {
       align: "center",
     },
     {
+      field: "teamLead",
+      headerName: "Team Lead",
+      width: 150,
+      editable: false,
+      flex: 1,
+    },
+    {
       field: "managerTask",
       headerName: "Project Manager",
       width: 150,
       editable: false,
       flex: 1,
     },
+    {
+      field: "approvalStatus",
+      headerName: "Status",
+      width: 150,
+      editable: false,
+      flex: 1,
+      renderCell: (params) => (
+        <div style={{ color: params.value.toLowerCase() === "approved" ? "green" : params.value.toLowerCase() === "rejected" ? "red" : params.value.toLowerCase() === "pending" ? "orange" : "inherit" }}>
+          {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
+        </div>
+      ),
+    },
+
+
+
     {
       field: "totalHours",
       headerName: "Total Hours",
@@ -657,6 +648,7 @@ function Report() {
       ),
       align: "center",
     },
+
     {
       field: "view",
       headerName: "View",
@@ -679,25 +671,31 @@ function Report() {
       filterable: false,
       width: 100,
       renderCell: (params) => (
-        <IconButton
-          style={{ color: "#4caf50" }}
-          onClick={() => handleEdit(params.row)}
-        >
-          <EditIcon />
-        </IconButton>
+        params.row.approvalStatus !== "approved" && (
+          <IconButton
+            style={{ color: "#4caf50" }}
+            onClick={() => handleEdit(params.row)}
+          >
+            <EditIcon />
+          </IconButton>
+        )
       ),
     },
   ];
-  
+
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
     ...initialDataColumns,
   ];
 
   useEffect(() => {
-    const reversedRowsData =
-      report.length === 0
-        ? initialData
+
+    setLoading(true);
+
+    setTimeout(() => {
+      const reversedRowsData =
+        report.length === 0
+          ? initialData
             .slice()
             .reverse()
             .map((item, index) => ({
@@ -708,13 +706,16 @@ function Report() {
               date: moment(item.createdAt).format("DD-MM-YYYY"),
               projectName: item.projectName,
               task: item.task,
+              teamLead: item.teamLead,
               managerTask: item.managerTask,
               sessionOne: item.sessionOne,
               // sessionMinute: item.sessionMinute,
             }))
-        : report.slice().reverse() || [];
+          : report.slice().reverse() || [];
 
-    setReversedRows(reversedRowsData);
+      setReversedRows(reversedRowsData);
+      setLoading(false);
+    }, 1000);
   }, [report, initialData]);
   // Team List
   const list = ["CV", "NLP", "CM", "SOURCING"];
@@ -747,7 +748,7 @@ function Report() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
+      <DashboardNav notificationCount={notificationCount} />
 
       <div
         style={{
@@ -866,6 +867,35 @@ function Report() {
                     ))}
                   </tbody>
                 </table>
+                {selectedUserData !== null && (
+                <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
+            {selectedUserData.rejectionDescription && ( // Check if description exists
+      <strong style={{ fontSize: "18px" }}>Comments</strong>
+    )}
+                  <table style={{ marginTop: "10px" }}>
+                    <tbody>
+                      <tr>
+                        <td>{selectedUserData.rejectionDescription}</td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+                </Typography>
+                )}
+                {selectedUserData !== null && (
+  <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
+    {selectedUserData.description && ( // Check if description exists
+      <strong style={{ fontSize: "18px" }}>Description</strong>
+    )}
+    <table style={{ marginTop: "10px" }}>
+      <tbody>
+        <tr>
+          <td>{selectedUserData.description}</td>
+        </tr>
+      </tbody>
+    </table>
+  </Typography>
+)}
               </div>
             </div>
           )}
@@ -879,7 +909,6 @@ function Report() {
               display: "flex",
               justifyContent: "center",
               fontSize: "0.7rem",
-              borderRadius: "50%",
               borderRadius: "10px",
               textAlign: "center",
               minHeight: "10px",
@@ -993,7 +1022,7 @@ function Report() {
               )}
             />
           </MDBox>
-          <MDBox sx={{ width: 250, p: 2 }}>
+          {/* <MDBox sx={{ width: 250, p: 2 }}>
             <InputLabel htmlFor="department">Department</InputLabel>
             <Autocomplete
               sx={{ width: 626, mt: 1 }}
@@ -1033,6 +1062,108 @@ function Report() {
               )}
             />
           </MDBox>
+          <MDBox sx={{ width: 250, p: 2 }}>
+            <InputLabel htmlFor="team lead">Team Lead</InputLabel>
+            <Autocomplete
+              sx={{ width: 626, mt: 1 }}
+              options={teamleads}
+              value={selectedTeamLead}
+              onChange={handleTeamLeadSelect}
+              inputValue={searchTerm}
+              onInputChange={handleSearchTermChange}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  // label="Search team leads"
+                  placeholder="Select a Team Lead"
+                  variant="outlined"
+                  sx={{
+                    "&.MuiOutlinedInput-root": {
+                      padding: "4px",
+                    },
+                    "& input": {
+                      height: "10px", // Adjust height as needed
+                    },
+                  }}
+                />
+              )}
+            />
+          </MDBox> */}
+          <MDBox sx={{ display: "flex", flexDirection: "row", p: 2 }}>
+            <div style={{ marginRight: "71px" }}>
+              <InputLabel htmlFor="department">Department</InputLabel>
+              <Autocomplete
+                sx={{ width: 250, mt: 1 }}
+                disablePortal
+                id="combo-box-demo"
+                options={list}
+                aria-required
+                value={
+                  value.projectName === "Not assigned-CV"
+                    ? "CV"
+                    : value.projectName === "Not assigned-NLP"
+                      ? "NLP"
+                      : value.team
+                }
+                onChange={(event, newValue) => {
+                  setValue({
+                    ...value,
+                    team: newValue,
+                  });
+                }}
+                disabled
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    placeholder="Select a Department"
+                    InputProps={{
+                      ...params.InputProps,
+                      disableUnderline: true,
+                      sx: {
+                        width: 305,
+                        "&.MuiOutlinedInput-root": {
+                          padding: "4px",
+                        },
+                      },
+                    }}
+                  />
+                )}
+              />
+            </div>
+            <div sx={{ mt: 5 }}>
+              <InputLabel htmlFor="manager" sx={{ mb: 1 }}>Manager</InputLabel>
+              <Autocomplete
+                fullWidth
+                id="manager"
+                options={managers}
+                value={value.managerTask}
+                onChange={(event, newValue) => {
+                  setValue({
+                    ...value,
+                    managerTask: newValue,
+                  });
+                }}
+                sx={{ width: 305 }}
+                disabled
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select a Manager"
+                    InputProps={{
+                      ...params.InputProps,
+                      disableUnderline: true,
+                      sx: {
+                        "&.MuiOutlinedInput-root": {
+                          padding: "3.9px",
+                        },
+                      },
+                    }}
+                  />
+                )}
+              />
+            </div>
+          </MDBox>
           <MDBox
             sx={{
               display: "flex",
@@ -1041,8 +1172,8 @@ function Report() {
               mt: 1,
             }}
           >
-            <InputLabel sx={{ mt: 1, ml: 2 }} htmlFor="manager">
-              Manager
+            <InputLabel sx={{ mt: 1, ml: 2 }} htmlFor="Team Lead">
+              Team Lead
             </InputLabel>
             <InputLabel sx={{ mt: 1, mr: 37 }} htmlFor="date">
               Date
@@ -1056,28 +1187,26 @@ function Report() {
           >
             <Autocomplete
               fullWidth
-              id="manager"
-              options={managers}
-              value={value.managerTask}
-              onChange={(event, newValue) => {
-                setValue({
-                  ...value,
-                  managerTask: newValue,
-                });
-              }}
+              options={teamleads}
+              value={selectedTeamLead}
+              onChange={handleTeamLeadSelect}
+              inputValue={searchTerm}
+              onInputChange={handleSearchTermChange}
               sx={{ width: 305 }}
-              disabled
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder="Select a Manager"
-                  InputProps={{
-                    ...params.InputProps,
-                    disableUnderline: true,
-                    sx: {
-                      "&.MuiOutlinedInput-root": {
-                        padding: "3.9px",
-                      },
+                  // label="Search team leads"
+                  placeholder="Select a Team Lead"
+                  variant="outlined"
+                  required
+                  sx={{
+                    width: 305,
+                    "&.MuiOutlinedInput-root": {
+                      padding: "4px",
+                    },
+                    "& input": {
+                      height: "10px", // Adjust height as needed
                     },
                   }}
                 />
@@ -1133,6 +1262,7 @@ function Report() {
               <Autocomplete
                 disablePortal
                 aria-required
+                required
                 id={`task_${index}`} // Unique ID for each Autocomplete
                 name={`createTask_${index}`} // Unique name for each Autocomplete
                 options={taskList.map((task) => task.createTask)} // Pass taskList directly
@@ -1237,9 +1367,25 @@ function Report() {
                   {/* Rest of the content for this row */}
                 </div>
               )}
+      
             </MDBox>
           ))}
-
+        {/* {value.projectName === "lime" && ( // Conditionally render based on selected project name
+                <MDBox sx={{ width: 626, mt: 1,mb: 2, ml: 2 }}>
+                  <InputLabel sx={{  mb: 1}} htmlFor="description">Description</InputLabel>
+                  <TextField
+                    id="description"
+                    name="description"
+                    placeholder="Enter description"
+                    multiline
+                    rows={4}
+                    value={value.description}
+                    onChange={handleInputchange}
+                    variant="outlined"
+                    fullWidth
+                  />
+                </MDBox>
+              )} */}
           <MDButton
             onClick={handleAddTaskField}
             color="success"
@@ -1271,7 +1417,7 @@ function Report() {
               onClick={handleSave}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Loading...' : (editMode ? 'Update' : 'Save')}
+              {isSubmitting ? "Loading..." : editMode ? "Update" : "Save"}
             </MDButton>
           </MDBox>
         </MDBox>
@@ -1423,81 +1569,100 @@ function Report() {
             <Card>
               <MDBox pt={0}>
                 {/* <Box sx={{ height: 500, width: "100%", display: "flex", borderRadius: 20 }}> */}
-                <Box
-                  sx={{
-                    height: 480,
-                    width: "100%",
-                    "@media screen and (min-width: 768px)": {
-                      height: 670,
-                    },
-                  }}
-                >
-                  <DataGrid
-                    rows={reversedRows}
-                    columns={report.length === 0 ? initialDataColumns : columns} // Use initialDataColumns when report is empty
-                    pageSize={10}
-                    rowsPerPageOptions={[10]}
-                    checkboxSelection
-                    getRowId={(row) => row._id}
-                    disableSelectionOnClick
-                    components={{
-                      Toolbar: () => (
-                        <div style={{ display: "flex" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              marginTop: "5px",
-                              marginLeft: "10px",
-                            }}
-                          >
-                            <FilterListIcon
-                              className="team-filter-icon"
-                              style={{
-                                cursor: "pointer",
-                                color: "#1a73e8",
-                                fontSize: "20px",
-                              }}
-                              onClick={handlePopperToggle}
-                              aria-label="Team Filter"
-                            />
-                            <MDTypography
-                              variant="h6"
-                              onClick={handlePopperToggle}
-                              style={{
-                                color: "#1a73e8",
-                                cursor: "pointer",
-                                fontSize: "12.1px",
-                              }}
-                            >
-                              DATE FILTER
-                            </MDTypography>
-                          </div>
+                <div>
+                  {loading ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100vh",
+                      }}
+                    >
+                      <CircularProgress style={{ color: "#3b95ee" }} />
+                    </div>
+                  ) : (
+                    <div>
+                      <Box
+                        sx={{
+                          height: 480,
+                          width: "100%",
+                          "@media screen and (min-width: 768px)": {
+                            height: 670,
+                          },
+                        }}
+                      >
+                        <DataGrid
+                          rows={reversedRows}
+                          columns={
+                            report.length === 0 ? initialDataColumns : columns
+                          } // Use initialDataColumns when report is empty
+                          pageSize={10}
+                          rowsPerPageOptions={[10]}
+                          checkboxSelection
+                          getRowId={(row) => row._id}
+                          disableSelectionOnClick
+                          components={{
+                            Toolbar: () => (
+                              <div style={{ display: "flex" }}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    marginTop: "5px",
+                                    marginLeft: "10px",
+                                  }}
+                                >
+                                  {/* <FilterListIcon
+                                    className="team-filter-icon"
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#1a73e8",
+                                      fontSize: "20px",
+                                    }}
+                                    onClick={handlePopperToggle}
+                                    aria-label="Team Filter"
+                                  /> */}
+                                  {/* <MDTypography
+                                    variant="h6"
+                                    onClick={handlePopperToggle}
+                                    style={{
+                                      color: "#1a73e8",
+                                      cursor: "pointer",
+                                      fontSize: "12.1px",
+                                    }}
+                                  >
+                                    DATE FILTER
+                                  </MDTypography> */}
+                                </div>
 
-                          <GridToolbar />
-                          <div
-                            style={{
-                              display: "flex",
-                              marginLeft: "auto",
-                              alignItems: "center",
-                            }}
-                          >
-                            {/* <MDButton
-                            className="team-report-btn"
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            style={{ marginRight: "13px" }}
-                            onClick={allReport}
-                          >
-                            &nbsp;All Report
-                          </MDButton> */}
-                          </div>
-                        </div>
-                      ),
-                    }}
-                  />
-                </Box>
+                                <GridToolbar />
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    marginLeft: "auto",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  {/* <MDButton
+                    className="team-report-btn"
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    style={{ marginRight: "13px" }}
+                    onClick={allReport}
+                  >
+                    &nbsp;All Report
+                  </MDButton> */}
+                                </div>
+                              </div>
+                            ),
+                          }}
+                        />
+                      </Box>
+                    </div>
+                  )}
+                </div>
               </MDBox>
             </Card>
           </Grid>

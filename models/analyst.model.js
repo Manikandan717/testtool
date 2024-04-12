@@ -29,15 +29,33 @@ const analystSchema = new Schema({
     type: String,
     required: true,
   },
+  teamLead: {
+    type: String,
+    required: true,
+  },
+  idleTasks: {
+    type: Number,
+  },
+  productionTasks: {
+    type: Number,
+  },
   dateTask: {
     type: Date,
     required: true,
   },
+  description: {
+    type: String,
+    // required: true,
+  },
+  approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  // Rejection details
+  rejectionReason: { type: String },
+  rejectionDescription: { type: String },
   sessionOne: [taskSchema], // Update to an array of tasks
   week: { type: Number, default: () => moment().format("W") },
   createdAt: { type: Date, default: () => moment().format('M D YYYY') },
 });
 
-const Analyst = mongoose.model('AnalystTask', analystSchema);
+const Analyst = mongoose.model('TaskData', analystSchema);
 
 export default Analyst;

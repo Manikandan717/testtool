@@ -29,7 +29,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import axios from 'axios'; // Import axios for making HTTP requests
 
 const UserDashboard = () => {
-  const apiUrl = "http://localhost:5000";
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   const name = useSelector((state) => state.auth.user.name);
   const empId = useSelector((state) => state.auth.user.empId);
   const [mode, setMode] = useState("");
