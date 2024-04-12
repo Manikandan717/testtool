@@ -59,13 +59,14 @@ const Basic = function (props) {
       
       if (role === "superadmin") {
         navigate("/allreport");
-      } else if (role === "analyst") {
+      } else if (role === "analyst" || role === "Team Leader") {
         navigate("/dashboardUser");
       } else {
         navigate("/dashboard");
       }
     }
   }, [props.auth.isAuthenticated, props.auth.user, navigate]);
+  
 
   useEffect(() => {
     if (props.errors) {
