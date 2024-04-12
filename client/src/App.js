@@ -45,6 +45,7 @@ import { from } from "stylis";
 import SuperadminReport from "./layouts/SuperadminReport";
 import AttendanceAdmin from "./layouts/Attendance-Admin"
 import DashboardUserNew from "./layouts/dashboard-new";
+import TeamLeadReport from "./layouts/TeamLeadReport";
 
 function App() {
   const [controller] = useMaterialUIController();
@@ -179,8 +180,11 @@ function App() {
         <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin'))}/>}>
           <Route exact path="/projects-admin" element={<AdminProjects/>} />
         </Route>    
-        <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
+        <Route element={<Protected isValid={(isLoggedIn&&(role === 'Team Leader' || role === 'analyst'))}/>}>
           <Route exact path="/user-attendance" element={<Attendance/>} />
+        </Route>
+        <Route element={<Protected isValid={(isLoggedIn&&(role === 'Team Leader' || role === 'analyst'))}/>}>
+          <Route exact path="/teamLeadReport" element={<TeamLeadReport/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
           <Route exact path="/dashboard-user" element={<DashboardUser/>} />
@@ -188,14 +192,14 @@ function App() {
         <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
           <Route exact path="/Settings" element={<TaskCreation/>} />
         </Route>
-        <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
+        <Route element={<Protected isValid={(isLoggedIn&&(role === 'Team Leader' || role === 'analyst'))}/>}>
           <Route exact path="/dashboardUser" element={<DashboardUserNew/>} />
         </Route>
         {/* <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
           <Route exact path="/LastLogin" element={<LastLogin/>} />
         </Route> */}
        
-        <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
+        <Route element={<Protected isValid={(isLoggedIn&&(role === 'Team Leader' || role === 'analyst'))}/>}>
           <Route exact path="/user-task" element={<UserReport/>} />
         </Route> <Route element={<Protected isValid={(isLoggedIn&&(role === 'superadmin' || role === 'admin'))}/>}>
           <Route exact path="/project-entry" element={<BillingReport />} />
