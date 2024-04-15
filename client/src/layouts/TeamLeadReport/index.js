@@ -423,36 +423,83 @@ function AdminReport() {
       ),
       align: "center",
     },
+    // {
+    //   field: 'approvalStatus',
+    //   headerName: 'Approval Status',
+    //   width: 150,
+
+    //   renderCell: (params) => (
+    //     <div>
+    //       {params.row.approvalStatus === 'pending' && (
+    //         <div>
+    //           <IconButton onClick={() => handleApprove(params.row._id)}>
+    //             <CheckCircleIcon style={{ color: 'green' }} />
+    //           </IconButton>
+    //           <IconButton onClick={() => handleReject(params.row._id)}>
+    //             <CancelIcon style={{ color: 'red' }} />
+    //           </IconButton>
+    //         </div>
+    //       )}
+    //       {/* {params.row.approvalStatus !== 'pending' && (
+    //         <Typography>{params.row.approvalStatus}</Typography>
+            
+    //       )} */}
+    //       {params.row.approvalStatus !== 'pending' && (
+    //         <Typography style={{ color: getStatusColor(params.row.approvalStatus), fontSize: 15 }}>
+    //           {params.row.approvalStatus.toUpperCase()}
+    //         </Typography>
+    //       )}
+    //     </div>
+
+    //   ),
+    // },
     {
       field: 'approvalStatus',
       headerName: 'Approval Status',
       width: 150,
-
-      renderCell: (params) => (
-        <div>
-          {params.row.approvalStatus === 'pending' && (
-            <div>
-              <IconButton onClick={() => handleApprove(params.row._id)}>
-                <CheckCircleIcon style={{ color: 'green' }} />
-              </IconButton>
-              <IconButton onClick={() => handleReject(params.row._id)}>
-                <CancelIcon style={{ color: 'red' }} />
-              </IconButton>
-            </div>
-          )}
-          {/* {params.row.approvalStatus !== 'pending' && (
-            <Typography>{params.row.approvalStatus}</Typography>
-            
-          )} */}
-          {params.row.approvalStatus !== 'pending' && (
-            <Typography style={{ color: getStatusColor(params.row.approvalStatus), fontSize: 15 }}>
-              {params.row.approvalStatus.toUpperCase()}
+      renderCell: (params) => {
+        // Convert dateTask to a Date object
+        const dateTask = new Date(params.row.dateTask);
+        // Get the month, day, and year of the dateTask
+        const taskMonth = dateTask.getMonth() + 1;
+        const taskDay = dateTask.getDate();
+        const taskYear = dateTask.getFullYear();
+        // Compare the dateTask to "12/04/2024"
+        const isBeforeDate = taskYear < 2024 || (taskYear === 2024 && (taskMonth < 4 || (taskMonth === 4 && taskDay < 12)));
+        
+        // If it's before "12/04/2024", default to 'Approved'
+        if (isBeforeDate) {
+          return (
+            <Typography style={{ color: 'green', fontSize: 15 }}>
+              APPROVED
             </Typography>
-          )}
-        </div>
-
-      ),
+          );
+        } else {
+          // If it's after or on "12/04/2024", render the approval options for pending tasks
+          return (
+            <div>
+              {params.row.approvalStatus === 'pending' && (
+                <div>
+                  <IconButton onClick={() => handleApprove(params.row._id)}>
+                    <CheckCircleIcon style={{ color: 'green' }} />
+                  </IconButton>
+                  <IconButton onClick={() => handleReject(params.row._id)}>
+                    <CancelIcon style={{ color: 'red' }} />
+                  </IconButton>
+                </div>
+              )}
+              {params.row.approvalStatus !== 'pending' && (
+                <Typography style={{ color: getStatusColor(params.row.approvalStatus), fontSize: 15 }}>
+                  {params.row.approvalStatus.toUpperCase()}
+                </Typography>
+              )}
+            </div>
+          );
+        }
+      },
     },
+    
+    
     {
       field: "view",
       headerName: "View",

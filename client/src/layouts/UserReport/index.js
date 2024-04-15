@@ -621,19 +621,55 @@ function Report({ notificationCount }) {
       editable: false,
       flex: 1,
     },
+    // {
+    //   field: "approvalStatus",
+    //   headerName: "Status",
+    //   width: 150,
+    //   editable: false,
+    //   flex: 1,
+    //   renderCell: (params) => (
+    //     <div style={{ color: params.value.toLowerCase() === "approved" ? "green" : params.value.toLowerCase() === "rejected" ? "red" : params.value.toLowerCase() === "pending" ? "orange" : "inherit" }}>
+    //       {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
+    //     </div>
+    //   ),
+    // },
     {
       field: "approvalStatus",
       headerName: "Status",
       width: 150,
       editable: false,
       flex: 1,
-      renderCell: (params) => (
-        <div style={{ color: params.value.toLowerCase() === "approved" ? "green" : params.value.toLowerCase() === "rejected" ? "red" : params.value.toLowerCase() === "pending" ? "orange" : "inherit" }}>
-          {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
-        </div>
-      ),
+      renderCell: (params) => {
+        // Convert dateTask to a Date object
+        const dateTask = new Date(params.row.dateTask);
+        // Get the month, day, and year of the dateTask
+        const taskMonth = dateTask.getMonth() + 1;
+        const taskDay = dateTask.getDate();
+        const taskYear = dateTask.getFullYear();
+        // Compare the dateTask to "12/04/2024"
+        const isBeforeOrEqualToDate = taskYear < 2024 || (taskYear === 2024 && (taskMonth < 4 || (taskMonth === 4 && taskDay <= 12)));
+        // If it's before or equal to the specific date, apply existing rendering logic for approval status
+        if (isBeforeOrEqualToDate) {
+          return (
+            <Typography style={{ color: 'green', fontSize: 15 }}>
+              Approved
+            </Typography>
+          );
+        } else {
+          // If it's after the specific date, return 'Approved'
+    
+          return (
+            <div style={{ color: params.value.toLowerCase() === "approved" ? "green" : params.value.toLowerCase() === "rejected" ? "red" : params.value.toLowerCase() === "pending" ? "orange" : "inherit" }}>
+              {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
+            </div>
+          );
+        }
+      },
     },
-
+    
+    
+    
+    
 
 
     {
@@ -1185,33 +1221,33 @@ function Report({ notificationCount }) {
               display: "flex",
             }}
           >
-            <Autocomplete
-              fullWidth
-              options={teamleads}
-              value={selectedTeamLead}
-              onChange={handleTeamLeadSelect}
-              inputValue={searchTerm}
-              onInputChange={handleSearchTermChange}
-              sx={{ width: 305 }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  // label="Search team leads"
-                  placeholder="Select a Team Lead"
-                  variant="outlined"
-                  required
-                  sx={{
-                    width: 305,
-                    "&.MuiOutlinedInput-root": {
-                      padding: "4px",
-                    },
-                    "& input": {
-                      height: "10px", // Adjust height as needed
-                    },
-                  }}
-                />
-              )}
-            />
+  <Autocomplete
+  fullWidth
+  options={['None', ...teamleads]} // Add 'None' as the first option
+  value={selectedTeamLead}
+  onChange={handleTeamLeadSelect}
+  inputValue={searchTerm}
+  onInputChange={handleSearchTermChange}
+  sx={{ width: 305 }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      placeholder="Select a Team Lead"
+      variant="outlined"
+      required
+      sx={{
+        width: 305,
+        "&.MuiOutlinedInput-root": {
+          padding: "4px",
+        },
+        "& input": {
+          height: "10px", // Adjust height as needed
+        },
+      }}
+    />
+  )}
+/>
+
 
             <TextField
               sx={{
