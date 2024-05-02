@@ -411,16 +411,25 @@ function AdminReport() {
       editable: false,
       flex: 1,
     },
+    // {
+    //   field: "totalHours",
+    //   headerName: "Total Hours",
+    //   width: 140,
+    //   editable: false,
+    //   renderCell: (params) => (
+    //     <Typography sx={{ fontSize: 15, textAlign: "center" }}>
+    //       {calculateTotalHours(params.row.sessionOne)}
+    //     </Typography>
+    //   ),
+    //   align: "center",
+    // },
+
     {
       field: "totalHours",
       headerName: "Total Hours",
       width: 140,
       editable: false,
-      renderCell: (params) => (
-        <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-          {calculateTotalHours(params.row.sessionOne)}
-        </Typography>
-      ),
+      valueGetter: (params) => calculateTotalHours(params.row.sessionOne),
       align: "center",
     },
     // {

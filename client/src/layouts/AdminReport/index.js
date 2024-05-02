@@ -351,18 +351,33 @@ function AdminReport() {
       editable: false,
       flex: 1,
     },
+    // {
+    //   field: "taskCount",
+    //   headerName: "Task Count",
+    //   width: 120,
+    //   editable: false,
+    //   renderCell: (params) => (
+    //     <Typography sx={{ fontSize: 15, textAlign: "center" }}>
+    //       {params.row.sessionOne.length}
+    //     </Typography>
+    //   ),
+    //   align: "center",
+    // },
     {
       field: "taskCount",
       headerName: "Task Count",
       width: 120,
       editable: false,
-      renderCell: (params) => (
-        <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-          {params.row.sessionOne.length}
-        </Typography>
-      ),
+      valueGetter: (params) => params.row.sessionOne.length,
       align: "center",
     },
+    // {
+    //   field: "managerTask",
+    //   headerName: "Project Manager",
+    //   width: 150,
+    //   editable: false,
+    //   flex: 1,
+    // },
     {
       field: "managerTask",
       headerName: "Project Manager",
@@ -370,16 +385,24 @@ function AdminReport() {
       editable: false,
       flex: 1,
     },
+    // {
+    //   field: "totalHours",
+    //   headerName: "Total Hours",
+    //   width: 140,
+    //   editable: false,
+    //   renderCell: (params) => (
+    //     <Typography sx={{ fontSize: 15, textAlign: "center" }}>
+    //       {calculateTotalHours(params.row.sessionOne)}
+    //     </Typography>
+    //   ),
+    //   align: "center",
+    // },
     {
       field: "totalHours",
       headerName: "Total Hours",
       width: 140,
       editable: false,
-      renderCell: (params) => (
-        <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-          {calculateTotalHours(params.row.sessionOne)}
-        </Typography>
-      ),
+      valueGetter: (params) => calculateTotalHours(params.row.sessionOne),
       align: "center",
     },
     // {
@@ -472,7 +495,7 @@ function AdminReport() {
         <IconButton style={{ color: "#2196f3", textAlign: "center" }} onClick={() => openDialog(params.row)}>
           <VisibilityIcon />
         </IconButton>
-      ),
+      ), 
     },
     {
       field: 'delete',
@@ -736,7 +759,12 @@ function AdminReport() {
     <DashboardLayout>
       <DashboardNavbar notificationCount={notificationCount} />
       <div>
-      <Dialog open={openRejectPopup} onClose={handleCloseRejectPopup} maxWidth="sm" fullWidth>
+        <Dialog
+          open={openRejectPopup}
+          onClose={handleCloseRejectPopup}
+          maxWidth="sm"
+          fullWidth
+        >
           <DialogTitle>Comments</DialogTitle>
           <DialogContent>
             <div>
@@ -772,23 +800,39 @@ function AdminReport() {
             </div>
           </DialogContent>
           <DialogActions>
-            <MDButton onClick={submitRejection} variant="contained" color="success">Submit</MDButton>
-            <MDButton onClick={handleCloseRejectPopup} variant="outlined" color="primary">Cancel</MDButton>
+            <MDButton
+              onClick={submitRejection}
+              variant="contained"
+              color="success"
+            >
+              Submit
+            </MDButton>
+            <MDButton
+              onClick={handleCloseRejectPopup}
+              variant="outlined"
+              color="primary"
+            >
+              Cancel
+            </MDButton>
           </DialogActions>
         </Dialog>
       </div>
 
       {/* Popover to display pending report names */}
 
-
       <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
         message={snackbarMessage}
         action={
-          <IconButton size="small" aria-label="close" color="inherit" onClick={handleSnackbarClose}>
+          <IconButton
+            size="small"
+            aria-label="close"
+            color="inherit"
+            onClick={handleSnackbarClose}
+          >
             <CloseIcon fontSize="small" />
           </IconButton>
         }
@@ -966,18 +1010,17 @@ function AdminReport() {
               <Typography
                 style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}
               >
-                <strong style={{ fontSize: "18px" }}>
-                  Project Name:
-                </strong>{" "}
+                <strong style={{ fontSize: "18px" }}>Project Name:</strong>{" "}
                 {selectedUserData.projectName}
               </Typography>
               <div
                 style={{
                   maxHeight: "300px", // Set a fixed height for the scrollable area
-                  overflow: "auto",  // Enable scrolling
+                  overflow: "auto", // Enable scrolling
                   marginTop: "10px",
                 }}
               >
+                <div style={{ display: "flex", justifyContent: "center" }}>
                 <table
                   style={{
                     width: "600px",
@@ -1035,7 +1078,8 @@ function AdminReport() {
                     ))}
                   </tbody>
                 </table>
-                <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
+                </div>
+                {/* <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
                   <strong style={{ fontSize: "18px" }}>Rejection Description:</strong>
                   <table style={{ marginTop: "10px" }}>
                     <tbody>
@@ -1044,23 +1088,29 @@ function AdminReport() {
                       </tr>
                     </tbody>
                   </table>
-                </Typography>
+                </Typography> */}
                 {selectedUserData !== null && (
-  <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
-    {selectedUserData.description && ( // Check if description exists
-      <strong style={{ fontSize: "18px" }}>Description</strong>
-    )}
-    <table style={{ marginTop: "10px" }}>
-      <tbody>
-        <tr>
-          <td>{selectedUserData.description}</td>
-        </tr>
-      </tbody>
-    </table>
-  </Typography>
-)}
-
-
+                  <Typography
+                    style={{
+                      fontSize: "1rem",
+                      marginTop: "10px",
+                      padding: "10px",
+                    }}
+                  >
+                    {selectedUserData.description && ( // Check if description exists
+                      <strong style={{ fontSize: "18px" }}>
+                        Rejection Description
+                      </strong>
+                    )}
+                    <table style={{ marginTop: "10px" }}>
+                      <tbody>
+                        <tr>
+                          <td>{selectedUserData.description}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </Typography>
+                )}
               </div>
             </div>
           )}
@@ -1082,7 +1132,13 @@ function AdminReport() {
 
         <MDBox pt={1}>
           <Grid item xs={12}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: "10px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: "10px",
+              }}
+            >
               <CSVLink
                 {...csvReport}
                 sx={{
@@ -1102,12 +1158,12 @@ function AdminReport() {
               </CSVLink>
             </div>
             <Card>
-
               <MDBox pt={0}>
-
-                <Box >
+                <Box>
                   {activeTab === 0 && (
-                    <div style={{ height: "670px" }}> {/* Set a fixed height */}
+                    <div style={{ height: "670px" }}>
+                      {" "}
+                      {/* Set a fixed height */}
                       <DataGrid
                         rows={dateProjectWiseData}
                         columns={dateProjectWiseColumns}
@@ -1150,7 +1206,6 @@ function AdminReport() {
                               </div>
 
                               <GridToolbar />
-
                             </div>
                           ),
                         }}
@@ -1202,17 +1257,14 @@ function AdminReport() {
                               </div>
 
                               <GridToolbar />
-
                             </div>
                           ),
                         }}
-
                       />
                     </div>
                   )}
                 </Box>
                 {/* <Box sx={{ height: 480, width: "100%" }}> */}
-
               </MDBox>
             </Card>
           </Grid>
