@@ -4,7 +4,7 @@ import { Grid, Card, TextField } from '@mui/material';
 import { DataGrid, GridToolbar, GridToolbarContainer } from "@mui/x-data-grid";
 import moment from 'moment';
 import DashboardLayout from 'examples/LayoutContainers/DashboardLayout';
-import DashboardNavbar from 'examples/Navbars/DashboardNavbar';
+import DashboardNav from 'examples/Navbars/DashboardNavbarManager';
 import Popper from "@mui/material/Popper";
 import FilterListIcon from "@material-ui/icons/FilterList";
 // import Footer from 'examples/Footer';
@@ -17,8 +17,8 @@ import DialogContent from "@mui/material/DialogContent";
 import MDButton from "components/MDButton";
 import MDInput from "components/MDInput";
  
-function Attendance() {
-  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+function Attendance({notificationCount}) {
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   const managerTask = useSelector((state) => state.auth.user.name);
   const empId = useSelector((state) => state.auth.user.empId);
  
@@ -90,7 +90,7 @@ function Attendance() {
  
   return (
     <DashboardLayout>
-      <DashboardNavbar />
+<DashboardNav notificationCount={notificationCount} />
  
       {/* <Grid container justifyContent="center">
         <Grid item xs={12} lg={8}>
@@ -183,14 +183,14 @@ function Attendance() {
                           alignItems="center"
                           pt={3}
                         >
-                          <MDButton
+                          {/* <MDButton
                             variant="gradient"
                             size="small"
                             color="info"
                             type="submit"
                           >
                             Search
-                          </MDButton>
+                          </MDButton> */}
                         </Box>
                       </MDBox>
                     </DialogContent>
