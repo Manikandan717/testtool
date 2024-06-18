@@ -17,7 +17,7 @@ const TaskCreation = () => {
 
   const name = useSelector((state) => state.auth.user.name);
 
-  const isParthibanU = name === 'Mohamed Afsar';
+  const isParthibanU = name === 'Parthiban U';
   const isSuperadmin = name === 'Super Admin';
 
   const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
