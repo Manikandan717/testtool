@@ -189,7 +189,10 @@ function App() {
         <Route element={<Protected isValid={(isLoggedIn&&role==='analyst')}/>}>
           <Route exact path="/dashboard-user" element={<DashboardUser/>} />
         </Route>
-        <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
+        {/* <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
+          <Route exact path="/Settings" element={<TaskCreation/>} />
+        </Route> */}
+        <Route element={<Protected isValid={(isLoggedIn&&(role==='superadmin' || role === 'admin'))}/>}>
           <Route exact path="/Settings" element={<TaskCreation/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&(role === 'Team Leader' || role === 'analyst'))}/>}>
