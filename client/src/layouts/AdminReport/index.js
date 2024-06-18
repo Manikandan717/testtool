@@ -74,6 +74,7 @@ function AdminReport() {
   const [projectName, setProjectName] = useState(null);
   const managerName = useSelector((state) => state.auth.user.name);
   const [activeTab, setActiveTab] = useState(0);
+  const [filteredColumns, setFilteredColumns] = useState([]);
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -323,131 +324,227 @@ function AdminReport() {
   // tabel report
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
-    {
-      field: "date",
-      headerName: "Date",
-      width: 100,
-      editable: false,
-      flex: 1,
+    { field: "date", 
+      headerName: "Date", 
+      width: 170,
+      // editable: false, 
+      // flex: 1 
+    },
+    { field: "name", 
+      headerName: "Name", 
+      width: 170,
+      // editable: false, 
+      // flex: 1 
     },
     {
-      field: "name",
-      headerName: "Name",
-      width: 200,
-      editable: false,
-      flex: 1,
+      field: "annName",
+      headerName: "Annotator Name",
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
-      field: "team",
-      headerName: "Team",
-      width: 70,
-      editable: false,
-      flex: 1,
+      field: "annotatorId",
+      headerName: "Annotator ID",
+      width: 270,
+      // editable: false,
+      // flex: 1,
     },
     {
-      field: "projectName",
-      headerName: "Project Name",
-      width: 150,
-      editable: false,
-      flex: 1,
+      field: "declineReason",
+      headerName: "Reason For Decline",
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
-    // {
-    //   field: "taskCount",
-    //   headerName: "Task Count",
-    //   width: 120,
-    //   editable: false,
-    //   renderCell: (params) => (
-    //     <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-    //       {params.row.sessionOne.length}
-    //     </Typography>
-    //   ),
-    //   align: "center",
-    // },
     {
-      field: "taskCount",
-      headerName: "Task Count",
-      width: 120,
-      editable: false,
-      valueGetter: (params) => params.row.sessionOne.length,
-      align: "center",
+      field: "annBatch",
+      headerName: "Batch",
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
-    // {
-    //   field: "managerTask",
-    //   headerName: "Project Manager",
-    //   width: 150,
-    //   editable: false,
-    //   flex: 1,
-    // },
     {
-      field: "managerTask",
-      headerName: "Project Manager",
-      width: 150,
-      editable: false,
-      flex: 1,
+      field: "annPrompt",
+      headerName: "Prompt",
+      width: 370,
+      // editable: false,
+      // flex: 1,
     },
-    // {
-    //   field: "totalHours",
-    //   headerName: "Total Hours",
-    //   width: 140,
-    //   editable: false,
-    //   renderCell: (params) => (
-    //     <Typography sx={{ fontSize: 15, textAlign: "center" }}>
-    //       {calculateTotalHours(params.row.sessionOne)}
-    //     </Typography>
-    //   ),
-    //   align: "center",
-    // },
     {
-      field: "totalHours",
-      headerName: "Total Hours",
-      width: 140,
-      editable: false,
-      valueGetter: (params) => calculateTotalHours(params.row.sessionOne),
-      align: "center",
+      field: "annReasonOne",
+      headerName: "Response One",
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
-    // {
-    //   field: 'approvalStatus',
-    //   headerName: 'Approval Status',
-    //   width: 150,
-    //   renderCell: (params) => (
-    //     <div>
-    //       {params.row.approvalStatus === 'pending' && (
-    //         <div>
-    //           <IconButton onClick={() => handleApprove(params.row._id)}>
-    //             <CheckCircleIcon style={{ color: 'green' }} />
-    //           </IconButton>
-    //           <IconButton onClick={() => handleReject(params.row._id)}>
-    //             <CancelIcon style={{ color: 'red' }} />
-    //           </IconButton>
-    //         </div>
-    //       )}
-    //       {/* {params.row.approvalStatus !== 'pending' && (
-    //         <Typography>{params.row.approvalStatus}</Typography>
-    //       )} */}
-    //                  {params.row.approvalStatus !== 'pending' && (
-    //   <Typography style={{ color: getStatusColor(params.row.approvalStatus), fontSize: 15 }}>
-    //     {params.row.approvalStatus.toUpperCase()}
-    //   </Typography>
-    // )}
-    //     </div>
-    //   ),
-    // },
-
+    {
+      field: "annReasonTwo",
+      headerName: "Response Two",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "overallPref",
+      headerName: "Overall Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "overallRank",
+      headerName: "Overall Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "responseOne",
+      headerName: "Response One Rating",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "responseTwo",
+      headerName: "Response Two Rating",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "harmlessPref",
+      headerName: "Harmless Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "harmlessRank",
+      headerName: "Harmless Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "honestPref",
+      headerName: "Honest Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "honestRank",
+      headerName: "Honest Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "helpPref",
+      headerName: "Helpful Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "helpRank",
+      headerName: "Helpful Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "commentAnn",
+      headerName: "Comments",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "startTime",
+      headerName: "Start Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "endTime",
+      headerName: "End Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "totalTime",
+      headerName: "Total Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "toolTime",
+      headerName: "Tool Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "mins",
+      headerName: "Minutes",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "sec",
+      headerName: "Seconds",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    { field: "team", 
+      headerName: "Team", 
+      width: 170,
+      // editable: false, 
+      // flex: 1 
+    },
+    { field: "projectName", 
+      headerName: "Project Name", 
+      width: 170,
+      // editable: false, 
+      // flex: 1 
+    },
+    { field: "taskCount", 
+      headerName: "Task Count", 
+      width: 170,
+      // editable: false, 
+      valueGetter: (params) => params.row.sessionOne.length, 
+      align: "center" },
+    { field: "managerTask", 
+      headerName: "Project Manager", 
+      width: 170,
+      // editable: false, 
+      // flex: 1 
+    },
+    { field: "totalHours", 
+      headerName: "Total Hours", 
+      width: 170,
+      // editable: false, 
+      valueGetter: (params) => calculateTotalHours(params.row.sessionOne), 
+      align: "center" },
+    // Conditional rendering of "Annotator ID" column based on the user's name
     {
       field: 'approvalStatus',
       headerName: 'Approval Status',
-      width: 150,
+      width: 170,
       renderCell: (params) => {
-        // Convert dateTask to a Date object
         const dateTask = new Date(params.row.dateTask);
-        // Get the month, day, and year of the dateTask
         const taskMonth = dateTask.getMonth() + 1;
         const taskDay = dateTask.getDate();
         const taskYear = dateTask.getFullYear();
-        // Compare the dateTask to "12/04/2024"
         const isBeforeDate = taskYear < 2024 || (taskYear === 2024 && (taskMonth < 4 || (taskMonth === 4 && taskDay < 12)));
-        
-        // If it's before "12/04/2024", default to 'Approved'
         if (isBeforeDate) {
           return (
             <Typography style={{ color: 'green', fontSize: 15 }}>
@@ -455,7 +552,6 @@ function AdminReport() {
             </Typography>
           );
         } else {
-          // If it's after or on "12/04/2024", render the approval options for pending tasks
           return (
             <div>
               {params.row.approvalStatus === 'pending' && (
@@ -478,41 +574,20 @@ function AdminReport() {
         }
       },
     },
-    {
-      field: "teamLead",
-      headerName: "Approved By",
-      width: 150,
-      editable: false,
-      flex: 1,
-    },
-    {
-      field: "view",
-      headerName: "View",
-      sortable: false,
-      filterable: false,
-      width: 100,
-      renderCell: (params) => (
-        <IconButton style={{ color: "#2196f3", textAlign: "center" }} onClick={() => openDialog(params.row)}>
-          <VisibilityIcon />
-        </IconButton>
-      ), 
-    },
-    {
-      field: 'delete',
-      headerName: 'Delete',
-      sortable: false,
-      filterable: false,
-      width: 100,
-      renderCell: (params) => (
-        <IconButton
-          style={{ color: 'red' }}
-          onClick={() => handleDelete(params.row._id)}
-        >
-          <DeleteIcon />
-        </IconButton>
-      ),
-    },
+    { field: "teamLead", headerName: "Approved By",  },
+    { field: "view", headerName: "View", sortable: false, filterable: false, renderCell: (params) => (
+      <IconButton style={{ color: "#2196f3", textAlign: "center" }} onClick={() => openDialog(params.row)}>
+        <VisibilityIcon />
+      </IconButton>
+    )},
+    { field: 'delete', headerName: 'Delete', sortable: false, filterable: false, renderCell: (params) => (
+      <IconButton style={{ color: 'red' }} onClick={() => handleDelete(params.row._id)}>
+        <DeleteIcon />
+      </IconButton>
+    )},
   ];
+  
+
 
   const row = useMemo(
     () =>
@@ -529,7 +604,24 @@ function AdminReport() {
       })),
     [report]
   );
+  useEffect(() => {
+    const filterColumns = (data, columns) => {
+      return columns.filter(
+        (column) =>
+          column.field === "delete" || // Always include the "edit" column
+          column.field === "view" || // Always include the "view" column
+          data.some(
+            (row) =>
+              row[column.field] !== undefined &&
+              row[column.field] !== null &&
+              row[column.field] !== ""
+          )
+      );
+    };
 
+    const filtered = filterColumns(row, columns);
+    setFilteredColumns(filtered);
+  }, [row]);
   // Team List
   const list = ["CV", "NLP", "CM", "SOURCING", "DEVELOPMENT"];
 
@@ -1075,6 +1167,7 @@ function AdminReport() {
                           {session.sessionOne}
                         </td>
                       </tr>
+                      
                     ))}
                   </tbody>
                 </table>
@@ -1215,8 +1308,10 @@ function AdminReport() {
                   {activeTab === 1 && (
                     <div style={{ height: 670, width: "100%" }}>
                       <DataGrid
+                        // rows={row}
+                        // columns={columns}
                         rows={row}
-                        columns={columns}
+                        columns={filteredColumns}
                         // pageSize={10}
                         rowsPerPageOptions={[5, 10, 25, 50, 100]}
                         checkboxSelection

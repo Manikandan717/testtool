@@ -8,13 +8,14 @@ import CardContent from "@mui/material/CardContent";
 import * as React from "react";
 import { DataGrid, GridToolbar, GridPagination } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
+import {  MenuItem, Select } from '@mui/material';
 import FormControl from "@mui/material/FormControl";
 import { useState, useMemo, useEffect } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNav from "examples/Navbars/DashboardNav";
 import { useSelector } from "react-redux";
-import { useRef } from 'react';
+import { useRef } from "react";
 import axios from "axios";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -42,7 +43,7 @@ import { fontSize } from "@mui/system";
 import { ms } from "date-fns/locale";
 
 function Report({ notificationCount }) {
-  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
+  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
   // task page code start
   const [data, setData] = useState([]);
   const [disable, setDisable] = useState(true);
@@ -56,8 +57,11 @@ function Report({ notificationCount }) {
   const empid = useSelector((state) => state.auth.user.empId);
   const [teamleads, setTeamLeads] = useState([]);
   const [editMode, setEditMode] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTeamLead, setSelectedTeamLead] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTeamLead, setSelectedTeamLead] = useState("");
+  const [filteredColumns, setFilteredColumns] = useState([]);
+  const bufferOptions = ["Yes", "No"];
+  const locationOptions = ["Karur", "Coimbatore"];
   const initialvalues = {
     editMode: false,
     team: "",
@@ -68,6 +72,33 @@ function Report({ notificationCount }) {
     dateTask: "",
     description: "",
     sessionOne: "",
+    annotatorId: "",
+    annName: "",
+    declineReason: "",
+    annBatch: "",
+    annPrompt: "",
+    annReasonOne: "",
+    annReasonTwo: "",
+    overallPref: "",
+    overallRank: "",
+    responseOne: "",
+    responseTwo: "",
+    harmlessPref: "",
+    harmlessRank: "",
+    honestPref: "",
+    honestRank: "",
+    helpPref: "",
+    helpRank: "",
+    commentAnn: "",
+    startTime: "",
+    endTime: "",
+    totalTime: "",
+    toolTime: "",
+    mins: "",
+    sec: "",
+    buffer: "",
+    bufferName: "",
+    location: ""
   };
 
   const [value, setValue] = useState(initialvalues);
@@ -85,7 +116,7 @@ function Report({ notificationCount }) {
         const response = await axios.get(`${apiUrl}/api/teamleads`);
         setTeamLeads(response.data.teamleads);
       } catch (error) {
-        console.error('Error fetching team leads:', error);
+        console.error("Error fetching team leads:", error);
       }
     };
 
@@ -100,15 +131,14 @@ function Report({ notificationCount }) {
     setSelectedTeamLead(value);
   };
 
-
   const [loading, setLoading] = useState(false);
 
   const saveData = async (data) => {
     try {
       const response = await fetch(`${apiUrl}/add`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           // You might need to include other headers like authorization if required
         },
         body: JSON.stringify(data),
@@ -116,7 +146,9 @@ function Report({ notificationCount }) {
 
       if (!response.ok) {
         // Handle the error, for example:
-        throw new Error(`Failed to save data. Server returned ${response.status}`);
+        throw new Error(
+          `Failed to save data. Server returned ${response.status}`
+        );
       }
 
       // If the request was successful, you might return some response data
@@ -146,7 +178,7 @@ function Report({ notificationCount }) {
       toast.success("Data saved successfully!");
       setDataSubmitted(true);
     } catch (error) {
-      console.error('Error saving data:', error);
+      console.error("Error saving data:", error);
       // Handle the error if needed
       // toast.error('Error saving data. Please try again.');
     } finally {
@@ -172,8 +204,6 @@ function Report({ notificationCount }) {
     },
   ]);
 
-
-
   const handleEdit = (rowData) => {
     setEditMode(true); // Set edit mode to true
     setTasks(rowData.tasks || []);
@@ -188,6 +218,34 @@ function Report({ notificationCount }) {
       projectName: rowData.projectName,
       managerTask: rowData.managerTask,
       dateTask: moment(rowData.dateTask).format("YYYY-MM-DD"),
+      description: rowData.description,
+      annotatorId: rowData.annotatorId,
+      annName: rowData.annName,
+      declineReason: rowData.declineReason,
+      annBatch: rowData.annBatch,
+      annPrompt: rowData.annPrompt,
+      annReasonOne: rowData.annReasonOne,
+      annReasonTwo: rowData.annReasonTwo,
+      overallPref: rowData.overallPref,
+      overallRank: rowData.overallRank,
+      responseOne: rowData.responseOne,
+      responseTwo: rowData.responseTwo,
+      harmlessPref: rowData.harmlessPref,
+      harmlessRank: rowData.harmlessRank,
+      honestPref: rowData.honestPref,
+      honestRank: rowData.honestRank,
+      helpPref: rowData.helpPref,
+      helpRank: rowData.helpRank,
+      commentAnn: rowData.commentAnn,
+      startTime: rowData.startTime,
+      endTime: rowData.endTime,
+      totalTime: rowData.totalTime,
+      toolTime: rowData.toolTime,
+      mins: rowData.mins,
+      sec: rowData.sec,
+      buffer: rowData.buffer,
+      bufferName: rowData.bufferName,
+      location: rowData.location
       // Populate other fields as needed
     });
 
@@ -206,9 +264,6 @@ function Report({ notificationCount }) {
     // Open the drawer
     openDrawer();
   };
-
-
-
 
   const handleTaskInputChange = (index, event) => {
     const newTasks = [...tasks];
@@ -246,6 +301,33 @@ function Report({ notificationCount }) {
       managerTask: "",
       sessionOne: "",
       teamLead: "",
+      // annotatorId: "",
+      // annName: "",
+      declineReason: "",
+      annBatch: "",
+      annPrompt: "",
+      annReasonOne: "",
+      annReasonTwo: "",
+      overallPref: "",
+      overallRank: "",
+      responseOne: "",
+      responseTwo: "",
+      harmlessPref: "",
+      harmlessRank: "",
+      honestPref: "",
+      honestRank: "",
+      helpPref: "",
+      helpRank: "",
+      commentAnn: "",
+      startTime: "",
+      endTime: "",
+      totalTime: "",
+      toolTime: "",
+      mins: "",
+      sec: "",
+      buffer: "",
+      bufferName: "",
+      location: ""
       // sessionMinute: ''
     }));
 
@@ -337,13 +419,41 @@ function Report({ notificationCount }) {
           managerTask: "",
           team: "", // Reset team value
           teamLead: "",
+          // annotatorId: "",
+          // annName: "",
+          declineReason: "",
+          annBatch: "",
+          annPrompt: "",
+          annReasonOne: "",
+          annReasonTwo: "",
+          overallPref: "",
+          overallRank: "",
+          responseOne: "",
+          responseTwo: "",
+          harmlessPref: "",
+          harmlessRank: "",
+          honestPref: "",
+          honestRank: "",
+          helpPref: "",
+          helpRank: "",
+          commentAnn: "",
+          startTime: "",
+          endTime: "",
+          totalTime: "",
+          toolTime: "",
+          mins: "",
+          sec: "",
+          buffer: "",
+          bufferName: "",
+          location: ""
         }));
       }
     });
   }, [value.projectName, editMode]);
 
   const fetchUpdatedData = () => {
-    axios.get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
+    axios
+      .get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
       .then((response) => {
         setInitialData(response.data);
       })
@@ -381,9 +491,35 @@ function Report({ notificationCount }) {
       idleTasks: countIdleTasks(),
       productionTasks: countProductionTasks(),
       teamLead: selectedTeamlead, // Correct field name
-      description: value.description
+      description: value.description,
+      annotatorId: value.annotatorId,
+      annName: value.annName,
+      declineReason: value.declineReason,
+      annBatch: value.annBatch,
+      annPrompt: value.annPrompt,
+      annReasonOne: value.annReasonOne,
+      annReasonTwo: value.annReasonTwo,
+      overallPref: value.overallPref,
+      overallRank: value.overallRank,
+      responseOne: value.responseOne,
+      responseTwo: value.responseTwo,
+      harmlessPref: value.harmlessPref,
+      harmlessRank: value.harmlessRank,
+      honestPref: value.honestPref,
+      honestRank: value.honestRank,
+      helpPref: value.helpPref,
+      helpRank: value.helpRank,
+      commentAnn: value.commentAnn,
+      startTime: value.startTime,
+      endTime: value.endTime,
+      totalTime: value.totalTime,
+      toolTime: value.toolTime,
+      mins: value.mins,
+      sec: value.sec,
+      buffer: value.buffer,
+      bufferName: value.bufferName,
+      location: value.location
     };
-
 
     try {
       if (editMode) {
@@ -415,6 +551,33 @@ function Report({ notificationCount }) {
         projectName: "",
         managerTask: "",
         teamLead: "",
+        // annotatorId: "",
+        // annName: "",
+        declineReason: "",
+        annBatch: "",
+        annPrompt: "",
+        annReasonOne: "",
+        annReasonTwo: "",
+        overallPref: "",
+        overallRank: "",
+        responseOne: "",
+        responseTwo: "",
+        harmlessPref: "",
+        harmlessRank: "",
+        honestPref: "",
+        honestRank: "",
+        helpPref: "",
+        helpRank: "",
+        commentAnn: "",
+        startTime: "",
+        endTime: "",
+        totalTime: "",
+        toolTime: "",
+        mins: "",
+        sec: "",
+        buffer: "",
+        bufferName: "",
+        location: ""
       }));
     } catch (err) {
       console.error("Error updating/submitting data:", err);
@@ -424,10 +587,6 @@ function Report({ notificationCount }) {
     }
   };
 
-
-
-
-
   const [rowData, setRowData] = useState(null);
 
   const openDrawerForEdit = (rowData) => {
@@ -436,7 +595,7 @@ function Report({ notificationCount }) {
     // Additional code to open the drawer
   };
 
-  useEffect(() => { }, [tasks, selectedUserData]);
+  useEffect(() => {}, [tasks, selectedUserData]);
 
   const listtask = ["CV", "NLP", "CM"];
 
@@ -465,13 +624,80 @@ function Report({ notificationCount }) {
   const [teamList, setTeamList] = useState(null);
   const [reversedRows, setReversedRows] = useState([]);
   const empId = useSelector((state) => state.auth.user.empId);
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
 
-    setValues({
-      ...values,
-      [name]: value,
-    });
+  const calculateTimeDifference = (startTime, endTime) => {
+    const start = new Date(`1970-01-01T${startTime}`);
+    const end = new Date(`1970-01-01T${endTime}`);
+  
+    if (end < start) {
+      end.setDate(end.getDate() + 1); // Handle cases where end time is past midnight
+    }
+  
+    const difference = (end - start) / 1000; // Difference in seconds
+    const hours = Math.floor(difference / 3600);
+    const minutes = Math.floor((difference % 3600) / 60);
+    const seconds = Math.floor(difference % 60);
+  
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+  
+
+  const handleInputChange = (e) => {
+    const { name, value: inputValue } = e.target;
+  
+    setValue((prevValue) => ({
+      ...prevValue,
+      [name]: inputValue,
+    }));
+  
+    if (name === 'startTime' || name === 'endTime') {
+      const newValue = {
+        ...value,
+        [name]: inputValue,
+      };
+  
+      const { startTime, endTime } = newValue;
+  
+      if (startTime && endTime) {
+        const calculateTimeDifference = (startTime, endTime) => {
+          const start = new Date(`1970-01-01T${startTime}Z`);
+          const end = new Date(`1970-01-01T${endTime}Z`);
+  
+          if (end < start) {
+            end.setDate(end.getDate() + 1); // Handle cases where end time is past midnight
+          }
+  
+          const difference = (end - start) / 1000; // Difference in seconds
+          const hours = Math.floor(difference / 3600);
+          const minutes = Math.floor((difference % 3600) / 60);
+          const seconds = Math.floor(difference % 60);
+  
+          return {
+            hours,
+            minutes,
+            seconds,
+          };
+        };
+  
+        const { hours, minutes, seconds } = calculateTimeDifference(startTime, endTime);
+  
+        setValue((prevValue) => ({
+          ...prevValue,
+          hours: hours.toString(),
+          mins: minutes.toString(),
+          sec: seconds.toString(),
+          totalTime: `${hours}h ${minutes}m ${seconds}s`,
+        }));
+      }
+    }
+  };
+  
+  
+  const handleAutocompleteChange = (name) => (event, newValue) => {
+    setValue((prevValue) => ({
+      ...prevValue,
+      [name]: newValue,
+    }));
   };
   const handleTeamChange = (event, value) => setTeamList(value);
   const [show, setShow] = useState(false);
@@ -490,7 +716,6 @@ function Report({ notificationCount }) {
     setSelectedUserData(userData);
     setDialogOpen(true);
   };
-
 
   const countIdleTasks = () => {
     const uniqueIdleTasks = new Set();
@@ -567,9 +792,8 @@ function Report({ notificationCount }) {
     {
       field: "dateTask",
       headerName: "Date",
-      width: 130,
+      width: 170,
       editable: false,
-      flex: 1,
       valueFormatter: (params) => {
         return moment(params.value).format("DD-MM-YYYY");
       },
@@ -577,29 +801,211 @@ function Report({ notificationCount }) {
     {
       field: "name",
       headerName: "Name",
-      width: 50,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annName",
+      headerName: "Annotator Name",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annotatorId",
+      headerName: "Annotator ID",
+      width: 270,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "declineReason",
+      headerName: "Reason For Decline",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annBatch",
+      headerName: "Batch",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "buffer",
+      headerName: "Buffer",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "location",
+      headerName: "location",
+      width: 170,   // width: 200,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annPrompt",
+      headerName: "Prompt",
+      width: 370,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annReasonOne",
+      headerName: "Response One",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annReasonTwo",
+      headerName: "Response Two",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "overallPref",
+      headerName: "Overall Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "overallRank",
+      headerName: "Overall Ranking",
+      width: 170, // width: 200,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "responseOne",
+      headerName: "Response One Rating",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "responseTwo",
+      headerName: "Response Two Rating",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "harmlessPref",
+      headerName: "Harmless Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "harmlessRank",
+      headerName: "Harmless Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "honestPref",
+      headerName: "Honest Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "honestRank",
+      headerName: "Honest Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "helpPref",
+      headerName: "Helpful Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "helpRank",
+      headerName: "Helpful Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "commentAnn",
+      headerName: "Comments",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "startTime",
+      headerName: "Start Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "endTime",
+      headerName: "End Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "totalTime",
+      headerName: "Total Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "toolTime",
+      headerName: "Tool Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "mins",
+      headerName: "Minutes",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "sec",
+      headerName: "Seconds",
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
       field: "projectName",
       headerName: "Project Name",
-      width: 150,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
       field: "team",
       headerName: "Team",
-      width: 50,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
       field: "taskCount",
       headerName: "Task Count",
-      width: 120,
-      editable: false,
+      width: 170,
+      // editable: false,
       renderCell: (params) => (
         <Typography sx={{ fontSize: 15 }}>
           {params.row.sessionOne.length}
@@ -610,16 +1016,16 @@ function Report({ notificationCount }) {
     {
       field: "teamLead",
       headerName: "Team Lead",
-      width: 150,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
       field: "managerTask",
       headerName: "Project Manager",
-      width: 150,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     // {
     //   field: "approvalStatus",
@@ -636,9 +1042,9 @@ function Report({ notificationCount }) {
     {
       field: "approvalStatus",
       headerName: "Status",
-      width: 150,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
       renderCell: (params) => {
         // Convert dateTask to a Date object
         const dateTask = new Date(params.row.dateTask);
@@ -647,36 +1053,45 @@ function Report({ notificationCount }) {
         const taskDay = dateTask.getDate();
         const taskYear = dateTask.getFullYear();
         // Compare the dateTask to "12/04/2024"
-        const isBeforeOrEqualToDate = taskYear < 2024 || (taskYear === 2024 && (taskMonth < 4 || (taskMonth === 4 && taskDay <= 12)));
+        const isBeforeOrEqualToDate =
+          taskYear < 2024 ||
+          (taskYear === 2024 &&
+            (taskMonth < 4 || (taskMonth === 4 && taskDay <= 12)));
         // If it's before or equal to the specific date, apply existing rendering logic for approval status
         if (isBeforeOrEqualToDate) {
           return (
-            <Typography style={{ color: 'green', fontSize: 15 }}>
+            <Typography style={{ color: "green", fontSize: 15 }}>
               Approved
             </Typography>
           );
         } else {
           // If it's after the specific date, return 'Approved'
-    
+
           return (
-            <div style={{ color: params.value.toLowerCase() === "approved" ? "green" : params.value.toLowerCase() === "rejected" ? "red" : params.value.toLowerCase() === "pending" ? "orange" : "inherit" }}>
+            <div
+              style={{
+                color:
+                  params.value.toLowerCase() === "approved"
+                    ? "green"
+                    : params.value.toLowerCase() === "rejected"
+                    ? "red"
+                    : params.value.toLowerCase() === "pending"
+                    ? "orange"
+                    : "inherit",
+              }}
+            >
               {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
             </div>
           );
         }
       },
     },
-    
-    
-    
-    
-
 
     {
       field: "totalHours",
       headerName: "Total Hours",
-      width: 140,
-      editable: false,
+      width: 170,
+      // editable: false,
       renderCell: (params) => (
         <Typography sx={{ fontSize: 15 }}>
           {calculateTotalHours(params.row.sessionOne)}
@@ -690,7 +1105,7 @@ function Report({ notificationCount }) {
       headerName: "View",
       sortable: false,
       filterable: false,
-      width: 100,
+      // width: 100,
       renderCell: (params) => (
         <IconButton
           style={{ color: "#2196f3" }}
@@ -705,8 +1120,8 @@ function Report({ notificationCount }) {
       headerName: "Edit",
       sortable: false,
       filterable: false,
-      width: 100,
-      renderCell: (params) => (
+      // width: 100,
+      renderCell: (params) =>
         params.row.approvalStatus !== "approved" && (
           <IconButton
             style={{ color: "#4caf50" }}
@@ -714,8 +1129,7 @@ function Report({ notificationCount }) {
           >
             <EditIcon />
           </IconButton>
-        )
-      ),
+        ),
     },
   ];
 
@@ -725,34 +1139,50 @@ function Report({ notificationCount }) {
   ];
 
   useEffect(() => {
-
     setLoading(true);
 
     setTimeout(() => {
       const reversedRowsData =
-        report.length === 0
-          ? initialData
-            .slice()
-            .reverse()
-            .map((item, index) => ({
-              ...item,
-              id: index + 1,
-              name: item.name,
-              team: item.team,
-              date: moment(item.createdAt).format("DD-MM-YYYY"),
-              projectName: item.projectName,
-              task: item.task,
-              teamLead: item.teamLead,
-              managerTask: item.managerTask,
-              sessionOne: item.sessionOne,
-              // sessionMinute: item.sessionMinute,
-            }))
-          : report.slice().reverse() || [];
+        initialData
+          .slice()
+          .reverse()
+          .map((item, index) => ({
+            ...item,
+            id: index + 1,
+            name: item.name,
+            team: item.team,
+            dateTask: item.dateTask,
+            projectName: item.projectName,
+            task: item.task,
+            teamLead: item.teamLead,
+            managerTask: item.managerTask,
+            sessionOne: item.sessionOne,
+            approvalStatus: item.approvalStatus,
+          })) || [];
 
       setReversedRows(reversedRowsData);
       setLoading(false);
     }, 1000);
   }, [report, initialData]);
+
+  useEffect(() => {
+    const filterColumns = (data, columns) => {
+      return columns.filter(
+        (column) =>
+          column.field === "edit" || // Always include the "edit" column
+          column.field === "view" || // Always include the "view" column
+          data.some(
+            (row) =>
+              row[column.field] !== undefined &&
+              row[column.field] !== null &&
+              row[column.field] !== ""
+          )
+      );
+    };
+
+    const filtered = filterColumns(reversedRows, initialDataColumns);
+    setFilteredColumns(filtered);
+  }, [reversedRows]);
   // Team List
   const list = ["CV", "NLP", "CM", "SOURCING"];
 
@@ -777,11 +1207,295 @@ function Report({ notificationCount }) {
     const hours = Math.floor(totalMinutes / 60);
     const remainingMinutes = totalMinutes % 60;
 
-    const formattedTotalHours = `${hours}hr:${remainingMinutes.toString().padStart(2, '0')}min`;
+    const formattedTotalHours = `${hours}hr:${remainingMinutes
+      .toString()
+      .padStart(2, "0")}min`;
 
     return formattedTotalHours;
   };
 
+  const [annotatorData, setAnnotatorData] = useState([]);
+
+  useEffect(() => {
+    fetchDataAnn();
+  }, []);
+
+  const fetchDataAnn = () => {
+    axios
+      .get(`${apiUrl}/fetch/annotatordata`)
+      .then((response) => {
+        const data = response.data.map((annotator) => ({
+          createAnnotator: annotator.createAnnotator,
+          createName: annotator.createName
+        }));
+        setAnnotatorData(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching annotator data:", error);
+      });
+  };
+  
+
+  const [annotatorNameData, setAnnotatorNameData] = useState([]);
+
+  useEffect(() => {
+    fetchNameDataAnn();
+  }, []);
+
+  const fetchNameDataAnn = () => {
+    axios
+      .get(`${apiUrl}/fetch/annotator-name-data`)
+      .then((response) => {
+        setAnnotatorNameData(
+          response.data.map((annotatorName) => annotatorName.createName)
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching annotator data:", error);
+      });
+  };
+
+  const [annotatorDecData, setAnnotatorDecData] = useState([]);
+
+  useEffect(() => {
+    fetchDecDataAnn();
+  }, []);
+
+  const fetchDecDataAnn = () => {
+    axios
+      .get(`${apiUrl}/fetch/decline-task`)
+      .then((response) => {
+        setAnnotatorDecData(
+          response.data.map(
+            (annotatorDecData) => annotatorDecData.createDecReason
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching annotator data:", error);
+      });
+  };
+  const [overallPrefData, setOverallPrefData] = useState([]);
+
+  useEffect(() => {
+    fetchOverallPrefData();
+  }, []);
+
+  const fetchOverallPrefData = () => {
+    axios
+      .get(`${apiUrl}/fetch/overall-pref`)
+      .then((response) => {
+        setOverallPrefData(
+          response.data.map(
+            (annotatorOverPref) => annotatorOverPref.createOverPref
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching Overall preference:", error);
+      });
+  };
+
+  const [overallRankData, setOverallRankData] = useState([]);
+
+  useEffect(() => {
+    fetchOverallRankData();
+  }, []);
+
+  const fetchOverallRankData = () => {
+    axios
+      .get(`${apiUrl}/fetch/overall-rank`)
+      .then((response) => {
+        setOverallRankData(
+          response.data.map(
+            (annotatorOverRank) => annotatorOverRank.createOverRank
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching Overall ranking:", error);
+      });
+  };
+
+  const [resOne, setResOne] = useState([]);
+
+  useEffect(() => {
+    fetchResOne();
+  }, []);
+
+  const fetchResOne = () => {
+    axios
+      .get(`${apiUrl}/fetch/res-one`)
+      .then((response) => {
+        setResOne(response.data.map((resOne) => resOne.createResOne));
+      })
+      .catch((error) => {
+        console.error("Error fetching Response One:", error);
+      });
+  };
+  const [resTwo, setResTwo] = useState([]);
+
+  useEffect(() => {
+    fetchResTwo();
+  }, []);
+
+  const fetchResTwo = () => {
+    axios
+      .get(`${apiUrl}/fetch/res-two`)
+      .then((response) => {
+        setResTwo(response.data.map((resTwo) => resTwo.createResTwo));
+      })
+      .catch((error) => {
+        console.error("Error fetching Response Two:", error);
+      });
+  };
+
+  const [harmPref, setHarmPref] = useState([]);
+
+  useEffect(() => {
+    fetchHarmPref();
+  }, []);
+
+  const fetchHarmPref = () => {
+    axios
+      .get(`${apiUrl}/fetch/harm-pref`)
+      .then((response) => {
+        setHarmPref(response.data.map((harmPref) => harmPref.createHarmPref));
+      })
+      .catch((error) => {
+        console.error("Error fetching Harmful Preference:", error);
+      });
+  };
+  const [harmRank, setHarmRank] = useState([]);
+
+  useEffect(() => {
+    fetchHarmRank();
+  }, []);
+
+  const fetchHarmRank = () => {
+    axios
+      .get(`${apiUrl}/fetch/harm-rank`)
+      .then((response) => {
+        setHarmRank(response.data.map((harmRank) => harmRank.createHarmRank));
+      })
+      .catch((error) => {
+        console.error("Error fetching Harmful Ranking:", error);
+      });
+  };
+  const [honestPrefTwo, setHonestPref] = useState([]);
+
+  useEffect(() => {
+    fetchHonestPref();
+  }, []);
+
+  const fetchHonestPref = () => {
+    axios
+      .get(`${apiUrl}/fetch/honest-pref`)
+      .then((response) => {
+        setHonestPref(
+          response.data.map((honestPref) => honestPref.createHonestPref)
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching Honest Preference:", error);
+      });
+  };
+  const [honestRankTwo, setHonestRank] = useState([]);
+
+  useEffect(() => {
+    fetchHonestRank();
+  }, []);
+
+  const fetchHonestRank = () => {
+    axios
+      .get(`${apiUrl}/fetch/honest-rank`)
+      .then((response) => {
+        setHonestRank(
+          response.data.map((honestRank) => honestRank.createHonestRank)
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching Honest Ranking:", error);
+      });
+  };
+
+  const [helpPrefTwo, setHelpPref] = useState([]);
+
+  useEffect(() => {
+    fetchHelpPref();
+  }, []);
+
+  const fetchHelpPref = () => {
+    axios
+      .get(`${apiUrl}/fetch/helpful-pref`)
+      .then((response) => {
+        setHelpPref(response.data.map((helpPref) => helpPref.createHelpPref));
+      })
+      .catch((error) => {
+        console.error("Error fetching Helpful Preference:", error);
+      });
+  };
+  const [helpRankTwo, setHelpRank] = useState([]);
+
+  useEffect(() => {
+    fetchHelpRank();
+  }, []);
+
+  const fetchHelpRank = () => {
+    axios
+      .get(`${apiUrl}/fetch/helpful-rank`)
+      .then((response) => {
+        setHelpRank(response.data.map((helpRank) => helpRank.createHelpRank));
+      })
+      .catch((error) => {
+        console.error("Error fetching Helpful Ranking:", error);
+      });
+  };
+  const handleInputchangeAutocomplete = (e, newValue) => {
+    const selectedAnnotator = annotatorData.find(annotator => annotator.createAnnotator === newValue);
+    if (selectedAnnotator) {
+      setValue({ ...value, annotatorId: newValue, annName: selectedAnnotator.createName });
+    } else {
+      setValue({ ...value, annotatorId: newValue, annName: '' });
+    }
+  };
+  const handleInputchangeAutocompleteTwo = (e, newValue) => {
+    setValue({ ...value, annName: newValue });
+  };
+  
+  const handleInputchangeAutocompleteThree = (e, newValue) => {
+    setValue({ ...value, declineReason: newValue });
+  };
+  const handleInputchangeAutocompleteFour = (e, newValue) => {
+    setValue({ ...value, overallPref: newValue });
+  };
+  const handleInputchangeAutocompleteFive = (e, newValue) => {
+    setValue({ ...value, overallRank: newValue });
+  };
+  const handleInputchangeAutocompleteSix = (e, newValue) => {
+    setValue({ ...value, responseOne: newValue });
+  };
+  const handleInputchangeAutocompleteSeven = (e, newValue) => {
+    setValue({ ...value, responseTwo: newValue });
+  };
+  const handleInputchangeAutocompleteEight = (e, newValue) => {
+    setValue({ ...value, harmlessPref: newValue });
+  };
+  const handleInputchangeAutocompleteNine = (e, newValue) => {
+    setValue({ ...value, harmlessRank: newValue });
+  };
+  const handleInputchangeAutocompleteTen = (e, newValue) => {
+    setValue({ ...value, honestPref: newValue });
+  };
+  const handleInputchangeAutocompleteEleven = (e, newValue) => {
+    setValue({ ...value, honestRank: newValue });
+  };
+  const handleInputchangeAutocompletetwelve = (e, newValue) => {
+    setValue({ ...value, helpPref: newValue });
+  };
+  const handleInputchangeAutocompleteThirteen = (e, newValue) => {
+    setValue({ ...value, helpRank: newValue });
+  };
   return (
     <DashboardLayout>
       <DashboardNav notificationCount={notificationCount} />
@@ -904,34 +1618,45 @@ function Report({ notificationCount }) {
                   </tbody>
                 </table>
                 {selectedUserData !== null && (
-                <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
-            {selectedUserData.rejectionDescription && ( // Check if description exists
-      <strong style={{ fontSize: "18px" }}>Comments</strong>
-    )}
-                  <table style={{ marginTop: "10px" }}>
-                    <tbody>
-                      <tr>
-                        <td>{selectedUserData.rejectionDescription}</td>
-                      </tr>
-
-                    </tbody>
-                  </table>
-                </Typography>
+                  <Typography
+                    style={{
+                      fontSize: "1rem",
+                      marginTop: "10px",
+                      padding: "10px",
+                    }}
+                  >
+                    {selectedUserData.rejectionDescription && ( // Check if description exists
+                      <strong style={{ fontSize: "18px" }}>Comments</strong>
+                    )}
+                    <table style={{ marginTop: "10px" }}>
+                      <tbody>
+                        <tr>
+                          <td>{selectedUserData.rejectionDescription}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </Typography>
                 )}
                 {selectedUserData !== null && (
-  <Typography style={{ fontSize: "1rem", marginTop: "10px", padding: "10px" }}>
-    {selectedUserData.description && ( // Check if description exists
-      <strong style={{ fontSize: "18px" }}>Description</strong>
-    )}
-    <table style={{ marginTop: "10px" }}>
-      <tbody>
-        <tr>
-          <td>{selectedUserData.description}</td>
-        </tr>
-      </tbody>
-    </table>
-  </Typography>
-)}
+                  <Typography
+                    style={{
+                      fontSize: "1rem",
+                      marginTop: "10px",
+                      padding: "10px",
+                    }}
+                  >
+                    {selectedUserData.description && ( // Check if description exists
+                      <strong style={{ fontSize: "18px" }}>Description</strong>
+                    )}
+                    <table style={{ marginTop: "10px" }}>
+                      <tbody>
+                        <tr>
+                          <td>{selectedUserData.description}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </Typography>
+                )}
               </div>
             </div>
           )}
@@ -1138,8 +1863,8 @@ function Report({ notificationCount }) {
                   value.projectName === "Not assigned-CV"
                     ? "CV"
                     : value.projectName === "Not assigned-NLP"
-                      ? "NLP"
-                      : value.team
+                    ? "NLP"
+                    : value.team
                 }
                 onChange={(event, newValue) => {
                   setValue({
@@ -1168,7 +1893,9 @@ function Report({ notificationCount }) {
               />
             </div>
             <div sx={{ mt: 5 }}>
-              <InputLabel htmlFor="manager" sx={{ mb: 1 }}>Manager</InputLabel>
+              <InputLabel htmlFor="manager" sx={{ mb: 1 }}>
+                Manager
+              </InputLabel>
               <Autocomplete
                 fullWidth
                 id="manager"
@@ -1221,33 +1948,32 @@ function Report({ notificationCount }) {
               display: "flex",
             }}
           >
-  <Autocomplete
-  fullWidth
-  options={['None', ...teamleads]} // Add 'None' as the first option
-  value={selectedTeamLead}
-  onChange={handleTeamLeadSelect}
-  inputValue={searchTerm}
-  onInputChange={handleSearchTermChange}
-  sx={{ width: 305 }}
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      placeholder="Select a Team Lead"
-      variant="outlined"
-      required
-      sx={{
-        width: 305,
-        "&.MuiOutlinedInput-root": {
-          padding: "4px",
-        },
-        "& input": {
-          height: "10px", // Adjust height as needed
-        },
-      }}
-    />
-  )}
-/>
-
+            <Autocomplete
+              fullWidth
+              options={["None", ...teamleads]} // Add 'None' as the first option
+              value={selectedTeamLead}
+              onChange={handleTeamLeadSelect}
+              inputValue={searchTerm}
+              onInputChange={handleSearchTermChange}
+              sx={{ width: 305 }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select a Team Lead"
+                  variant="outlined"
+                  required
+                  sx={{
+                    width: 305,
+                    "&.MuiOutlinedInput-root": {
+                      padding: "4px",
+                    },
+                    "& input": {
+                      height: "10px", // Adjust height as needed
+                    },
+                  }}
+                />
+              )}
+            />
 
             <TextField
               sx={{
@@ -1279,19 +2005,20 @@ function Report({ notificationCount }) {
             <InputLabel sx={{ mt: 1, ml: 2, width: "46%" }} htmlFor="task">
               Task
             </InputLabel>
-            <InputLabel sx={{ mt: 1, ml: 2, width: "21%" }} htmlFor="hours">
+            {/* <InputLabel sx={{ mt: 1, ml: 2, width: "21%" }} htmlFor="hours">
               Hours
-            </InputLabel>
-            <InputLabel sx={{ mt: 1, ml: 2, width: "25%" }} htmlFor="minute">
+            </InputLabel> */}
+            {/* <InputLabel sx={{ mt: 1, ml: 2, width: "25%" }} htmlFor="minute">
               Minutes
-            </InputLabel>
+            </InputLabel> */}
           </MDBox>
           {tasks.map((task, index) => (
             <MDBox
               sx={{
                 display: "flex",
                 flexDirection: "row",
-                justifyContent: "center",
+                justifyContent: "start",
+                marginLeft: "17px"
               }}
               key={index}
             >
@@ -1323,7 +2050,7 @@ function Report({ notificationCount }) {
                   />
                 )}
               />
-
+{value.projectName !=="VQA" && (
               <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
                 <TextField
                   id="sessionOneHours"
@@ -1336,7 +2063,7 @@ function Report({ notificationCount }) {
                     },
                   }}
                   aria-required
-                  required
+
                   value={task.sessionOneHours}
                   onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
                   variant="outlined"
@@ -1356,7 +2083,8 @@ function Report({ notificationCount }) {
                   ))}
                 </TextField>
               </FormControl>
-
+)}
+{value.projectName !== "VQA" && (
               <FormControl sx={{ minWidth: 120, width: "24%" }}>
                 <TextField
                   id="sessionOneMinutes"
@@ -1368,7 +2096,7 @@ function Report({ notificationCount }) {
                       padding: "0px",
                     },
                   }}
-                  required
+
                   value={task.sessionOneMinutes}
                   onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
                   variant="outlined"
@@ -1388,7 +2116,7 @@ function Report({ notificationCount }) {
                   <option value="45">45</option>
                 </TextField>
               </FormControl>
-
+)}
               {index > 0 && (
                 <div style={{ position: "relative" }}>
                   <IconButton
@@ -1403,25 +2131,928 @@ function Report({ notificationCount }) {
                   {/* Rest of the content for this row */}
                 </div>
               )}
-      
             </MDBox>
           ))}
-        {value.projectName === "LIME_QC" && ( // Conditionally render based on selected project name
-                <MDBox sx={{ width: 626, mt: 1,mb: 2, ml: 2 }}>
-                  <InputLabel sx={{  mb: 1}} htmlFor="description">Description</InputLabel>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "LIME_QC" && (
+              <Box sx={{ width: "48%" }}>
+                {" "}
+                {/* Adjust width as needed */}
+                <InputLabel sx={{ mb: 1 }} htmlFor="description">
+                  Description
+                </InputLabel>
+                <TextField
+                  id="description"
+                  name="description"
+                  placeholder="Enter description"
+                  multiline
+                  rows={4}
+                  value={value.description}
+                  onChange={handleInputchange}
+                  variant="outlined"
+                  fullWidth
+                />
+              </Box>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+ <Box sx={{ width: "48%" }}>
+    <InputLabel sx={{ mb: 1 }} htmlFor="annotatorId">
+      Annotator ID
+    </InputLabel>
+    <Autocomplete
+      id="annotatorId"
+      name="annotatorId"
+      options={annotatorData.map(annotator => annotator.createAnnotator)}
+      getOptionLabel={(option) => option || ""}
+      value={value.annotatorId}
+      onChange={handleInputchangeAutocomplete}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          placeholder="Enter Annotator ID"
+          variant="outlined"
+          fullWidth
+          sx={{
+            width: 305,
+            "&.MuiOutlinedInput-root": {
+              padding: "4px",
+            },
+            "& input": {
+              height: "10px",
+            },
+          }}
+        />
+      )}
+    />
+  </Box>
+  <Box sx={{ width: "48%" }}>
+    <InputLabel sx={{ mb: 1 }} htmlFor="annName">
+      Annotator Name
+    </InputLabel>
+    <Autocomplete
+      id="annName"
+      name="annName"
+      options={annotatorData.map(annotator => annotator.createName)}
+      getOptionLabel={(option) => option || ""}
+      value={value.annName}
+      onChange={handleInputchangeAutocompleteTwo}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          placeholder="Enter Annotator Name"
+          variant="outlined"
+          fullWidth
+          sx={{
+            width: 305,
+            "&.MuiOutlinedInput-root": {
+              padding: "4px",
+            },
+            "& input": {
+              height: "10px",
+            },
+          }}
+        />
+      )}
+    />
+  </Box>
+              </>
+            )}
+          </Box>
+          <Box
+  sx={{
+    display: "flex",
+    flexDirection: "row",
+    gap: 2,
+    mt: 1,
+    mb: 2,
+    ml: 2,
+  }}
+>
+  {value.projectName === "VQA" && (
+    <Box sx={{ width: '48%' }}>
+      <InputLabel sx={{ mb: 1 }} htmlFor="annBuffer">
+        Buffer
+      </InputLabel>
+      <Autocomplete
+        id="annBuffer"
+        options={bufferOptions}
+        value={value.buffer}
+        onChange={handleAutocompleteChange('buffer')}
+        renderInput={(params) => (
+          <TextField {...params} placeholder="Select Buffer" variant="outlined" fullWidth />
+        )}
+        sx={{ width: 305 }}
+      />
+    </Box>
+  )}
+  {value.projectName === "VQA" && value.buffer === "Yes" && (
+    <Box sx={{ width: "48%", mb: 2 }}>
+      {/* Adjust width as needed */}
+      <InputLabel sx={{ mb: 1 }} htmlFor="buffName">
+        Buffer Name
+      </InputLabel>
+      <TextField
+        id="buffName"
+        name="bufferName"
+        placeholder="Enter Buffer Name"
+        multiline
+        value={value.bufferName}
+        onChange={handleInputchange}
+        variant="outlined"
+        fullWidth
+      />
+    </Box>
+  )}
+</Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              // mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+          <Box sx={{ width: '98%' }}>
+          <InputLabel sx={{ mb: 1 }} htmlFor="annLocation">
+            Location
+          </InputLabel>
+          <Autocomplete
+            id="annLocation"
+            options={locationOptions}
+            value={value.location}
+            onChange={handleAutocompleteChange('location')}
+            renderInput={(params) => (
+              <TextField {...params} placeholder="Select Location" variant="outlined" fullWidth />
+            )}
+          />
+        </Box>
+              
+            )}
+  
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="annBatch">
+                    Batch Name
+                  </InputLabel>
                   <TextField
-                    id="description"
-                    name="description"
-                    placeholder="Enter description"
+                    id="annBatch"
+                    name="annBatch"
+                    placeholder="Enter Batch Name"
                     multiline
-                    rows={4}
-                    value={value.description}
+                    value={value.annBatch}
+                    onChange={handleInputchange}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      width: 305,
+                      "&.MuiOutlinedInput-root": {
+                        padding: "4px",
+                      },
+                      "& input": {
+                        height: "10px", // Adjust height as needed
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="annPrompt">
+                    Prompt
+                  </InputLabel>
+                  <TextField
+                    id="annPrompt"
+                    name="annPrompt"
+                    placeholder="Enter Prompt"
+                    multiline
+                    value={value.annPrompt}
                     onChange={handleInputchange}
                     variant="outlined"
                     fullWidth
                   />
-                </MDBox>
-              )}
+                </Box>
+              </>
+            )}
+          </Box>
+   
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="annReasonOne">
+                    Reason One
+                  </InputLabel>
+                  <TextField
+                    id="annReasonOne"
+                    name="annReasonOne"
+                    placeholder="Enter Reason One"
+                    multiline
+                    rows={4}
+                    value={value.annReasonOne}
+                    onChange={handleInputchange}
+                    variant="outlined"
+                    fullWidth
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="annReasonTwo">
+                    Reason Two
+                  </InputLabel>
+                  <TextField
+                    id="annReasonTwo"
+                    name="annReasonTwo"
+                    placeholder="Enter Reason Two"
+                    multiline
+                    rows={4}
+                    value={value.annReasonTwo}
+                    onChange={handleInputchange}
+                    variant="outlined"
+                    fullWidth
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 2,
+        mt: 1,
+        mb: 2,
+        ml: 2,
+      }}
+    >
+      {value.projectName === 'VQA' && (
+        <>
+          <Box sx={{ width: "98%", mb: 2 }}>
+                {" "}
+                {/* Adjust width as needed */}
+                <InputLabel sx={{ mb: 1 }} htmlFor="decRes">
+                  Decline Reason
+                </InputLabel>
+                <Autocomplete
+                  id="decRes"
+                  name="declineReason"
+                  options={annotatorDecData}
+                  value={value.declineReason}
+                  onChange={handleInputchangeAutocompleteThree}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Enter Decline Reason"
+                      variant="outlined"
+                      fullWidth
+                      sx={{
+                    
+                        "&.MuiOutlinedInput-root": {
+                          padding: "4px",
+                        },
+                        "& input": {
+                          height: "10px", // Adjust height as needed
+                        },
+                      }}
+                    />
+                  )}
+                />
+              </Box>
+        </>
+      )}
+      
+    </Box>
+    <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="ResOne">
+                    Response One Rating 
+                  </InputLabel>
+                  <Autocomplete
+                    id="ResOne"
+                    name="responseOne"
+                    options={resOne}
+                    value={value.responseOne}
+                    onChange={handleInputchangeAutocompleteSix}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Response One Rating"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="ResTwo">
+                    Response Two Rating
+                  </InputLabel>
+                  <Autocomplete
+                    id="ResTwo"
+                    name="responseTwo"
+                    options={resTwo}
+                    value={value.responseTwo}
+                    onChange={handleInputchangeAutocompleteSeven}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Response Two Rating"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="overPref">
+                    Overall Preference
+                  </InputLabel>
+                  <Autocomplete
+                    id="overPref"
+                    name="overallPref"
+                    options={overallPrefData}
+                    value={value.overallPref}
+                    onChange={handleInputchangeAutocompleteFour}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Overall Preference"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="overRank">
+                    Overall Ranking
+                  </InputLabel>
+                  <Autocomplete
+                    id="overRank"
+                    name="overallRank"
+                    options={overallRankData}
+                    value={value.overallRank}
+                    onChange={handleInputchangeAutocompleteFive}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Overall Ranking"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+       
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="HarmPref">
+                    Harmless Preference
+                  </InputLabel>
+                  <Autocomplete
+                    id="HarmPref"
+                    name="harmlessPref"
+                    options={harmPref}
+                    value={value.harmlessPref}
+                    onChange={handleInputchangeAutocompleteEight}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Harmless Preference"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="HarmRank">
+                    Harmless Ranking
+                  </InputLabel>
+                  <Autocomplete
+                    id="HarmRank"
+                    name="harmlessRank"
+                    options={harmRank}
+                    value={value.harmlessRank}
+                    onChange={handleInputchangeAutocompleteNine}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Harmless Ranking"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="HonestPref">
+                    Honest Preference
+                  </InputLabel>
+                  <Autocomplete
+                    id="HonestPref"
+                    name="honestPref"
+                    options={honestPrefTwo}
+                    value={value.honestPref}
+                    onChange={handleInputchangeAutocompleteTen}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Honest Preference"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="HonestRank">
+                    Honest Ranking
+                  </InputLabel>
+                  <Autocomplete
+                    id="HonestRank"
+                    name="honestRank"
+                    options={honestRankTwo}
+                    value={value.honestRank}
+                    onChange={handleInputchangeAutocompleteEleven}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Honest Ranking"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="HelpPref">
+                    Helpful Preference
+                  </InputLabel>
+                  <Autocomplete
+                    id="HelpPref"
+                    name="helpPref"
+                    options={helpPrefTwo}
+                    value={value.helpPref}
+                    onChange={handleInputchangeAutocompletetwelve}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Helpful Preference"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="HelpRank">
+                    Helpful Ranking
+                  </InputLabel>
+                  <Autocomplete
+                    id="HelpRank"
+                    name="helpRank"
+                    options={helpRankTwo}
+                    value={value.helpRank}
+                    onChange={handleInputchangeAutocompleteThirteen}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Helpful Ranking"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+   <Box sx={{ width: "48%" }}>
+        <InputLabel sx={{ mb: 1 }} htmlFor="sT">Start Time</InputLabel>
+        <TextField
+          id="sT"
+          name="startTime"
+          placeholder="Enter Start Time"
+          value={value.startTime}
+          onChange={handleInputChange}
+          variant="outlined"
+          fullWidth
+          sx={{
+            width: 305,
+            "& input": {
+              height: "22px",
+            },
+          }}
+        />
+      </Box>
+
+                
+      <Box sx={{ width: "48%" }}>
+        <InputLabel sx={{ mb: 1 }} htmlFor="eT">End Time</InputLabel>
+        <TextField
+          id="eT"
+          name="endTime"
+          placeholder="Enter End Time"
+          value={value.endTime}
+          onChange={handleInputChange}
+          variant="outlined"
+          fullWidth
+          sx={{
+            width: 305,
+            "& input": {
+              height: "22px",
+            },
+          }}
+        />
+      </Box>
+
+              </>
+            )}
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+<Box sx={{ width: "48%" }}>
+        <InputLabel sx={{ mb: 1 }} htmlFor="tT">Total Time</InputLabel>
+        <TextField
+          id="tT"
+          name="totalTime"
+          placeholder="Enter Total Time"
+          value={value.totalTime}
+          onChange={handleInputChange}
+          variant="outlined"
+          fullWidth
+          sx={{
+            width: 305,
+            "& input": {
+              height: "22px",
+            },
+          }}
+        />
+      </Box>
+                <Box sx={{ width: "48%", mb:3}}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="toT">
+                    Tool Time
+                  </InputLabel>
+                  <TextField
+                    id="toT"
+                    name="toolTime"
+                    placeholder="Enter Tool Time"
+                    // multiline
+                    rows={4}
+                    value={value.toolTime}
+                    onChange={handleInputchange}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      width: 305,
+                      // padding: "4px",
+                      "& input": {
+                        height: "22px", 
+                      },
+                    }}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="mins">
+                    Minutes
+                  </InputLabel>
+                  <TextField
+                    id="mins"
+                    name="mins"
+                    placeholder="Enter Minutes"
+                    // multiline
+                    rows={4}
+                    value={value.mins}
+                    onChange={handleInputChange}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      width: 305,
+                      // padding: "4px",
+                      "& input": {
+                        height: "22px", 
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="sec">
+                    Seconds
+                  </InputLabel>
+                  <TextField
+                    id="sec"
+                    name="sec"
+                    placeholder="Enter Seconds"
+                    // multiline
+                    rows={4}
+                    value={value.sec}
+                    onChange={handleInputChange}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      width: 305,
+                      // padding: "4px",
+                      "& input": {
+                        height: "22px", 
+                      },
+                    }}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {value.projectName === "VQA" && (
+              <Box sx={{ width: "98.5%" }}>
+                {" "}
+                {/* Adjust width as needed */}
+                <InputLabel sx={{ mb: 1 }} htmlFor="commAnn">
+                  Comments
+                </InputLabel>
+                <TextField
+                  id="commAnn"
+                  name="commentAnn"
+                  placeholder="Enter Comments"
+                  multiline
+                  rows={4}
+                  value={value.commentAnn}
+                  onChange={handleInputchange}
+                  variant="outlined"
+                  fullWidth
+                 
+                />
+              </Box>
+            )}
+          </Box>
+
           <MDButton
             onClick={handleAddTaskField}
             color="success"
@@ -1630,9 +3261,7 @@ function Report({ notificationCount }) {
                       >
                         <DataGrid
                           rows={reversedRows}
-                          columns={
-                            report.length === 0 ? initialDataColumns : columns
-                          } // Use initialDataColumns when report is empty
+                          columns={filteredColumns}
                           pageSize={10}
                           rowsPerPageOptions={[10]}
                           checkboxSelection

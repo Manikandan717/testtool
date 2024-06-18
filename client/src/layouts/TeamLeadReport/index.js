@@ -85,6 +85,7 @@ function AdminReport() {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectionDescription, setRejectionDescription] = useState('');
+  const [filteredColumns, setFilteredColumns] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const handleChangeTab = (event, newValue) => {
@@ -367,36 +368,205 @@ function AdminReport() {
     {
       field: "date",
       headerName: "Date",
-      width: 100,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
+
     {
       field: "name",
       headerName: "Name",
-      width: 200,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annName",
+      headerName: "Annotator Name",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annotatorId",
+      headerName: "Annotator ID",
+      width: 270,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "declineReason",
+      headerName: "Reason For Decline",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annBatch",
+      headerName: "Batch",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annPrompt",
+      headerName: "Prompt",
+      width: 370,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annReasonOne",
+      headerName: "Response One",
+      width: 170,     // width: 200,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "annReasonTwo",
+      headerName: "Response Two",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "overallPref",
+      headerName: "Overall Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "overallRank",
+      headerName: "Overall Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "responseOne",
+      headerName: "Response One Rating",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "responseTwo",
+      headerName: "Response Two Rating",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "harmlessPref",
+      headerName: "Harmless Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "harmlessRank",
+      headerName: "Harmless Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "honestPref",
+      headerName: "Honest Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "honestRank",
+      headerName: "Honest Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "helpPref",
+      headerName: "Helpful Preference",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "helpRank",
+      headerName: "Helpful Ranking",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "commentAnn",
+      headerName: "Comments",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "startTime",
+      headerName: "Start Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "endTime",
+      headerName: "End Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "totalTime",
+      headerName: "Total Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "toolTime",
+      headerName: "Tool Time",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "mins",
+      headerName: "Minutes",
+      width: 170,
+      // editable: false,
+      // flex: 1,
+    },
+    {
+      field: "sec",
+      headerName: "Seconds",
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
       field: "team",
       headerName: "Team",
-      width: 70,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
       field: "projectName",
       headerName: "Project Name",
-      width: 150,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     {
       field: "taskCount",
       headerName: "Task Count",
-      width: 120,
-      editable: false,
+      width: 170,
+      // editable: false,
       renderCell: (params) => (
         <Typography sx={{ fontSize: 15, textAlign: "center" }}>
           {params.row.taskCount}
@@ -407,9 +577,9 @@ function AdminReport() {
     {
       field: "managerTask",
       headerName: "Project Manager",
-      width: 150,
-      editable: false,
-      flex: 1,
+      width: 170,
+      // editable: false,
+      // flex: 1,
     },
     // {
     //   field: "totalHours",
@@ -427,8 +597,8 @@ function AdminReport() {
     {
       field: "totalHours",
       headerName: "Total Hours",
-      width: 140,
-      editable: false,
+      width: 170,
+      // editable: false,
       valueGetter: (params) => calculateTotalHours(params.row.sessionOne),
       align: "center",
     },
@@ -465,7 +635,7 @@ function AdminReport() {
     {
       field: 'approvalStatus',
       headerName: 'Approval Status',
-      width: 150,
+      width: 170,
       renderCell: (params) => {
         // Convert dateTask to a Date object
         const dateTask = new Date(params.row.dateTask);
@@ -514,7 +684,7 @@ function AdminReport() {
       headerName: "View",
       sortable: false,
       filterable: false,
-      width: 100,
+      // width: 100,
       renderCell: (params) => (
         <IconButton style={{ color: "#2196f3", textAlign: "center" }} onClick={() => openDialog(params.row)}>
           <VisibilityIcon />
@@ -561,7 +731,23 @@ function AdminReport() {
     [report]
   );
 
+  useEffect(() => {
+    const filterColumns = (data, columns) => {
+      return columns.filter(
+        (column) =>
+          column.field === "view" || // Always include the "view" column
+          data.some(
+            (row) =>
+              row[column.field] !== undefined &&
+              row[column.field] !== null &&
+              row[column.field] !== ""
+          )
+      );
+    };
 
+    const filtered = filterColumns(row, columns);
+    setFilteredColumns(filtered);
+  }, [row]);
   // Team List
   const list = ["CV", "NLP", "CM", "SOURCING", "DEVELOPMENT"];
 
@@ -1245,8 +1431,10 @@ function AdminReport() {
                   {activeTab === 1 && (
                     <div style={{ height: 670, width: "100%" }}>
                       <DataGrid
+                        // rows={row}
+                        // columns={columns}
                         rows={row}
-                        columns={columns}
+                        columns={filteredColumns}
                         // pageSize={10}
                         rowsPerPageOptions={[5, 10, 25, 50, 100]}
                         checkboxSelection

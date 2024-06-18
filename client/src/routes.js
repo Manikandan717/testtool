@@ -244,6 +244,16 @@ const routes = [
     component: <TaskCreation />,
     role: "superadmin",
   },
+
+  {
+    type: "collapse",
+    name: "Settings",
+    key: "Settings",
+    icon: <Icon fontSize="small">settingsIcon</Icon>,
+    route: "/Settings",
+    component: <TaskCreation />,
+    role: "admin",
+  },
   // {
   //   type: "collapse",
   //   name: "LastLogin",

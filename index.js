@@ -16,6 +16,7 @@ import { read, utils } from "xlsx";
 // import Employee from './models/excelUpload.js';
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import cache from "express-cache-headers";
 import loginValidate from "./validation/login.js";
 import registerValidate from "./validation/register.js";
 import LastLogin from "./models/LastLogin.js";
@@ -30,15 +31,33 @@ import Manager from "./models/addmanager.model.js";
 import Team from "./models/addteam.model.js";
 import Status from "./models/status.model.js";
 import AddTeam from "./models/addteam.model.js";
+import AnnId from "./models/annId.model.js";
 // import moment from 'moment';
 import passportJwt from "passport-jwt";
 import Key from "./config/key.js";
 import jwtStrategy from "passport-jwt";
 import extractJwt from "passport-jwt";
 import moment from "moment";
+import AnnName from "./models/annName.model.js";
+import AnnDecReason from "./models/declineReason.model.js";
+import OverPref from "./models/overPref.model.js"
+import OverRank from "./models/overRank.model.js";
+import ResTwo from "./models/resTwo.model.js";
+import ResOne from "./models/resOne.model.js";
+import HarmPref from "./models/harmPref.model.js";
+import HarmRank from "./models/harmRank.model.js";
+import HonestRank from "./models/honestRank.model.js";
+import HonestPref from "./models/honestPref.model.js";
+import HelpPref from "./models/helpPref.model.js";
+import HelpRank from "./models/helpRank.model.js";
 // import awsServerlessExpressMiddleware from 'aws-serverless-express/middleware.js';
 
+
+// Set up caching middleware
+
+
 const app = express();
+app.use(cache());
 app.use(cors());
 app.use(express.json({ limit: "500000mb" })); // adjust the limit as needed
 app.use(cookieParser());
@@ -788,13 +807,24 @@ app.get("/analyst", async (req, res) => {
     .catch((err) => res.status(400).json("Error:" + err));
 });
 
-// analyst.js projectName call
-app.get("/analyst/projectName", async (req, res) => {
-  Analyst.find()
-    .distinct("projectName") // Fetch distinct project names
-    .then((projectNames) => res.json(projectNames)) // Send project names as response
-    .catch((err) => res.status(400).json("Error:" + err));
-});
+// // analyst.js projectName call
+// app.get("/analyst/projectName", async (req, res) => {
+//   Analyst.find()
+//     .distinct("projectName") // Fetch distinct project names
+//     .then((projectNames) => res.json(projectNames)) // Send project names as response
+//     .catch((err) => res.status(400).json("Error:" + err));
+// });
+
+// app.get("/analyst", async (req, res) => {
+//   res.setHeader('Access-Control-Allow-Origin', 'https://www.pmt.objectways.com');
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+//   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+
+//   Analyst.find()
+//     .then((analyst) => res.json(analyst))
+//     .catch((err) => res.status(400).json("Error:" + err));
+// });
+
 
 // analyst.js projectName call filtered by managerTask
 app.get("/analyst-manager/projectName", async (req, res) => {
@@ -812,6 +842,8 @@ app.get("/analyst-manager/projectName", async (req, res) => {
     .then((projectNames) => res.json(projectNames)) // Send project names as response
     .catch((err) => res.status(400).json("Error:" + err));
 });
+
+
 app.get("/team-leader/projectName", async (req, res) => {
   const teamLead = req.query.teamLead; // Extract managerTask from query params
 
@@ -1329,6 +1361,28 @@ app.get("/fetch/report/", async (req, res) => {
   }
 });
 
+// app.get("/fetch/report/projectName", async (req, res) => {
+//   try {
+//     const { sDate, eDate, team, projectName } = req.query;
+
+//     // Build the filter object based on the provided query parameters
+//     const filter = {
+//       team: team,
+//       projectName: projectName,
+//       createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+//     };
+
+//     console.log("Filter Object:", filter); // Log the filter object
+
+//     // Fetch data from the database based on the filter
+//     const reportData = await Analyst.find(filter);
+
+//     res.json(reportData);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// });
+
 app.get("/fetch/report/projectName", async (req, res) => {
   try {
     const { sDate, eDate, team, projectName } = req.query;
@@ -1337,7 +1391,7 @@ app.get("/fetch/report/projectName", async (req, res) => {
     const filter = {
       team: team,
       projectName: projectName,
-      createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+      dateTask: { $gte: new Date(sDate), $lte: new Date(eDate) }, // Use dateTask instead of createdAt
     };
 
     console.log("Filter Object:", filter); // Log the filter object
@@ -1351,7 +1405,21 @@ app.get("/fetch/report/projectName", async (req, res) => {
   }
 });
 
+
 //Fetch report by team
+
+// app.get("/fetch/report/team/", (req, res) => {
+//   const sDate = req.query.sDate;
+//   const eDate = req.query.eDate;
+//   const team = req.query.team;
+
+//   Analyst.find({
+//     team: team,
+//     createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+//   })
+//     .then((analyst) => res.json(analyst))
+//     .catch((err) => res.status(400).json("err" + err));
+// });
 
 app.get("/fetch/report/team/", (req, res) => {
   const sDate = req.query.sDate;
@@ -1360,11 +1428,12 @@ app.get("/fetch/report/team/", (req, res) => {
 
   Analyst.find({
     team: team,
-    createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+    dateTask: { $gte: new Date(sDate), $lte: new Date(eDate) }, // Use dateTask instead of createdAt
   })
     .then((analyst) => res.json(analyst))
     .catch((err) => res.status(400).json("err" + err));
 });
+
 
 //Fetch report by user
 app.get("/fetch/report/user/", (req, res) => {
@@ -1374,7 +1443,7 @@ app.get("/fetch/report/user/", (req, res) => {
 
   Analyst.find({
     name: name,
-    createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+    dateTask: { $gte: new Date(sDate), $lte: new Date(eDate) },
   })
     .then((analyst) => res.json(analyst))
     .catch((err) => res.status(400).json("err" + err));
@@ -1388,7 +1457,7 @@ app.get("/fetch/report/date/", async (req, res) => {
     // Build the filter object based on the provided query parameters
     const filter = {
       managerTask: managerTask,
-      createdAt: { $gte: new Date(sDate), $lte: new Date(eDate) },
+      dateTask: { $gte: new Date(sDate), $lte: new Date(eDate) },
     };
 
     console.log("Filter Object:", filter); // Log the filter object
@@ -1441,7 +1510,6 @@ app.get("/fetch/one", (req, res) => {
 });
 
 // billing routes
-
 //Find All Data in Billing
 app.get("/billing", (req, res) => {
   const empId = req.query.empId;
@@ -2542,6 +2610,317 @@ app.post("/task/new", async (req, res) => {
   }
 });
 
+
+
+// Routes
+app.get('/fetch/annotatordata', async (req, res) => {
+  try {
+    const annotators = await AnnId.find();
+    res.json(annotators);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+app.post('/add-annotator', async (req, res) => {
+  const { createAnnotator, createName } = req.body;
+
+  const newAnnotator = new AnnId({
+    createAnnotator,
+    createName,
+  });
+
+  try {
+    const savedAnnotator = await newAnnotator.save();
+    res.json('Annotator added successfully');
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+app.delete('/delete/annotator/:id', async (req, res) => {
+  try {
+    await AnnId.findByIdAndRemove(req.params.id);
+    res.json('Annotator deleted successfully');
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+app.get("/fetch/annotator-data", (req, res) => {
+  AnnId.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/add-annotator/new", async (req, res) => {
+  try {
+    const { createAnnotator } = req.body;
+
+    const newTask = new AnnId({
+      createAnnotator,
+    });
+
+    await newTask.save();
+    res.json("Annotator Id Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+
+app.get("/fetch/annotator-name-data", (req, res) => {
+  AnnName.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/add-annotator-name/new", async (req, res) => {
+  try {
+    const { createName } = req.body;
+
+    const newTask = new AnnName({
+      createName,
+    });
+
+    await newTask.save();
+    res.json("Annotator Name Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+
+app.get("/fetch/overall-pref", (req, res) => {
+  OverPref.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/overall-pref", async (req, res) => {
+  try {
+    const { createOverPref } = req.body;
+
+    const newTask = new OverPref({
+      createOverPref,
+
+    });
+
+    await newTask.save();
+    res.json("Overall Preference Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/decline-task", (req, res) => {
+  AnnDecReason.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/decline-task", async (req, res) => {
+  try {
+    const { createDecReason } = req.body;
+
+    const newTask = new AnnDecReason({
+      createDecReason,
+
+    });
+
+    await newTask.save();
+    res.json("Reason Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/overall-rank", (req, res) => {
+  OverRank.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/overall-rank", async (req, res) => {
+  try {
+    const { createOverRank } = req.body;
+
+    const newTask = new OverRank({
+      createOverRank,
+
+    });
+
+    await newTask.save();
+    res.json("Overall Rank Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/res-one", (req, res) => {
+  ResOne.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/res-one", async (req, res) => {
+  try {
+    const { createResOne } = req.body;
+
+    const newTask = new ResOne({
+      createResOne,
+
+    });
+
+    await newTask.save();
+    res.json("Respone One Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/res-two", (req, res) => {
+  ResTwo.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/res-two", async (req, res) => {
+  try {
+    const { createResTwo } = req.body;
+
+    const newTask = new ResTwo({
+      createResTwo,
+
+    });
+
+    await newTask.save();
+    res.json("Respone Two Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/harm-pref", (req, res) => {
+  HarmPref.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/harm-pref", async (req, res) => {
+  try {
+    const { createHarmPref } = req.body;
+
+    const newTask = new HarmPref({
+      createHarmPref,
+
+    });
+
+    await newTask.save();
+    res.json("Harmful Prefernece Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/harm-rank", (req, res) => {
+  HarmRank.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/harm-rank", async (req, res) => {
+  try {
+    const { createHarmRank } = req.body;
+
+    const newTask = new HarmRank({
+      createHarmRank,
+
+    });
+
+    await newTask.save();
+    res.json("Harmful Ranking Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/honest-pref", (req, res) => {
+  HonestPref.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/honest-pref", async (req, res) => {
+  try {
+    const { createHonestPref } = req.body;
+
+    const newTask = new HonestPref({
+      createHonestPref,
+
+    });
+
+    await newTask.save();
+    res.json("Honest Preference Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+
+app.get("/fetch/honest-rank", (req, res) => {
+  HonestRank.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/honest-rank", async (req, res) => {
+  try {
+    const { createHonestRank } = req.body;
+
+    const newTask = new HonestRank({
+      createHonestRank,
+
+    });
+
+    await newTask.save();
+    res.json("Honest Ranking Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/helpful-pref", (req, res) => {
+  HelpPref.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/helpful-pref", async (req, res) => {
+  try {
+    const { createHelpPref } = req.body;
+
+    const newTask = new HelpPref({
+      createHelpPref,
+
+    });
+
+    await newTask.save();
+    res.json("Helpful Preference Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.get("/fetch/helpful-rank", (req, res) => {
+  HelpRank.find()
+    .then((ann) => res.json(ann))
+    .catch((err) => res.status(400).json("Error:" + err));
+});
+
+app.post("/helpful-rank", async (req, res) => {
+  try {
+    const { createHelpRank } = req.body;
+
+    const newTask = new HelpRank({
+      createHelpRank,
+
+    });
+
+    await newTask.save();
+    res.json("Helpful Ranking Added!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
 //add manager
 app.get("/fetch/manager-data", (req, res) => {
   Manager.find()
@@ -2661,7 +3040,124 @@ app.delete("/delete/manager/:id", async (req, res) => {
     res.status(400).json("Error:" + error);
   }
 });
+app.delete("/delete/annotator/:id", async (req, res) => {
+  try {
+    const annId = req.params.id;
+    await AnnId.findByIdAndDelete(annId);
+    res.json("Annotator ID Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
 
+app.delete("/delete/annotator-name/:id", async (req, res) => {
+  try {
+    const annName = req.params.id;
+    await AnnName.findByIdAndDelete(annName);
+    res.json("Annotator Name Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/decline-task/:id", async (req, res) => {
+  try {
+    const decTask = req.params.id;
+    await AnnDecReason.findByIdAndDelete(decTask);
+    res.json("Reason Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/overall-pref/:id", async (req, res) => {
+  try {
+    const overRef = req.params.id;
+    await OverPref.findByIdAndDelete(overRef);
+    res.json("Overall Preference Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/overall-rank/:id", async (req, res) => {
+  try {
+    const overRank = req.params.id;
+    await OverRank.findByIdAndDelete(overRank);
+    res.json("Overall Ranking Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/res-one/:id", async (req, res) => {
+  try {
+    const resOne = req.params.id;
+    await ResOne.findByIdAndDelete(resOne);
+    res.json("Response One Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/res-two/:id", async (req, res) => {
+  try {
+    const resTwo = req.params.id;
+    await ResTwo.findByIdAndDelete(resTwo);
+    res.json("Response Two Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/harm-pref/:id", async (req, res) => {
+  try {
+    const harmPref = req.params.id;
+    await HarmPref.findByIdAndDelete(harmPref);
+    res.json("Harmless Preference Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/harm-rank/:id", async (req, res) => {
+  try {
+    const harmRank = req.params.id;
+    await HarmRank.findByIdAndDelete(harmRank);
+    res.json("Harmless Ranking Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/honest-pref/:id", async (req, res) => {
+  try {
+    const honestPref = req.params.id;
+    await HonestPref.findByIdAndDelete(honestPref);
+    res.json("Honest Preference Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/honest-rank/:id", async (req, res) => {
+  try {
+    const honestRank = req.params.id;
+    await HonestRank.findByIdAndDelete(honestRank);
+    res.json("Honest Rank Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/helpful-pref/:id", async (req, res) => {
+  try {
+    const helpPref = req.params.id;
+    await HelpPref.findByIdAndDelete(helpPref);
+    res.json("Helpful Preference Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
+app.delete("/delete/helpful-rank/:id", async (req, res) => {
+  try {
+    const helpfulRank = req.params.id;
+    await HelpRank.findByIdAndDelete(helpfulRank);
+    res.json("Helpful Rank Deleted!!!");
+  } catch (error) {
+    res.status(400).json("Error:" + error);
+  }
+});
 // Delete team
 app.delete("/delete/team/:id", async (req, res) => {
   try {
