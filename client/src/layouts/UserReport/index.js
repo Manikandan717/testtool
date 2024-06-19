@@ -2174,7 +2174,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference"  && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
  <Box sx={{ width: "48%" }}>
     <InputLabel sx={{ mb: 1 }} htmlFor="annotatorId">
@@ -2249,7 +2249,7 @@ function Report({ notificationCount }) {
     ml: 2,
   }}
 >
-  {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+  {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
     <Box sx={{ width: '48%' }}>
       <InputLabel sx={{ mb: 1 }} htmlFor="annBuffer">
         Buffer
@@ -2266,7 +2266,7 @@ function Report({ notificationCount }) {
       />
     </Box>
   )}
-  {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && value.buffer === "Yes" && (
+  {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && value.buffer === "Yes" && (
     <Box sx={{ width: "48%", mb: 2 }}>
       {/* Adjust width as needed */}
       <InputLabel sx={{ mb: 1 }} htmlFor="buffName">
@@ -2296,7 +2296,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
           <Box sx={{ width: '98%' }}>
           <InputLabel sx={{ mb: 1 }} htmlFor="annLocation">
             Location
@@ -2325,7 +2325,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2382,7 +2382,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2431,7 +2431,7 @@ function Report({ notificationCount }) {
         ml: 2,
       }}
     >
-      {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+      {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
         <>
           <Box sx={{ width: "98%", mb: 2 }}>
                 {" "}
@@ -2478,7 +2478,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2553,7 +2553,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2629,7 +2629,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2704,7 +2704,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2779,7 +2779,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2854,7 +2854,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
    <Box sx={{ width: "48%" }}>
         <InputLabel sx={{ mb: 1 }} htmlFor="sT">Start Time</InputLabel>
@@ -2909,7 +2909,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
 <Box sx={{ width: "48%" }}>
         <InputLabel sx={{ mb: 1 }} htmlFor="tT">Total Time</InputLabel>
@@ -2966,7 +2966,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -3030,7 +3030,7 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {value.projectName === "Visual Question Answering (VQA)" && value.projectName === "General Static Preference" && (
+            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <Box sx={{ width: "98.5%" }}>
                 {" "}
                 {/* Adjust width as needed */}
