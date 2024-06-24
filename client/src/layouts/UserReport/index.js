@@ -642,55 +642,80 @@ function Report({ notificationCount }) {
   };
   
 
-  const handleInputChange = (e) => {
-    const { name, value: inputValue } = e.target;
-  
-    setValue((prevValue) => ({
-      ...prevValue,
-      [name]: inputValue,
-    }));
-  
-    if (name === 'startTime' || name === 'endTime') {
-      const newValue = {
-        ...value,
+
+    const handleInputChange = (e) => {
+      const { name, value: inputValue } = e.target;
+    
+      setValue((prevValue) => ({
+        ...prevValue,
         [name]: inputValue,
-      };
-  
-      const { startTime, endTime } = newValue;
-  
-      if (startTime && endTime) {
-        const calculateTimeDifference = (startTime, endTime) => {
-          const start = new Date(`1970-01-01T${startTime}Z`);
-          const end = new Date(`1970-01-01T${endTime}Z`);
-  
-          if (end < start) {
-            end.setDate(end.getDate() + 1); // Handle cases where end time is past midnight
-          }
-  
-          const difference = (end - start) / 1000; // Difference in seconds
-          const hours = Math.floor(difference / 3600);
-          const minutes = Math.floor((difference % 3600) / 60);
-          const seconds = Math.floor(difference % 60);
-  
-          return {
-            hours,
-            minutes,
-            seconds,
-          };
+      }));
+    
+      if (name === 'startTime' || name === 'endTime') {
+        const newValue = {
+          ...value,
+          [name]: inputValue,
         };
-  
-        const { hours, minutes, seconds } = calculateTimeDifference(startTime, endTime);
-  
-        setValue((prevValue) => ({
-          ...prevValue,
-          hours: hours.toString(),
-          mins: minutes.toString(),
-          sec: seconds.toString(),
-          totalTime: `${hours}h ${minutes}m ${seconds}s`,
-        }));
+    
+        const { startTime, endTime } = newValue;
+    
+        if (startTime && endTime) {
+          const calculateTimeDifference = (startTime, endTime) => {
+            const start = new Date(`1970-01-01T${startTime}Z`);
+            const end = new Date(`1970-01-01T${endTime}Z`);
+    
+            if (end < start) {
+              end.setDate(end.getDate() + 1);
+            }
+    
+            const difference = (end - start) / 1000;
+            const hours = Math.floor(difference / 3600);
+            const minutes = Math.floor((difference % 3600) / 60);
+            const seconds = Math.floor(difference % 60);
+    
+            return { hours, minutes, seconds };
+          };
+    
+          const { hours, minutes, seconds } = calculateTimeDifference(startTime, endTime);
+    
+          setValue((prevValue) => ({
+            ...prevValue,
+            hours: hours.toString(),
+            mins: minutes.toString(),
+            sec: seconds.toString(),
+            totalTime: `${hours}h ${minutes}m ${seconds}s`,
+          }));
+        }
       }
-    }
-  };
+    };
+  
+    const generateOptions = (start, end) => {
+      return Array.from({ length: end - start + 1 }, (_, i) => {
+        const value = (start + i).toString().padStart(2, '0');
+        return <MenuItem key={value} value={value}>{value}</MenuItem>;
+      });
+    };
+  
+    const handleTimeChange = (timeType, part, newValue) => {
+      const [hours, minutes, seconds] = value[timeType].split(':');
+      let updatedTime;
+      
+      switch(part) {
+        case 'hour':
+          updatedTime = `${newValue}:${minutes}:${seconds}`;
+          break;
+        case 'minute':
+          updatedTime = `${hours}:${newValue}:${seconds}`;
+          break;
+        case 'second':
+          updatedTime = `${hours}:${minutes}:${newValue}`;
+          break;
+        default:
+          return;
+      }
+  
+      handleInputChange({ target: { name: timeType, value: updatedTime } });
+    };
   
   
   const handleAutocompleteChange = (name) => (event, newValue) => {
@@ -2856,43 +2881,64 @@ function Report({ notificationCount }) {
           >
             {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
-   <Box sx={{ width: "48%" }}>
-        <InputLabel sx={{ mb: 1 }} htmlFor="sT">Start Time</InputLabel>
-        <TextField
-          id="sT"
-          name="startTime"
-          placeholder="Enter Start Time"
-          value={value.startTime}
-          onChange={handleInputChange}
-          variant="outlined"
-          fullWidth
-          sx={{
-            width: 305,
-            "& input": {
-              height: "22px",
-            },
-          }}
-        />
+    <Box sx={{ width: "48%" }}>
+        <InputLabel sx={{ mb: 1 }}>Start Time</InputLabel>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <FormControl sx={{ minWidth: 80 }}>
+            <Select
+              value={value.startTime.split(':')[0]}
+              onChange={(e) => handleTimeChange('startTime', 'hour', e.target.value)}
+            >
+              {generateOptions(0, 23)}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 80 }}>
+            <Select
+              value={value.startTime.split(':')[1]}
+              onChange={(e) => handleTimeChange('startTime', 'minute', e.target.value)}
+            >
+              {generateOptions(0, 59)}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 80 }}>
+            <Select
+              value={value.startTime.split(':')[2]}
+              onChange={(e) => handleTimeChange('startTime', 'second', e.target.value)}
+            >
+              {generateOptions(0, 59)}
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
-
-                
+      
       <Box sx={{ width: "48%" }}>
-        <InputLabel sx={{ mb: 1 }} htmlFor="eT">End Time</InputLabel>
-        <TextField
-          id="eT"
-          name="endTime"
-          placeholder="Enter End Time"
-          value={value.endTime}
-          onChange={handleInputChange}
-          variant="outlined"
-          fullWidth
-          sx={{
-            width: 305,
-            "& input": {
-              height: "22px",
-            },
-          }}
-        />
+        <InputLabel sx={{ mb: 1 }}>End Time</InputLabel>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <FormControl sx={{ minWidth: 80 }}>
+            <Select
+              value={value.endTime.split(':')[0]}
+              onChange={(e) => handleTimeChange('endTime', 'hour', e.target.value)}
+            >
+              {generateOptions(0, 23)}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 80 }}>
+            <Select
+              value={value.endTime.split(':')[1]}
+              onChange={(e) => handleTimeChange('endTime', 'minute', e.target.value)}
+            >
+              {generateOptions(0, 59)}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 80 }}>
+            <Select
+              value={value.endTime.split(':')[2]}
+              onChange={(e) => handleTimeChange('endTime', 'second', e.target.value)}
+            >
+              {generateOptions(0, 59)}
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
               </>
@@ -2968,54 +3014,43 @@ function Report({ notificationCount }) {
           >
             {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
               <>
-                <Box sx={{ width: "48%" }}>
-                  {/* Adjust width as needed */}
-                  <InputLabel sx={{ mb: 1 }} htmlFor="mins">
-                    Minutes
-                  </InputLabel>
-                  <TextField
-                    id="mins"
-                    name="mins"
-                    placeholder="Enter Minutes"
-                    // multiline
-                    rows={4}
-                    value={value.mins}
-                    onChange={handleInputChange}
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      width: 305,
-                      // padding: "4px",
-                      "& input": {
-                        height: "22px", 
-                      },
-                    }}
-                  />
-                </Box>
-                <Box sx={{ width: "48%" }}>
-                  {/* Adjust width as needed */}
-                  <InputLabel sx={{ mb: 1 }} htmlFor="sec">
-                    Seconds
-                  </InputLabel>
-                  <TextField
-                    id="sec"
-                    name="sec"
-                    placeholder="Enter Seconds"
-                    // multiline
-                    rows={4}
-                    value={value.sec}
-                    onChange={handleInputChange}
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      width: 305,
-                      // padding: "4px",
-                      "& input": {
-                        height: "22px", 
-                      },
-                    }}
-                  />
-                </Box>
+             <Box sx={{ width: "48%" }}>
+        <InputLabel sx={{ mb: 1 }} htmlFor="mins">Minutes</InputLabel>
+        <TextField
+          id="mins"
+          name="mins"
+          placeholder="Enter Minutes"
+          value={value.mins}
+          onChange={handleInputChange}
+          variant="outlined"
+          fullWidth
+          sx={{
+            width: 305,
+            "& input": {
+              height: "22px", 
+            },
+          }}
+        />
+      </Box>
+
+      <Box sx={{ width: "48%" }}>
+        <InputLabel sx={{ mb: 1 }} htmlFor="sec">Seconds</InputLabel>
+        <TextField
+          id="sec"
+          name="sec"
+          placeholder="Enter Seconds"
+          value={value.sec}
+          onChange={handleInputChange}
+          variant="outlined"
+          fullWidth
+          sx={{
+            width: 305,
+            "& input": {
+              height: "22px", 
+            },
+          }}
+        />
+      </Box>
               </>
             )}
           </Box>
