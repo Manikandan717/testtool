@@ -312,9 +312,9 @@ function DashboardNavbar(props, { absolute, light, isMini }) {
           },
         }}
       >
-        {report.filter(item => item.approvalStatus === 'pending').map((pendingReport) => (
+        {/* {report.filter(item => item.approvalStatus === 'pending').map((pendingReport) => (
           <Typography key={pendingReport.id}>{pendingReport.name}</Typography>
-        ))}
+        ))} */}
       </Popover>
             {/* Snackbar for notifications */}
             <Snackbar
