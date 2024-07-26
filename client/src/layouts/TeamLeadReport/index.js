@@ -87,6 +87,9 @@ function AdminReport() {
   const [rejectionDescription, setRejectionDescription] = useState('');
   const [filteredColumns, setFilteredColumns] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
+  const [hasMore, setHasMore] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
@@ -201,19 +204,38 @@ function AdminReport() {
     allReport();
   }, []);
 
+  // const allReport = () => {
+  //   setLoading(true);
+  //   const teamLead = teamLeadName.trim();
+  //   axios.get(`${apiUrl}/analyst/byTeamLead/${teamLead}`)
+  //     .then((res) => {
+  //       setReport(res.data);
+  //       // Calculate notification count
+  //       const pendingReports = res.data.filter(item => item.approvalStatus === 'pending');
+  //       setNotificationCount(pendingReports.length);
+  //     })
+  //     .catch((err) => console.log(err))
+  //     .finally(() => setLoading(false));
+  // };
   const allReport = () => {
-    setLoading(true);
     const teamLead = teamLeadName.trim();
-    axios.get(`${apiUrl}/analyst/byTeamLead/${teamLead}`)
-      .then((res) => {
-        setReport(res.data);
-        // Calculate notification count
-        const pendingReports = res.data.filter(item => item.approvalStatus === 'pending');
-        setNotificationCount(pendingReports.length);
+
+    return axios.get(`${apiUrl}/analyst/byTeamLead/${teamLead}`, {
+        params: {
+          page: page + 1, // Add 1 because backend uses 1-based indexing
+          limit: pageSize,
+        },
       })
-      .catch((err) => console.log(err))
-      .finally(() => setLoading(false));
+      .then((res) => {
+        if (res.data.analysts.length < pageSize) {
+          setHasMore(false);
+        }
+        setReport((prevReport) => [...prevReport, ...res.data.analysts]);
+        setPage((prevPage) => prevPage + 1);
+      })
+      .catch((err) => console.log(err));
   };
+
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -247,7 +269,7 @@ function AdminReport() {
       try {
         await Promise.all([allReport(), userName()]);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -716,7 +738,7 @@ function AdminReport() {
 
   const row = useMemo(
     () =>
-      report.reverse().map((item, index) => ({
+      report.map((item, index) => ({
         ...item,
         id: index + 1,
         name: item.name,
@@ -1435,6 +1457,10 @@ function AdminReport() {
                         // columns={columns}
                         rows={row}
                         columns={filteredColumns}
+                        pageSize={pageSize}
+                        rowCount={report.length}
+                        paginationMode="server"
+                        onPageChange={(newPage) => setPage(newPage)}
                         // pageSize={10}
                         rowsPerPageOptions={[5, 10, 25, 50, 100]}
                         checkboxSelection
@@ -1477,6 +1503,26 @@ function AdminReport() {
 
                               <GridToolbar />
 
+                            </div>
+                          ),
+                          Footer: () => (
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                padding: "10px",
+                              }}
+                            >
+                              {hasMore && (
+                                <MDButton
+                                  variant="contained"
+                                  color="primary"
+                                  size="small"
+                                  onClick={allReport}
+                                >
+                                  Load More
+                                </MDButton>
+                              )}
                             </div>
                           ),
                         }}

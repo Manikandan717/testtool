@@ -75,6 +75,9 @@ function AdminReport() {
   const managerName = useSelector((state) => state.auth.user.name);
   const [activeTab, setActiveTab] = useState(0);
   const [filteredColumns, setFilteredColumns] = useState([]);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
+  const [hasMore, setHasMore] = useState(true);
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -185,15 +188,22 @@ function AdminReport() {
     const managerTask = managerName.trim();
 
     return axios
-      .get(`${apiUrl}/analyst/byManagerTask/${managerTask}`)
+      .get(`${apiUrl}/analyst/byManagerTask/${managerTask}`, {
+        params: {
+          page: page + 1, // Add 1 because backend uses 1-based indexing
+          limit: pageSize,
+        },
+      })
       .then((res) => {
-        setReport(res.data);
-        // Calculate notification count
-        const pendingReports = res.data.filter(item => item.approvalStatus === 'pending');
-        setNotificationCount(pendingReports.length);
+        if (res.data.analysts.length < pageSize) {
+          setHasMore(false);
+        }
+        setReport((prevReport) => [...prevReport, ...res.data.analysts]);
+        setPage((prevPage) => prevPage + 1);
       })
       .catch((err) => console.log(err));
   };
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const handleClose = () => {
@@ -591,7 +601,7 @@ function AdminReport() {
 
   const row = useMemo(
     () =>
-      report.reverse().map((item, index) => ({
+      report.map((item, index) => ({
         ...item,
         id: index + 1,
         name: item.name,
@@ -601,9 +611,11 @@ function AdminReport() {
         task: item.task,
         managerTask: item.managerTask,
         sessionOne: item.sessionOne,
+        taskCount: calculateTaskCount(item.sessionOne),
       })),
     [report]
   );
+
   useEffect(() => {
     const filterColumns = (data, columns) => {
       return columns.filter(
@@ -1312,6 +1324,10 @@ function AdminReport() {
                         // columns={columns}
                         rows={row}
                         columns={filteredColumns}
+                        pageSize={pageSize}
+                        rowCount={report.length}
+                        paginationMode="server"
+                        onPageChange={(newPage) => setPage(newPage)}
                         // pageSize={10}
                         rowsPerPageOptions={[5, 10, 25, 50, 100]}
                         checkboxSelection
@@ -1352,6 +1368,26 @@ function AdminReport() {
                               </div>
 
                               <GridToolbar />
+                            </div>
+                          ),
+                          Footer: () => (
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                padding: "10px",
+                              }}
+                            >
+                              {hasMore && (
+                                <MDButton
+                                  variant="contained"
+                                  color="primary"
+                                  size="small"
+                                  onClick={allReport}
+                                >
+                                  Load More
+                                </MDButton>
+                              )}
                             </div>
                           ),
                         }}
