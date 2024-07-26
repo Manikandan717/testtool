@@ -60,6 +60,9 @@ function Report({ notificationCount }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTeamLead, setSelectedTeamLead] = useState("");
   const [filteredColumns, setFilteredColumns] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 50; // Number of items per page
   const bufferOptions = ["Yes", "No"];
   const locationOptions = ["Karur", "Coimbatore"];
   const initialvalues = {
@@ -100,6 +103,31 @@ function Report({ notificationCount }) {
     bufferName: "",
     location: ""
   };
+
+  const fetchUpdatedData = () => {
+    setLoading(true);
+    axios
+      .get(
+        `${apiUrl}/fetch/userdata/?empId=${empId}&page=${page}&limit=${limit}`
+      )
+      .then((response) => {
+        if (response.data.analysts.length < limit) {
+          setHasMore(false);
+        }
+        setInitialData((prevData) => [...prevData, ...response.data.analysts]);
+        setPage((prevPage) => prevPage + 1);
+      })
+      .catch((error) => {
+        console.error("Error fetching updated data:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchUpdatedData();
+  }, []);
 
   const [value, setValue] = useState(initialvalues);
   const handleTeamchange = (event, value) => setTeamlist(value);
@@ -451,17 +479,17 @@ function Report({ notificationCount }) {
     });
   }, [value.projectName, editMode]);
 
-  const fetchUpdatedData = () => {
-    axios
-      .get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
-      .then((response) => {
-        setInitialData(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching updated data:", error);
-        // Handle error if needed
-      });
-  };
+  // const fetchUpdatedData = () => {
+  //   axios
+  //     .get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
+  //     .then((response) => {
+  //       setInitialData(response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching updated data:", error);
+  //       // Handle error if needed
+  //     });
+  // };
   // Upload Data
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -731,11 +759,11 @@ function Report({ notificationCount }) {
 
   // Fetch initial data without filter
   // Fetch initial data
-  useEffect(() => {
-    axios.get(`${apiUrl}/fetch/userdata/?empId=${empId}`).then((response) => {
-      setInitialData(response.data);
-    });
-  }, [empId]);
+  // useEffect(() => {
+  //   axios.get(`${apiUrl}/fetch/userdata/?empId=${empId}`).then((response) => {
+  //     setInitialData(response.data);
+  //   });
+  // }, [empId]);
 
   const openDialog = (userData) => {
     setSelectedUserData(userData);
@@ -1164,38 +1192,30 @@ function Report({ notificationCount }) {
   ];
 
   useEffect(() => {
-    setLoading(true);
+    const reversedRowsData =
+      initialData.map((item, index) => ({
+        ...item,
+        id: initialData.length - index,
+        name: item.name,
+        team: item.team,
+        dateTask: item.dateTask,
+        projectName: item.projectName,
+        task: item.task,
+        teamLead: item.teamLead,
+        managerTask: item.managerTask,
+        sessionOne: item.sessionOne,
+        approvalStatus: item.approvalStatus,
+      })) || [];
 
-    setTimeout(() => {
-      const reversedRowsData =
-        initialData
-          .slice()
-          .reverse()
-          .map((item, index) => ({
-            ...item,
-            id: index + 1,
-            name: item.name,
-            team: item.team,
-            dateTask: item.dateTask,
-            projectName: item.projectName,
-            task: item.task,
-            teamLead: item.teamLead,
-            managerTask: item.managerTask,
-            sessionOne: item.sessionOne,
-            approvalStatus: item.approvalStatus,
-          })) || [];
-
-      setReversedRows(reversedRowsData);
-      setLoading(false);
-    }, 1000);
-  }, [report, initialData]);
+    setReversedRows(reversedRowsData);
+  }, [initialData]);
 
   useEffect(() => {
     const filterColumns = (data, columns) => {
       return columns.filter(
         (column) =>
-          column.field === "edit" || // Always include the "edit" column
-          column.field === "view" || // Always include the "view" column
+          column.field === "edit" ||
+          column.field === "view" ||
           data.some(
             (row) =>
               row[column.field] !== undefined &&
@@ -1208,6 +1228,10 @@ function Report({ notificationCount }) {
     const filtered = filterColumns(reversedRows, initialDataColumns);
     setFilteredColumns(filtered);
   }, [reversedRows]);
+
+  const handleViewMore = () => {
+    fetchUpdatedData();
+  };
   // Team List
   const list = ["CV", "NLP", "CM", "SOURCING"];
 
@@ -3285,82 +3309,103 @@ function Report({ notificationCount }) {
                     </div>
                   ) : (
                     <div>
-                      <Box
-                        sx={{
-                          height: 480,
-                          width: "100%",
-                          "@media screen and (min-width: 768px)": {
-                            height: 670,
-                          },
-                        }}
-                      >
-                        <DataGrid
-                          rows={reversedRows}
-                          columns={filteredColumns}
-                          pageSize={10}
-                          rowsPerPageOptions={[10]}
-                          checkboxSelection
-                          getRowId={(row) => row._id}
-                          disableSelectionOnClick
-                          components={{
-                            Toolbar: () => (
-                              <div style={{ display: "flex" }}>
-                                <div
+                    <Box
+                      sx={{
+                        height: 480,
+                        width: "100%",
+                        "@media screen and (min-width: 768px)": {
+                          height: 670,
+                        },
+                      }}
+                    >
+                      <DataGrid
+                        rows={reversedRows}
+                        columns={filteredColumns}
+                        pageSize={10}
+                        rowsPerPageOptions={[10]}
+                        checkboxSelection
+                        getRowId={(row) => row._id}
+                        disableSelectionOnClick
+                        components={{
+                          Toolbar: () => (
+                            <div style={{ display: "flex" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  marginTop: "5px",
+                                  marginLeft: "10px",
+                                }}
+                              >
+                                {/* <FilterListIcon
+                                  className="team-filter-icon"
                                   style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    marginTop: "5px",
-                                    marginLeft: "10px",
+                                    cursor: "pointer",
+                                    color: "#1a73e8",
+                                    fontSize: "20px",
+                                  }}
+                                  onClick={handlePopperToggle}
+                                  aria-label="Team Filter"
+                                /> */}
+                                {/* <MDTypography
+                                  variant="h6"
+                                  onClick={handlePopperToggle}
+                                  style={{
+                                    color: "#1a73e8",
+                                    cursor: "pointer",
+                                    fontSize: "12.1px",
                                   }}
                                 >
-                                  {/* <FilterListIcon
-                                    className="team-filter-icon"
-                                    style={{
-                                      cursor: "pointer",
-                                      color: "#1a73e8",
-                                      fontSize: "20px",
-                                    }}
-                                    onClick={handlePopperToggle}
-                                    aria-label="Team Filter"
-                                  /> */}
-                                  {/* <MDTypography
-                                    variant="h6"
-                                    onClick={handlePopperToggle}
-                                    style={{
-                                      color: "#1a73e8",
-                                      cursor: "pointer",
-                                      fontSize: "12.1px",
-                                    }}
-                                  >
-                                    DATE FILTER
-                                  </MDTypography> */}
-                                </div>
-
-                                <GridToolbar />
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    marginLeft: "auto",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <MDButton
-                    className="team-report-btn"
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    style={{ marginRight: "13px" }}
-                    onClick={allReport}
-                  >
-                    &nbsp;All Report
-                  </MDButton> */}
-                                </div>
+                                  DATE FILTER
+                                </MDTypography> */}
                               </div>
-                            ),
-                          }}
-                        />
-                      </Box>
-                    </div>
+
+                              <GridToolbar />
+                              <div
+                                style={{
+                                  display: "flex",
+                                  marginLeft: "auto",
+                                  alignItems: "center",
+                                }}
+                              >
+                                {/* <MDButton
+                  className="team-report-btn"
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  style={{ marginRight: "13px" }}
+                  onClick={allReport}
+                >
+                  &nbsp;All Report
+                </MDButton> */}
+                              </div>
+                            </div>
+                          ),
+                          Footer: () => (
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                padding: "10px",
+                              }}
+                            >
+                              {hasMore && (
+                                <MDButton
+                                  variant="contained"
+                                  color="primary"
+                                  size="small"
+                                  onClick={handleViewMore}
+                                  disabled={loading}
+                                >
+                                  View More
+                                </MDButton>
+                              )}
+                            </div>
+                          ),
+                        }}
+                      />
+                    </Box>
+                  </div>
                   )}
                 </div>
               </MDBox>
