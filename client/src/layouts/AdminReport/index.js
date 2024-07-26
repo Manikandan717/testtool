@@ -597,7 +597,9 @@ function AdminReport() {
     )},
   ];
   
-
+  const calculateTaskCount = (sessionOne) => {
+    return sessionOne.length;
+  };
 
   const row = useMemo(
     () =>
