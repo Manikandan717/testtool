@@ -60,9 +60,9 @@ function Report({ notificationCount }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTeamLead, setSelectedTeamLead] = useState("");
   const [filteredColumns, setFilteredColumns] = useState([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const limit = 50; // Number of items per page
+  // const [page, setPage] = useState(1);
+  // const [hasMore, setHasMore] = useState(true);
+  // const limit = 50; // Number of items per page
   const bufferOptions = ["Yes", "No"];
   const locationOptions = ["Karur", "Coimbatore"];
   const initialvalues = {
@@ -104,30 +104,30 @@ function Report({ notificationCount }) {
     location: ""
   };
 
-  const fetchUpdatedData = () => {
-    setLoading(true);
-    axios
-      .get(
-        `${apiUrl}/fetch/userdata/?empId=${empId}&page=${page}&limit=${limit}`
-      )
-      .then((response) => {
-        if (response.data.analysts.length < limit) {
-          setHasMore(false);
-        }
-        setInitialData((prevData) => [...prevData, ...response.data.analysts]);
-        setPage((prevPage) => prevPage + 1);
-      })
-      .catch((error) => {
-        console.error("Error fetching updated data:", error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+  // const fetchUpdatedData = () => {
+  //   setLoading(true);
+  //   axios
+  //     .get(
+  //       `${apiUrl}/fetch/userdata/?empId=${empId}&page=${page}&limit=${limit}`
+  //     )
+  //     .then((response) => {
+  //       if (response.data.analysts.length < limit) {
+  //         setHasMore(false);
+  //       }
+  //       setInitialData((prevData) => [...prevData, ...response.data.analysts]);
+  //       setPage((prevPage) => prevPage + 1);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching updated data:", error);
+  //     })
+  //     .finally(() => {
+  //       setLoading(false);
+  //     });
+  // };
 
-  useEffect(() => {
-    fetchUpdatedData();
-  }, []);
+  // useEffect(() => {
+  //   fetchUpdatedData();
+  // }, []);
 
   const [value, setValue] = useState(initialvalues);
   const handleTeamchange = (event, value) => setTeamlist(value);
@@ -479,17 +479,17 @@ function Report({ notificationCount }) {
     });
   }, [value.projectName, editMode]);
 
-  // const fetchUpdatedData = () => {
-  //   axios
-  //     .get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
-  //     .then((response) => {
-  //       setInitialData(response.data);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching updated data:", error);
-  //       // Handle error if needed
-  //     });
-  // };
+  const fetchUpdatedData = () => {
+    axios
+      .get(`${apiUrl}/fetch/userdata/?empId=${empId}`)
+      .then((response) => {
+        setInitialData(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching updated data:", error);
+        // Handle error if needed
+      });
+  };
   // Upload Data
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -759,11 +759,11 @@ function Report({ notificationCount }) {
 
   // Fetch initial data without filter
   // Fetch initial data
-  // useEffect(() => {
-  //   axios.get(`${apiUrl}/fetch/userdata/?empId=${empId}`).then((response) => {
-  //     setInitialData(response.data);
-  //   });
-  // }, [empId]);
+  useEffect(() => {
+    axios.get(`${apiUrl}/fetch/userdata/?empId=${empId}`).then((response) => {
+      setInitialData(response.data);
+    });
+  }, [empId]);
 
   const openDialog = (userData) => {
     setSelectedUserData(userData);
