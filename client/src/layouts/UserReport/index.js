@@ -3381,27 +3381,6 @@ function Report({ notificationCount }) {
                               </div>
                             </div>
                           ),
-                          Footer: () => (
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                padding: "10px",
-                              }}
-                            >
-                              {hasMore && (
-                                <MDButton
-                                  variant="contained"
-                                  color="primary"
-                                  size="small"
-                                  onClick={handleViewMore}
-                                  disabled={loading}
-                                >
-                                  View More
-                                </MDButton>
-                              )}
-                            </div>
-                          ),
                         }}
                       />
                     </Box>
