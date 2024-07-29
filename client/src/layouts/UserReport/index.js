@@ -43,7 +43,7 @@ import { fontSize } from "@mui/system";
 import { ms } from "date-fns/locale";
 
 function Report({ notificationCount }) {
-  const apiUrl = 'https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp';
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
   // task page code start
   const [data, setData] = useState([]);
   const [disable, setDisable] = useState(true);
@@ -60,9 +60,6 @@ function Report({ notificationCount }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTeamLead, setSelectedTeamLead] = useState("");
   const [filteredColumns, setFilteredColumns] = useState([]);
-  // const [page, setPage] = useState(1);
-  // const [hasMore, setHasMore] = useState(true);
-  // const limit = 50; // Number of items per page
   const bufferOptions = ["Yes", "No"];
   const locationOptions = ["Karur", "Coimbatore"];
   const initialvalues = {
@@ -101,33 +98,8 @@ function Report({ notificationCount }) {
     sec: "",
     buffer: "",
     bufferName: "",
-    location: ""
+    location: "",
   };
-
-  // const fetchUpdatedData = () => {
-  //   setLoading(true);
-  //   axios
-  //     .get(
-  //       `${apiUrl}/fetch/userdata/?empId=${empId}&page=${page}&limit=${limit}`
-  //     )
-  //     .then((response) => {
-  //       if (response.data.analysts.length < limit) {
-  //         setHasMore(false);
-  //       }
-  //       setInitialData((prevData) => [...prevData, ...response.data.analysts]);
-  //       setPage((prevPage) => prevPage + 1);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching updated data:", error);
-  //     })
-  //     .finally(() => {
-  //       setLoading(false);
-  //     });
-  // };
-
-  // useEffect(() => {
-  //   fetchUpdatedData();
-  // }, []);
 
   const [value, setValue] = useState(initialvalues);
   const handleTeamchange = (event, value) => setTeamlist(value);
@@ -273,7 +245,7 @@ function Report({ notificationCount }) {
       sec: rowData.sec,
       buffer: rowData.buffer,
       bufferName: rowData.bufferName,
-      location: rowData.location
+      location: rowData.location,
       // Populate other fields as needed
     });
 
@@ -355,7 +327,7 @@ function Report({ notificationCount }) {
       sec: "",
       buffer: "",
       bufferName: "",
-      location: ""
+      location: "",
       // sessionMinute: ''
     }));
 
@@ -473,7 +445,7 @@ function Report({ notificationCount }) {
           sec: "",
           buffer: "",
           bufferName: "",
-          location: ""
+          location: "",
         }));
       }
     });
@@ -546,7 +518,7 @@ function Report({ notificationCount }) {
       sec: value.sec,
       buffer: value.buffer,
       bufferName: value.bufferName,
-      location: value.location
+      location: value.location,
     };
 
     try {
@@ -605,7 +577,7 @@ function Report({ notificationCount }) {
         sec: "",
         buffer: "",
         bufferName: "",
-        location: ""
+        location: "",
       }));
     } catch (err) {
       console.error("Error updating/submitting data:", err);
@@ -656,96 +628,100 @@ function Report({ notificationCount }) {
   const calculateTimeDifference = (startTime, endTime) => {
     const start = new Date(`1970-01-01T${startTime}`);
     const end = new Date(`1970-01-01T${endTime}`);
-  
+
     if (end < start) {
       end.setDate(end.getDate() + 1); // Handle cases where end time is past midnight
     }
-  
+
     const difference = (end - start) / 1000; // Difference in seconds
     const hours = Math.floor(difference / 3600);
     const minutes = Math.floor((difference % 3600) / 60);
     const seconds = Math.floor(difference % 60);
-  
+
     return `${hours}h ${minutes}m ${seconds}s`;
   };
-  
 
+  const handleInputChange = (e) => {
+    const { name, value: inputValue } = e.target;
 
-    const handleInputChange = (e) => {
-      const { name, value: inputValue } = e.target;
-    
-      setValue((prevValue) => ({
-        ...prevValue,
+    setValue((prevValue) => ({
+      ...prevValue,
+      [name]: inputValue,
+    }));
+
+    if (name === "startTime" || name === "endTime") {
+      const newValue = {
+        ...value,
         [name]: inputValue,
-      }));
-    
-      if (name === 'startTime' || name === 'endTime') {
-        const newValue = {
-          ...value,
-          [name]: inputValue,
+      };
+
+      const { startTime, endTime } = newValue;
+
+      if (startTime && endTime) {
+        const calculateTimeDifference = (startTime, endTime) => {
+          const start = new Date(`1970-01-01T${startTime}Z`);
+          const end = new Date(`1970-01-01T${endTime}Z`);
+
+          if (end < start) {
+            end.setDate(end.getDate() + 1);
+          }
+
+          const difference = (end - start) / 1000;
+          const hours = Math.floor(difference / 3600);
+          const minutes = Math.floor((difference % 3600) / 60);
+          const seconds = Math.floor(difference % 60);
+
+          return { hours, minutes, seconds };
         };
-    
-        const { startTime, endTime } = newValue;
-    
-        if (startTime && endTime) {
-          const calculateTimeDifference = (startTime, endTime) => {
-            const start = new Date(`1970-01-01T${startTime}Z`);
-            const end = new Date(`1970-01-01T${endTime}Z`);
-    
-            if (end < start) {
-              end.setDate(end.getDate() + 1);
-            }
-    
-            const difference = (end - start) / 1000;
-            const hours = Math.floor(difference / 3600);
-            const minutes = Math.floor((difference % 3600) / 60);
-            const seconds = Math.floor(difference % 60);
-    
-            return { hours, minutes, seconds };
-          };
-    
-          const { hours, minutes, seconds } = calculateTimeDifference(startTime, endTime);
-    
-          setValue((prevValue) => ({
-            ...prevValue,
-            hours: hours.toString(),
-            mins: minutes.toString(),
-            sec: seconds.toString(),
-            totalTime: `${hours}h ${minutes}m ${seconds}s`,
-          }));
-        }
+
+        const { hours, minutes, seconds } = calculateTimeDifference(
+          startTime,
+          endTime
+        );
+
+        setValue((prevValue) => ({
+          ...prevValue,
+          hours: hours.toString(),
+          mins: minutes.toString(),
+          sec: seconds.toString(),
+          totalTime: `${hours}h ${minutes}m ${seconds}s`,
+        }));
       }
-    };
-  
-    const generateOptions = (start, end) => {
-      return Array.from({ length: end - start + 1 }, (_, i) => {
-        const value = (start + i).toString().padStart(2, '0');
-        return <MenuItem key={value} value={value}>{value}</MenuItem>;
-      });
-    };
-  
-    const handleTimeChange = (timeType, part, newValue) => {
-      const [hours, minutes, seconds] = value[timeType].split(':');
-      let updatedTime;
-      
-      switch(part) {
-        case 'hour':
-          updatedTime = `${newValue}:${minutes}:${seconds}`;
-          break;
-        case 'minute':
-          updatedTime = `${hours}:${newValue}:${seconds}`;
-          break;
-        case 'second':
-          updatedTime = `${hours}:${minutes}:${newValue}`;
-          break;
-        default:
-          return;
-      }
-  
-      handleInputChange({ target: { name: timeType, value: updatedTime } });
-    };
-  
-  
+    }
+  };
+
+  const generateOptions = (start, end) => {
+    return Array.from({ length: end - start + 1 }, (_, i) => {
+      const value = (start + i).toString().padStart(2, "0");
+      return (
+        <MenuItem key={value} value={value}>
+          {value}
+        </MenuItem>
+      );
+    });
+  };
+
+  const handleTimeChange = (timeType, part, newValue) => {
+    const [hours, minutes, seconds] = value[timeType].split(":");
+    let updatedTime;
+
+    switch (part) {
+      case "hour":
+        updatedTime = `${newValue}:${minutes}:${seconds}`;
+        break;
+      case "minute":
+        updatedTime = `${hours}:${newValue}:${seconds}`;
+        break;
+      case "second":
+        updatedTime = `${hours}:${minutes}:${newValue}`;
+        break;
+      default:
+        return;
+    }
+
+    handleInputChange({ target: { name: timeType, value: updatedTime } });
+  };
+
   const handleAutocompleteChange = (name) => (event, newValue) => {
     setValue((prevValue) => ({
       ...prevValue,
@@ -896,7 +872,7 @@ function Report({ notificationCount }) {
     {
       field: "location",
       headerName: "location",
-      width: 170,   // width: 200,
+      width: 170, // width: 200,
       // editable: false,
       // flex: 1,
     },
@@ -1192,10 +1168,16 @@ function Report({ notificationCount }) {
   ];
 
   useEffect(() => {
+    setLoading(true);
+
+    setTimeout(() => {
     const reversedRowsData =
-      initialData.map((item, index) => ({
+        initialData
+          .slice()
+          .reverse()
+          .map((item, index) => ({
         ...item,
-        id: initialData.length - index,
+            id: index + 1,
         name: item.name,
         team: item.team,
         dateTask: item.dateTask,
@@ -1208,7 +1190,9 @@ function Report({ notificationCount }) {
       })) || [];
 
     setReversedRows(reversedRowsData);
-  }, [initialData]);
+      setLoading(false);
+    }, 1000);
+  }, [report, initialData]);
 
   useEffect(() => {
     const filterColumns = (data, columns) => {
@@ -1228,10 +1212,6 @@ function Report({ notificationCount }) {
     const filtered = filterColumns(reversedRows, initialDataColumns);
     setFilteredColumns(filtered);
   }, [reversedRows]);
-
-  const handleViewMore = () => {
-    fetchUpdatedData();
-  };
   // Team List
   const list = ["CV", "NLP", "CM", "SOURCING"];
 
@@ -1275,7 +1255,7 @@ function Report({ notificationCount }) {
       .then((response) => {
         const data = response.data.map((annotator) => ({
           createAnnotator: annotator.createAnnotator,
-          createName: annotator.createName
+          createName: annotator.createName,
         }));
         setAnnotatorData(data);
       })
@@ -1283,7 +1263,6 @@ function Report({ notificationCount }) {
         console.error("Error fetching annotator data:", error);
       });
   };
-  
 
   const [annotatorNameData, setAnnotatorNameData] = useState([]);
 
@@ -1501,17 +1480,23 @@ function Report({ notificationCount }) {
       });
   };
   const handleInputchangeAutocomplete = (e, newValue) => {
-    const selectedAnnotator = annotatorData.find(annotator => annotator.createAnnotator === newValue);
+    const selectedAnnotator = annotatorData.find(
+      (annotator) => annotator.createAnnotator === newValue
+    );
     if (selectedAnnotator) {
-      setValue({ ...value, annotatorId: newValue, annName: selectedAnnotator.createName });
+      setValue({
+        ...value,
+        annotatorId: newValue,
+        annName: selectedAnnotator.createName,
+      });
     } else {
-      setValue({ ...value, annotatorId: newValue, annName: '' });
+      setValue({ ...value, annotatorId: newValue, annName: "" });
     }
   };
   const handleInputchangeAutocompleteTwo = (e, newValue) => {
     setValue({ ...value, annName: newValue });
   };
-  
+
   const handleInputchangeAutocompleteThree = (e, newValue) => {
     setValue({ ...value, declineReason: newValue });
   };
@@ -2067,7 +2052,7 @@ function Report({ notificationCount }) {
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "start",
-                marginLeft: "17px"
+                marginLeft: "17px",
               }}
               key={index}
             >
@@ -2099,73 +2084,77 @@ function Report({ notificationCount }) {
                   />
                 )}
               />
-{value.projectName !== "Visual Question Answering (VQA)" && value.projectName !== "General Static Preference"  && (
-              <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
-                <TextField
-                  id="sessionOneHours"
-                  name="sessionOneHours"
-                  sx={{
-                    width: "100%",
-                    p: 1,
-                    "& .MuiOutlinedInput-root": {
-                      padding: "0px",
-                    },
-                  }}
-                  aria-required
-
-                  value={task.sessionOneHours}
-                  onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
-                  variant="outlined"
-                  select
-                  SelectProps={{
-                    native: true,
-                    IconComponent: () => <></>,
-                  }}
-                >
-                  <option value="" disabled>
-                    Hours
-                  </option>
-                  {[...Array(13).keys()].slice(0, 13).map((hour) => (
-                    <option key={hour} value={hour}>
-                      {hour}
-                    </option>
-                  ))}
-                </TextField>
-              </FormControl>
-)}
-{value.projectName !== "Visual Question Answering (VQA)" && value.projectName !== "General Static Preference" && (
-              <FormControl sx={{ minWidth: 120, width: "24%" }}>
-                <TextField
-                  id="sessionOneMinutes"
-                  name="sessionOneMinutes"
-                  sx={{
-                    width: "100%",
-                    p: 1,
-                    "& .MuiOutlinedInput-root": {
-                      padding: "0px",
-                    },
-                  }}
-
-                  value={task.sessionOneMinutes}
-                  onChange={(e) => handleTaskInputChange(index, e, setTasks)} // Pass setTasks to handleTaskInputChange
-                  variant="outlined"
-                  aria-required
-                  select
-                  SelectProps={{
-                    native: true,
-                    IconComponent: () => <></>,
-                  }}
-                >
-                  <option value="" disabled>
-                    Minutes
-                  </option>
-                  <option value="00">00</option>
-                  <option value="15">15</option>
-                  <option value="30">30</option>
-                  <option value="45">45</option>
-                </TextField>
-              </FormControl>
-)}
+              {value.projectName !== "Visual Question Answering (VQA)" &&
+                value.projectName !== "General Static Preference" && (
+                  <FormControl sx={{ minWidth: 120, width: "24%", ml: 1 }}>
+                    <TextField
+                      id="sessionOneHours"
+                      name="sessionOneHours"
+                      sx={{
+                        width: "100%",
+                        p: 1,
+                        "& .MuiOutlinedInput-root": {
+                          padding: "0px",
+                        },
+                      }}
+                      aria-required
+                      value={task.sessionOneHours}
+                      onChange={(e) =>
+                        handleTaskInputChange(index, e, setTasks)
+                      } // Pass setTasks to handleTaskInputChange
+                      variant="outlined"
+                      select
+                      SelectProps={{
+                        native: true,
+                        IconComponent: () => <></>,
+                      }}
+                    >
+                      <option value="" disabled>
+                        Hours
+                      </option>
+                      {[...Array(13).keys()].slice(0, 13).map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </TextField>
+                  </FormControl>
+                )}
+              {value.projectName !== "Visual Question Answering (VQA)" &&
+                value.projectName !== "General Static Preference" && (
+                  <FormControl sx={{ minWidth: 120, width: "24%" }}>
+                    <TextField
+                      id="sessionOneMinutes"
+                      name="sessionOneMinutes"
+                      sx={{
+                        width: "100%",
+                        p: 1,
+                        "& .MuiOutlinedInput-root": {
+                          padding: "0px",
+                        },
+                      }}
+                      value={task.sessionOneMinutes}
+                      onChange={(e) =>
+                        handleTaskInputChange(index, e, setTasks)
+                      } // Pass setTasks to handleTaskInputChange
+                      variant="outlined"
+                      aria-required
+                      select
+                      SelectProps={{
+                        native: true,
+                        IconComponent: () => <></>,
+                      }}
+                    >
+                      <option value="" disabled>
+                        Minutes
+                      </option>
+                      <option value="00">00</option>
+                      <option value="15">15</option>
+                      <option value="30">30</option>
+                      <option value="45">45</option>
+                    </TextField>
+                  </FormControl>
+                )}
               {index > 0 && (
                 <div style={{ position: "relative" }}>
                   <IconButton
@@ -2223,146 +2212,75 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
- <Box sx={{ width: "48%" }}>
-    <InputLabel sx={{ mb: 1 }} htmlFor="annotatorId">
-      Annotator ID
-    </InputLabel>
-    <Autocomplete
-      id="annotatorId"
-      name="annotatorId"
-      options={annotatorData.map(annotator => annotator.createAnnotator)}
-      getOptionLabel={(option) => option || ""}
-      value={value.annotatorId}
-      onChange={handleInputchangeAutocomplete}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          placeholder="Enter Annotator ID"
-          variant="outlined"
-          fullWidth
-          sx={{
-            width: 305,
-            "&.MuiOutlinedInput-root": {
-              padding: "4px",
-            },
-            "& input": {
-              height: "10px",
-            },
-          }}
-        />
-      )}
-    />
-  </Box>
-  <Box sx={{ width: "48%" }}>
-    <InputLabel sx={{ mb: 1 }} htmlFor="annName">
-      Annotator Name
-    </InputLabel>
-    <Autocomplete
-      id="annName"
-      name="annName"
-      options={annotatorData.map(annotator => annotator.createName)}
-      getOptionLabel={(option) => option || ""}
-      value={value.annName}
-      onChange={handleInputchangeAutocompleteTwo}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          placeholder="Enter Annotator Name"
-          variant="outlined"
-          fullWidth
-          sx={{
-            width: 305,
-            "&.MuiOutlinedInput-root": {
-              padding: "4px",
-            },
-            "& input": {
-              height: "10px",
-            },
-          }}
-        />
-      )}
-    />
-  </Box>
+                <Box sx={{ width: "48%" }}>
+                  <InputLabel sx={{ mb: 1 }} htmlFor="annotatorId">
+                    Annotator ID
+                  </InputLabel>
+                  <Autocomplete
+                    id="annotatorId"
+                    name="annotatorId"
+                    options={annotatorData.map(
+                      (annotator) => annotator.createAnnotator
+                    )}
+                    getOptionLabel={(option) => option || ""}
+                    value={value.annotatorId}
+                    onChange={handleInputchangeAutocomplete}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Annotator ID"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+                <Box sx={{ width: "48%" }}>
+                  <InputLabel sx={{ mb: 1 }} htmlFor="annName">
+                    Annotator Name
+                  </InputLabel>
+                  <Autocomplete
+                    id="annName"
+                    name="annName"
+                    options={annotatorData.map(
+                      (annotator) => annotator.createName
+                    )}
+                    getOptionLabel={(option) => option || ""}
+                    value={value.annName}
+                    onChange={handleInputchangeAutocompleteTwo}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Annotator Name"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: 305,
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
               </>
             )}
-          </Box>
-          <Box
-  sx={{
-    display: "flex",
-    flexDirection: "row",
-    gap: 2,
-    mt: 1,
-    mb: 2,
-    ml: 2,
-  }}
->
-  {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
-    <Box sx={{ width: '48%' }}>
-      <InputLabel sx={{ mb: 1 }} htmlFor="annBuffer">
-        Buffer
-      </InputLabel>
-      <Autocomplete
-        id="annBuffer"
-        options={bufferOptions}
-        value={value.buffer}
-        onChange={handleAutocompleteChange('buffer')}
-        renderInput={(params) => (
-          <TextField {...params} placeholder="Select Buffer" variant="outlined" fullWidth />
-        )}
-        sx={{ width: 305 }}
-      />
-    </Box>
-  )}
-  {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && value.buffer === "Yes" && (
-    <Box sx={{ width: "48%", mb: 2 }}>
-      {/* Adjust width as needed */}
-      <InputLabel sx={{ mb: 1 }} htmlFor="buffName">
-        Buffer Name
-      </InputLabel>
-      <TextField
-        id="buffName"
-        name="bufferName"
-        placeholder="Enter Buffer Name"
-        multiline
-        value={value.bufferName}
-        onChange={handleInputchange}
-        variant="outlined"
-        fullWidth
-      />
-    </Box>
-  )}
-</Box>
-
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              gap: 2,
-              // mt: 1,
-              mb: 2,
-              ml: 2,
-            }}
-          >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
-          <Box sx={{ width: '98%' }}>
-          <InputLabel sx={{ mb: 1 }} htmlFor="annLocation">
-            Location
-          </InputLabel>
-          <Autocomplete
-            id="annLocation"
-            options={locationOptions}
-            value={value.location}
-            onChange={handleAutocompleteChange('location')}
-            renderInput={(params) => (
-              <TextField {...params} placeholder="Select Location" variant="outlined" fullWidth />
-            )}
-          />
-        </Box>
-              
-            )}
-  
           </Box>
           <Box
             sx={{
@@ -2374,7 +2292,96 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
+              <Box sx={{ width: "48%" }}>
+                <InputLabel sx={{ mb: 1 }} htmlFor="annBuffer">
+                  Buffer
+                </InputLabel>
+                <Autocomplete
+                  id="annBuffer"
+                  options={bufferOptions}
+                  value={value.buffer}
+                  onChange={handleAutocompleteChange("buffer")}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Select Buffer"
+                      variant="outlined"
+                      fullWidth
+                    />
+                  )}
+                  sx={{ width: 305 }}
+                />
+              </Box>
+            )}
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") &&
+              value.buffer === "Yes" && (
+                <Box sx={{ width: "48%", mb: 2 }}>
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="buffName">
+                    Buffer Name
+                  </InputLabel>
+                  <TextField
+                    id="buffName"
+                    name="bufferName"
+                    placeholder="Enter Buffer Name"
+                    multiline
+                    value={value.bufferName}
+                    onChange={handleInputchange}
+                    variant="outlined"
+                    fullWidth
+                  />
+                </Box>
+              )}
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              // mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
+              <Box sx={{ width: "98%" }}>
+                <InputLabel sx={{ mb: 1 }} htmlFor="annLocation">
+                  Location
+                </InputLabel>
+                <Autocomplete
+                  id="annLocation"
+                  options={locationOptions}
+                  value={value.location}
+                  onChange={handleAutocompleteChange("location")}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Select Location"
+                      variant="outlined"
+                      fullWidth
+                    />
+                  )}
+                />
+              </Box>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2420,7 +2427,7 @@ function Report({ notificationCount }) {
               </>
             )}
           </Box>
-   
+
           <Box
             sx={{
               display: "flex",
@@ -2431,7 +2438,8 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2471,53 +2479,6 @@ function Report({ notificationCount }) {
             )}
           </Box>
           <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 2,
-        mt: 1,
-        mb: 2,
-        ml: 2,
-      }}
-    >
-      {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
-        <>
-          <Box sx={{ width: "98%", mb: 2 }}>
-                {" "}
-                {/* Adjust width as needed */}
-                <InputLabel sx={{ mb: 1 }} htmlFor="decRes">
-                  Decline Reason
-                </InputLabel>
-                <Autocomplete
-                  id="decRes"
-                  name="declineReason"
-                  options={annotatorDecData}
-                  value={value.declineReason}
-                  onChange={handleInputchangeAutocompleteThree}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Enter Decline Reason"
-                      variant="outlined"
-                      fullWidth
-                      sx={{
-                    
-                        "&.MuiOutlinedInput-root": {
-                          padding: "4px",
-                        },
-                        "& input": {
-                          height: "10px", // Adjust height as needed
-                        },
-                      }}
-                    />
-                  )}
-                />
-              </Box>
-        </>
-      )}
-      
-    </Box>
-    <Box
             sx={{
               display: "flex",
               flexDirection: "row",
@@ -2527,12 +2488,59 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
+              <>
+                <Box sx={{ width: "98%", mb: 2 }}>
+                  {" "}
+                  {/* Adjust width as needed */}
+                  <InputLabel sx={{ mb: 1 }} htmlFor="decRes">
+                    Decline Reason
+                  </InputLabel>
+                  <Autocomplete
+                    id="decRes"
+                    name="declineReason"
+                    options={annotatorDecData}
+                    value={value.declineReason}
+                    onChange={handleInputchangeAutocompleteThree}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Decline Reason"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          "&.MuiOutlinedInput-root": {
+                            padding: "4px",
+                          },
+                          "& input": {
+                            height: "10px", // Adjust height as needed
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              mt: 1,
+              mb: 2,
+              ml: 2,
+            }}
+          >
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
                   <InputLabel sx={{ mb: 1 }} htmlFor="ResOne">
-                    Response One Rating 
+                    Response One Rating
                   </InputLabel>
                   <Autocomplete
                     id="ResOne"
@@ -2602,7 +2610,8 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2667,7 +2676,7 @@ function Report({ notificationCount }) {
               </>
             )}
           </Box>
-       
+
           <Box
             sx={{
               display: "flex",
@@ -2678,7 +2687,8 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2753,7 +2763,8 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2828,7 +2839,8 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
                 <Box sx={{ width: "48%" }}>
                   {/* Adjust width as needed */}
@@ -2903,68 +2915,88 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
-    <Box sx={{ width: "48%" }}>
-        <InputLabel sx={{ mb: 1 }}>Start Time</InputLabel>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <FormControl sx={{ minWidth: 80 }}>
-            <Select
-              value={value.startTime.split(':')[0]}
-              onChange={(e) => handleTimeChange('startTime', 'hour', e.target.value)}
-            >
-              {generateOptions(0, 23)}
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 80 }}>
-            <Select
-              value={value.startTime.split(':')[1]}
-              onChange={(e) => handleTimeChange('startTime', 'minute', e.target.value)}
-            >
-              {generateOptions(0, 59)}
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 80 }}>
-            <Select
-              value={value.startTime.split(':')[2]}
-              onChange={(e) => handleTimeChange('startTime', 'second', e.target.value)}
-            >
-              {generateOptions(0, 59)}
-            </Select>
-          </FormControl>
-        </Box>
-      </Box>
-      
-      <Box sx={{ width: "48%" }}>
-        <InputLabel sx={{ mb: 1 }}>End Time</InputLabel>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <FormControl sx={{ minWidth: 80 }}>
-            <Select
-              value={value.endTime.split(':')[0]}
-              onChange={(e) => handleTimeChange('endTime', 'hour', e.target.value)}
-            >
-              {generateOptions(0, 23)}
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 80 }}>
-            <Select
-              value={value.endTime.split(':')[1]}
-              onChange={(e) => handleTimeChange('endTime', 'minute', e.target.value)}
-            >
-              {generateOptions(0, 59)}
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 80 }}>
-            <Select
-              value={value.endTime.split(':')[2]}
-              onChange={(e) => handleTimeChange('endTime', 'second', e.target.value)}
-            >
-              {generateOptions(0, 59)}
-            </Select>
-          </FormControl>
-        </Box>
-      </Box>
+                <Box sx={{ width: "48%" }}>
+                  <InputLabel sx={{ mb: 1 }}>Start Time</InputLabel>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <FormControl sx={{ minWidth: 80 }}>
+                      <Select
+                        value={value.startTime.split(":")[0]}
+                        onChange={(e) =>
+                          handleTimeChange("startTime", "hour", e.target.value)
+                        }
+                      >
+                        {generateOptions(0, 23)}
+                      </Select>
+                    </FormControl>
+                    <FormControl sx={{ minWidth: 80 }}>
+                      <Select
+                        value={value.startTime.split(":")[1]}
+                        onChange={(e) =>
+                          handleTimeChange(
+                            "startTime",
+                            "minute",
+                            e.target.value
+                          )
+                        }
+                      >
+                        {generateOptions(0, 59)}
+                      </Select>
+                    </FormControl>
+                    <FormControl sx={{ minWidth: 80 }}>
+                      <Select
+                        value={value.startTime.split(":")[2]}
+                        onChange={(e) =>
+                          handleTimeChange(
+                            "startTime",
+                            "second",
+                            e.target.value
+                          )
+                        }
+                      >
+                        {generateOptions(0, 59)}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
 
+                <Box sx={{ width: "48%" }}>
+                  <InputLabel sx={{ mb: 1 }}>End Time</InputLabel>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <FormControl sx={{ minWidth: 80 }}>
+                      <Select
+                        value={value.endTime.split(":")[0]}
+                        onChange={(e) =>
+                          handleTimeChange("endTime", "hour", e.target.value)
+                        }
+                      >
+                        {generateOptions(0, 23)}
+                      </Select>
+                    </FormControl>
+                    <FormControl sx={{ minWidth: 80 }}>
+                      <Select
+                        value={value.endTime.split(":")[1]}
+                        onChange={(e) =>
+                          handleTimeChange("endTime", "minute", e.target.value)
+                        }
+                      >
+                        {generateOptions(0, 59)}
+                      </Select>
+                    </FormControl>
+                    <FormControl sx={{ minWidth: 80 }}>
+                      <Select
+                        value={value.endTime.split(":")[2]}
+                        onChange={(e) =>
+                          handleTimeChange("endTime", "second", e.target.value)
+                        }
+                      >
+                        {generateOptions(0, 59)}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
               </>
             )}
           </Box>
@@ -2979,27 +3011,30 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
-<Box sx={{ width: "48%" }}>
-        <InputLabel sx={{ mb: 1 }} htmlFor="tT">Total Time</InputLabel>
-        <TextField
-          id="tT"
-          name="totalTime"
-          placeholder="Enter Total Time"
-          value={value.totalTime}
-          onChange={handleInputChange}
-          variant="outlined"
-          fullWidth
-          sx={{
-            width: 305,
-            "& input": {
-              height: "22px",
-            },
-          }}
-        />
-      </Box>
-                <Box sx={{ width: "48%", mb:3}}>
+                <Box sx={{ width: "48%" }}>
+                  <InputLabel sx={{ mb: 1 }} htmlFor="tT">
+                    Total Time
+                  </InputLabel>
+                  <TextField
+                    id="tT"
+                    name="totalTime"
+                    placeholder="Enter Total Time"
+                    value={value.totalTime}
+                    onChange={handleInputChange}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      width: 305,
+                      "& input": {
+                        height: "22px",
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ width: "48%", mb: 3 }}>
                   {/* Adjust width as needed */}
                   <InputLabel sx={{ mb: 1 }} htmlFor="toT">
                     Tool Time
@@ -3018,7 +3053,7 @@ function Report({ notificationCount }) {
                       width: 305,
                       // padding: "4px",
                       "& input": {
-                        height: "22px", 
+                        height: "22px",
                       },
                     }}
                   />
@@ -3036,45 +3071,50 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <>
-             <Box sx={{ width: "48%" }}>
-        <InputLabel sx={{ mb: 1 }} htmlFor="mins">Minutes</InputLabel>
-        <TextField
-          id="mins"
-          name="mins"
-          placeholder="Enter Minutes"
-          value={value.mins}
-          onChange={handleInputChange}
-          variant="outlined"
-          fullWidth
-          sx={{
-            width: 305,
-            "& input": {
-              height: "22px", 
-            },
-          }}
-        />
-      </Box>
+                <Box sx={{ width: "48%" }}>
+                  <InputLabel sx={{ mb: 1 }} htmlFor="mins">
+                    Minutes
+                  </InputLabel>
+                  <TextField
+                    id="mins"
+                    name="mins"
+                    placeholder="Enter Minutes"
+                    value={value.mins}
+                    onChange={handleInputChange}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      width: 305,
+                      "& input": {
+                        height: "22px",
+                      },
+                    }}
+                  />
+                </Box>
 
-      <Box sx={{ width: "48%" }}>
-        <InputLabel sx={{ mb: 1 }} htmlFor="sec">Seconds</InputLabel>
-        <TextField
-          id="sec"
-          name="sec"
-          placeholder="Enter Seconds"
-          value={value.sec}
-          onChange={handleInputChange}
-          variant="outlined"
-          fullWidth
-          sx={{
-            width: 305,
-            "& input": {
-              height: "22px", 
-            },
-          }}
-        />
-      </Box>
+                <Box sx={{ width: "48%" }}>
+                  <InputLabel sx={{ mb: 1 }} htmlFor="sec">
+                    Seconds
+                  </InputLabel>
+                  <TextField
+                    id="sec"
+                    name="sec"
+                    placeholder="Enter Seconds"
+                    value={value.sec}
+                    onChange={handleInputChange}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      width: 305,
+                      "& input": {
+                        height: "22px",
+                      },
+                    }}
+                  />
+                </Box>
               </>
             )}
           </Box>
@@ -3089,7 +3129,8 @@ function Report({ notificationCount }) {
               ml: 2,
             }}
           >
-            {(value.projectName === "Visual Question Answering (VQA)" || value.projectName === "General Static Preference") && (
+            {(value.projectName === "Visual Question Answering (VQA)" ||
+              value.projectName === "General Static Preference") && (
               <Box sx={{ width: "98.5%" }}>
                 {" "}
                 {/* Adjust width as needed */}
@@ -3106,7 +3147,6 @@ function Report({ notificationCount }) {
                   onChange={handleInputchange}
                   variant="outlined"
                   fullWidth
-                 
                 />
               </Box>
             )}
@@ -3309,82 +3349,82 @@ function Report({ notificationCount }) {
                     </div>
                   ) : (
                     <div>
-                    <Box
-                      sx={{
-                        height: 480,
-                        width: "100%",
-                        "@media screen and (min-width: 768px)": {
-                          height: 670,
-                        },
-                      }}
-                    >
-                      <DataGrid
-                        rows={reversedRows}
-                        columns={filteredColumns}
-                        pageSize={10}
-                        rowsPerPageOptions={[10]}
-                        checkboxSelection
-                        getRowId={(row) => row._id}
-                        disableSelectionOnClick
-                        components={{
-                          Toolbar: () => (
-                            <div style={{ display: "flex" }}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  marginTop: "5px",
-                                  marginLeft: "10px",
-                                }}
-                              >
-                                {/* <FilterListIcon
-                                  className="team-filter-icon"
+                      <Box
+                        sx={{
+                          height: 480,
+                          width: "100%",
+                          "@media screen and (min-width: 768px)": {
+                            height: 670,
+                          },
+                        }}
+                      >
+                        <DataGrid
+                          rows={reversedRows}
+                          columns={filteredColumns}
+                          pageSize={10}
+                          rowsPerPageOptions={[10]}
+                          checkboxSelection
+                          getRowId={(row) => row._id}
+                          disableSelectionOnClick
+                          components={{
+                            Toolbar: () => (
+                              <div style={{ display: "flex" }}>
+                                <div
                                   style={{
-                                    cursor: "pointer",
-                                    color: "#1a73e8",
-                                    fontSize: "20px",
-                                  }}
-                                  onClick={handlePopperToggle}
-                                  aria-label="Team Filter"
-                                /> */}
-                                {/* <MDTypography
-                                  variant="h6"
-                                  onClick={handlePopperToggle}
-                                  style={{
-                                    color: "#1a73e8",
-                                    cursor: "pointer",
-                                    fontSize: "12.1px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    marginTop: "5px",
+                                    marginLeft: "10px",
                                   }}
                                 >
-                                  DATE FILTER
-                                </MDTypography> */}
-                              </div>
+                                  {/* <FilterListIcon
+                                    className="team-filter-icon"
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#1a73e8",
+                                      fontSize: "20px",
+                                    }}
+                                    onClick={handlePopperToggle}
+                                    aria-label="Team Filter"
+                                  /> */}
+                                  {/* <MDTypography
+                                    variant="h6"
+                                    onClick={handlePopperToggle}
+                                    style={{
+                                      color: "#1a73e8",
+                                      cursor: "pointer",
+                                      fontSize: "12.1px",
+                                    }}
+                                  >
+                                    DATE FILTER
+                                  </MDTypography> */}
+                                </div>
 
-                              <GridToolbar />
-                              <div
-                                style={{
-                                  display: "flex",
-                                  marginLeft: "auto",
-                                  alignItems: "center",
-                                }}
-                              >
-                                {/* <MDButton
-                  className="team-report-btn"
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  style={{ marginRight: "13px" }}
-                  onClick={allReport}
-                >
-                  &nbsp;All Report
-                </MDButton> */}
+                                <GridToolbar />
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    marginLeft: "auto",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  {/* <MDButton
+                    className="team-report-btn"
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    style={{ marginRight: "13px" }}
+                    onClick={allReport}
+                  >
+                    &nbsp;All Report
+                  </MDButton> */}
+                                </div>
                               </div>
-                            </div>
-                          ),
-                        }}
-                      />
-                    </Box>
-                  </div>
+                            ),
+                          }}
+                        />
+                      </Box>
+                    </div>
                   )}
                 </div>
               </MDBox>
