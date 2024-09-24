@@ -86,10 +86,11 @@ function AdminReport() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectionDescription, setRejectionDescription] = useState('');
   const [filteredColumns, setFilteredColumns] = useState([]);
-  const [showNotification, setShowNotification] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
   const [hasMore, setHasMore] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
+  
   const [activeTab, setActiveTab] = useState(0);
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
@@ -200,9 +201,7 @@ function AdminReport() {
   const handleNewReport = (report) => {
     setNewReports(prevReports => [...prevReports, report]);
   };
-  useEffect(() => {
-    allReport();
-  }, []);
+
 
   // const allReport = () => {
   //   setLoading(true);
@@ -217,6 +216,7 @@ function AdminReport() {
   //     .catch((err) => console.log(err))
   //     .finally(() => setLoading(false));
   // };
+
   const allReport = () => {
     const teamLead = teamLeadName.trim();
 
@@ -235,7 +235,6 @@ function AdminReport() {
       })
       .catch((err) => console.log(err));
   };
-
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -277,7 +276,6 @@ function AdminReport() {
 
     fetchData();
   }, []);
-
 
 
   const handleApprove = (taskId) => {
