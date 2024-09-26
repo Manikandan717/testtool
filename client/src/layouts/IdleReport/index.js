@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import axios from "axios";
 import { CardActionArea, CardActions, IconButton } from "@mui/material";
-import { BarChart,  XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Bar, Doughnut } from "react-chartjs-2";
 import { Box, Typography } from "@mui/material";
 import DatePicker from "@mui/lab/DatePicker";
@@ -13,7 +12,7 @@ import SelfImprovementIcon from "@mui/icons-material/SelfImprovement";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import CloseIcon from "@mui/icons-material/Close";
 import { Card, CardContent, CardHeader, Grid, TextField } from "@mui/material";
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDButton from "components/MDButton";
@@ -27,162 +26,6 @@ import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import MDBox from "components/MDBox";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
-import SummaryCard from '../summary/index';
-import MoreTimeIcon from '@mui/icons-material/MoreTime';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-
-
-const BillableTasksCard = ({ billableTableData, columnsTable, billableCount }) => (
-  <Card className="table-padding">
-    <CardContent>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '4.5px'
-      }}>
-        <h3 style={{ fontSize: "17px", margin: 0 }}>Latest Billable Tasks</h3>
-        <p style={{
-          fontWeight: "bold",
-          fontSize: "18px",
-          color: '#2e7d32',
-          margin: 0,
-          // backgroundColor: '#e8f5e9',
-          padding: '5px 10px',
-          borderRadius: '5px'
-        }}>
-          Total Billable Count: {billableCount}
-        </p>
-      </div>
-      <div style={{ height: 330, width: "100%", backgroundColor: "#fff" }}>
-        <DataGrid
-          rows={billableTableData}
-          columns={columnsTable}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          pagination
-          autoHeight
-          components={{ Toolbar: GridToolbar }}
-          componentsProps={{
-            toolbar: { csvOptions: { allColumns: true } },
-          }}
-        />
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const NonBillableTasksCard = ({ nonBillableTableData, columnsTable, nonBillableCount }) => {
-  const { trainingCount, idleCount } = useMemo(() => {
-    return nonBillableTableData.reduce((acc, task) => {
-      if (task.task === 'Training-Non Billable') {
-        acc.trainingCount += task.count;
-      } else if (task.task === 'Idle -Non Billable') {
-        acc.idleCount += task.count;
-      }
-      return acc;
-    }, { trainingCount: 0, idleCount: 0 });
-  }, [nonBillableTableData]);
-
-  return (
-    <Card className="table-padding">
-      <CardContent>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '15px'
-        }}>
-          <h3 style={{ fontSize: "17px", margin: 0, fontWeight: 'bold' }}>Latest Non-Billable Tasks</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <p style={{
-              fontWeight: "bold",
-              fontSize: "16px",
-              color: '#ef6c00',
-              margin: 0,
-            }}>
-              Total Non-Billable: {nonBillableCount}
-            </p>
-            <p style={{
-              fontWeight: "bold",
-              fontSize: "14px",
-              color: '#1976d2',  // Blue color for Training
-              margin: 0,
-            }}>
-              Training: {trainingCount}
-            </p>
-            <p style={{
-              fontWeight: "bold",
-              fontSize: "14px",
-              color: '#7b1fa2',  // Purple color for Idle
-              margin: 0,
-            }}>
-              Idle: {idleCount}
-            </p>
-          </div>
-        </div>
-        <div style={{ height: 330, width: "100%", backgroundColor: "#fff" }}>
-          <DataGrid
-            rows={nonBillableTableData}
-            columns={columnsTable}
-            pageSize={5}
-            rowsPerPageOptions={[5, 10, 20]}
-            pagination
-            autoHeight
-            components={{ Toolbar: GridToolbar }}
-            componentsProps={{
-              toolbar: { csvOptions: { allColumns: true } },
-            }}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-const AttendanceLabel = ({ presentCount, absentCount }) => (
-  <div className="flex items-center space-x-2">
-    <span
-      style={{
-        fontWeight: "bold",
-        color: "#2e7d32",
-      }}
-    >
-      Present: {presentCount}
-    </span>
-    <span
-      style={{
-        fontWeight: "bold",
-        color: "#ef6c00",
-        marginLeft: "10px"
-      }}
-    >
-      Absent: {absentCount}
-    </span>
-  </div>
-);
-const AttendanceStatisticsCard = memo(({ presentCount, absentCount }) => {
-  return (
-    <Card>
-      <CardHeader title={<h3 style={{ fontSize: "17px" }}>Attendance Status</h3>} />
-      <CardContent>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <div style={{ textAlign: 'center' }}>
-            <Typography variant="h5" style={{ color: '#4caf50' }}>
-              Present
-            </Typography>
-            <Typography variant="h6">{presentCount}</Typography>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <Typography variant="h5" style={{ color: '#FF6868' }}>
-              Absent
-            </Typography>
-            <Typography variant="h6">{absentCount}</Typography>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-});
 
 const MemoizedBarChart = memo(
   ({ chartData }) =>
@@ -329,8 +172,11 @@ const MemoizedDoughnutChart = memo(
 const MemoizedProjectStatusChart = memo(
   ({ pieChartData1 }) =>
     pieChartData1.labels.length > 0 && (
- 
- 
+      <Card>
+        <CardHeader
+          title={<h3 style={{ fontSize: "17px" }}>Project Status</h3>}
+        />
+        <CardContent>
           <Doughnut
             data={pieChartData1}
             options={{
@@ -372,32 +218,26 @@ const MemoizedProjectStatusChart = memo(
               cutout: "60%",
             }}
           />
-    
+        </CardContent>
+      </Card>
     )
 );
 
 const TaskWiseBarChart = () => {
-  const apiUrl = "http://localhost:5000";
-  // const getCurrentMonthStartDate = () => {
-  //   const currentDate = new Date();
-  //   return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  // };
-  // const getCurrentMonthEndDate = () => {
-  //   const currentDate = new Date();
-  //   return new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  // };
-  const getPreviousDayDate = () => {
+  const apiUrl = "https://9tnby7zrib.execute-api.us-east-1.amazonaws.com/test/Emp";
+  const getCurrentMonthStartDate = () => {
     const currentDate = new Date();
-    // Set the date to the previous day
-    const previousDate = new Date(currentDate);
-    previousDate.setDate(currentDate.getDate() - 1);
-    return previousDate;
+    return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   };
-  
-  // Set both start and end date to the previous day's date
-  const previousDate = getPreviousDayDate();
-  const [startDate, setStartDate] = useState(previousDate);
-  const [endDate, setEndDate] = useState(previousDate);
+
+  const getCurrentMonthEndDate = () => {
+    const currentDate = new Date();
+    return new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+  };
+
+  const [startDate, setStartDate] = useState(getCurrentMonthStartDate());
+  const [endDate, setEndDate] = useState(getCurrentMonthEndDate());
+  const [projectNames, setProjectNames] = useState([]);
   const [allProjectNames, setAllProjectNames] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [batchValue, setBatchValue] = useState(null);
@@ -408,13 +248,16 @@ const TaskWiseBarChart = () => {
     labels: [],
     datasets: [],
   });
+
   const [tableData, setTableData] = useState([]);
   const [showTable, setShowTable] = useState(false);
-// New state variables
+
+  // New state variables
   const [idleNonBillableCount, setIdleNonBillableCount] = useState(0);
   const [idleBillableCount, setIdleBillableCount] = useState(0);
   const [productionCount, setProductionCount] = useState(0);
   const [teamProjects, setTeamProjects] = useState([]);
+
   // New state variable for Pie Chart
   const [pieChartData, setPieChartData] = useState({
     labels: ["Idle", "Production"],
@@ -429,34 +272,34 @@ const TaskWiseBarChart = () => {
   const [totalProductionCount, setTotalProductionCount] = useState(0);
   const [totalIdleCount, setTotalIdleCount] = useState(0);
 
-  // useEffect(() => {
-  //   fetchDataTwo(selectedProject, selectedTeam, startDate, endDate);
-  // }, [selectedProject, selectedTeam, startDate, endDate]);
+  useEffect(() => {
+    fetchDataTwo(selectedProject, selectedTeam, startDate, endDate);
+  }, [selectedProject, selectedTeam, startDate, endDate]);
 
-  // const fetchDataTwo = async (projectName, team, sDate, eDate) => {
-  //   try {
-  //     let url = `${apiUrl}/analyst/count`;
-  //     const params = {};
+  const fetchDataTwo = async (projectName, team, sDate, eDate) => {
+    try {
+      let url = `${apiUrl}/analyst/counts`;
+      const params = {};
 
-  //     if (projectName) {
-  //       params.projectName = projectName;
-  //     }
-  //     if (team) {
-  //       params.team = team;
-  //     }
-  //     if (sDate && eDate) {
-  //       params.sDate = sDate;
-  //       params.eDate = eDate;
-  //     }
+      if (projectName) {
+        params.projectName = projectName;
+      }
+      if (team) {
+        params.team = team;
+      }
+      if (sDate && eDate) {
+        params.sDate = sDate;
+        params.eDate = eDate;
+      }
 
-  //     const response = await axios.get(url, { params });
+      const response = await axios.get(url, { params });
 
-  //     setTotalProductionCount(response.data.totalProductionTasks);
-  //     setTotalIdleCount(response.data.totalIdleTasks);
-  //   } catch (error) {
-  //     console.error("Error fetching data:", error);
-  //   }
-  // };
+      setTotalProductionCount(response.data.totalProductionTasks);
+      setTotalIdleCount(response.data.totalIdleTasks);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const [teams, setTeams] = useState([]);
   useEffect(() => {
@@ -472,145 +315,192 @@ const TaskWiseBarChart = () => {
     fetchTeams();
   }, []);
 
+  useEffect(() => {
+    const fetchAllProjectNames = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/projectNames`);
+        setAllProjectNames(response.data);
+      } catch (error) {
+        console.error("Error fetching all project names:", error);
+      }
+    };
+
+    fetchAllProjectNames();
+  }, []);
+
   // useEffect(() => {
-  //   const fetchAllProjectNames = async () => {
+  //   const fetchProjectNames = async () => {
   //     try {
   //       const response = await axios.get(`${apiUrl}/projectNames`);
-  //       setAllProjectNames(response.data);
+  //       const projectNames = response.data;
+  //       setProjectNames(projectNames);
   //     } catch (error) {
-  //       console.error("Error fetching all project names:", error);
+  //       console.error('Error fetching project names:', error);
   //     }
   //   };
 
-  //   fetchAllProjectNames();
+  //   fetchProjectNames();
   // }, []);
 
-// const fetchPieChartData = useCallback(async () => {
-//     try {
-//       const totalProduction =  averageProductionCountPerDay; // Include idleBillableCount in production count
-//       const total = totalProduction + idleNonBillableCount; // Include idleNonBillableCount separately
-//       const percentages = [averageIdleCountPerDay, totalProduction]; // Include totalProduction
-
-//       setPieChartData((prevData) => ({
-//         ...prevData,
-//         datasets: [
-//           {
-//             data: percentages,
-//             backgroundColor: ["#fe9f1b", "#338ded"],
-//             hoverBackgroundColor: ["#fe9f1b", "#338ded"],
-//           },
-//         ],
-//       }));
-//     } catch (error) {
-//       console.error("Error fetching pie chart data:", error);
-//     }
-//   }, [idleNonBillableCount, totalProductionCount, setPieChartData]);
-//   const [trainingNonBillableCount, setTrainingNonBillableCount] = useState(0);
-//   useEffect(() => {
-//     fetchPieChartData();
-//   }, [fetchPieChartData]);
-const [billableCount, setBillableCount] = useState(0);
-const [nonBillableCount, setNonBillableCount] = useState(0);
-const [billableTableData, setBillableTableData] = useState([]);
-const [nonBillableTableData, setNonBillableTableData] = useState([]);
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      if (!startDate || !endDate) {
-        setChartData({ labels: [], datasets: [] });
-        setTableData([]);
-        setBillableTableData([]);
-        setNonBillableTableData([]);
-        setBillableCount(0);
-        setNonBillableCount(0);
-        return;
-      }
-
-      const response = await axios.get(`${apiUrl}/fetch/taskwise`, {
-        params: {
-          sDate: startDate.toISOString().split("T")[0],
-          eDate: endDate.toISOString().split("T")[0],
-          projectName: selectedProject,
-          team: selectedTeam,
-        },
-      });
-
-      const { billableTasks, nonBillableTasks, billableCount, nonBillableCount, allTasks } = response.data;
-
-      setBillableCount(billableCount);
-      setNonBillableCount(nonBillableCount);
-      const billableData = allTasks
-      .filter(task => !['Training-Non Billable', 'Idle -Non Billable'].includes(task.task))
-      .map((task, index) => ({
-        id: index + 1,
-        task: task.task,
-        count: task.totalCount,
-        projectName: task.projectName,
-        team: task.team,
-      }));
-
-    const nonBillableData = allTasks
-      .filter(task => ['Training-Non Billable', 'Idle -Non Billable'].includes(task.task))
-      .map((task, index) => ({
-        id: index + 1,
-        task: task.task,
-        count: task.totalCount,
-        projectName: task.projectName,
-        team: task.team,
-      }));
-
-    setBillableTableData(billableData);
-    setNonBillableTableData(nonBillableData);
-
-      const uniqueDates = [...new Set(allTasks.flatMap(task => task.dateWiseCounts.map(count => count.date)))];
-      uniqueDates.sort((a, b) => new Date(a) - new Date(b));
-
-      const formattedDates = uniqueDates.map(date => {
-        const formattedDate = new Date(date);
-        return `${formattedDate.getDate()} ${formattedDate.toLocaleString('en-US', { month: 'short' })} ${formattedDate.getFullYear()}`;
-      });
-
-      const datasets = allTasks.map(task => ({
-        label: task.task,
-        data: formattedDates.map(date => {
-          const matchingCount = task.dateWiseCounts.find(count => {
-            const countDate = new Date(count.date);
-            return `${countDate.getDate()} ${countDate.toLocaleString('en-US', { month: 'short' })} ${countDate.getFullYear()}` === date;
-          });
-          return matchingCount ? matchingCount.count : 0;
-        }),
-        backgroundColor: getRandomColor(),
-      }));
-
-      setChartData({
-        labels: formattedDates,
-        datasets: datasets,
-      });
-
-      setTableData(allTasks.map((task, index) => ({
-        id: index + 1,
-        task: task.task,
-        count: task.totalCount,
-        projectName: task.projectName,
-        team: task.team,
-      })));
-
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "numeric", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  fetchData();
-}, [startDate, endDate, selectedProject, selectedTeam]);
+  const fetchPieChartData = useCallback(async () => {
+    try {
+      const totalProduction =  averageProductionCountPerDay; // Include idleBillableCount in production count
+      const total = totalProduction + idleNonBillableCount; // Include idleNonBillableCount separately
+      const percentages = [averageIdleCountPerDay, totalProduction]; // Include totalProduction
 
-const columnsTable = [
-  { field: "id", headerName: "ID", width: 70 }, 
-  { field: "projectName", headerName: "Project Name", width: 200, flex: 1 },
-  { field: "team", headerName: "Team", width: 150, flex: 1 },
-  { field: "task", headerName: "Task", width: 200, flex: 1 },
-  { field: "count", headerName: "Employee Count", width: 150, flex: 1 },
-];
+      setPieChartData((prevData) => ({
+        ...prevData,
+        datasets: [
+          {
+            data: percentages,
+            backgroundColor: ["#fe9f1b", "#338ded"],
+            hoverBackgroundColor: ["#fe9f1b", "#338ded"],
+          },
+        ],
+      }));
+    } catch (error) {
+      console.error("Error fetching pie chart data:", error);
+    }
+  }, [idleNonBillableCount, totalProductionCount, setPieChartData]);
 
+  useEffect(() => {
+    fetchPieChartData();
+  }, [fetchPieChartData]);
+
+  // Modify the useEffect hook where you calculate the production count
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!startDate || !endDate) {
+          setChartData({
+            labels: [],
+            datasets: [],
+          });
+          setTableData([]);
+          setIdleNonBillableCount(0);
+          setIdleBillableCount(0);
+          setProductionCount(0);
+          return;
+        }
+
+        let response;
+
+        if (selectedProject && selectedTeam) {
+          // Fetch data for a specific project and team
+          response = await axios.get(`${apiUrl}/fetch/taskwise`, {
+            params: {
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
+              projectName: selectedProject,
+              team: selectedTeam,
+            },
+          });
+        } else if (selectedTeam) {
+          // Fetch data for all projects for a specific team
+          response = await axios.get(`${apiUrl}/fetch/taskwise`, {
+            params: {
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
+              team: selectedTeam,
+            },
+          });
+        } else {
+          // Fetch data for all projects
+          response = await axios.get(`${apiUrl}/fetch/taskwise`, {
+            params: {
+              sDate: startDate.toISOString().split("T")[0],
+              eDate: endDate.toISOString().split("T")[0],
+            },
+          });
+        }
+
+        const data = response.data;
+        const uniqueDates = [...new Set(data.map((item) => item._id.date))];
+        const formattedDates = uniqueDates.map((date) => {
+          const formattedDate = new Date(date);
+          const day = formattedDate.getDate();
+          const month = formattedDate.toLocaleString("en-US", {
+            month: "short",
+          });
+          const year = formattedDate.getFullYear();
+          return `${day} ${month} ${year}`;
+        });
+
+        // Sort the formattedDates array in chronological order
+        formattedDates.sort((a, b) => new Date(a) - new Date(b));
+
+        const uniqueTasks = [...new Set(data.map((item) => item._id.task))];
+
+        const datasets = uniqueTasks.map((task) => {
+          const taskData = data.filter((item) => item._id.task === task);
+          return {
+            label: task,
+            data: formattedDates.map((formattedDate) => {
+              const matchingItem = taskData.find((item) => {
+                const itemDate = new Date(item._id.date);
+                const day = itemDate.getDate();
+                const month = itemDate.toLocaleString("en-US", {
+                  month: "short",
+                });
+                const year = itemDate.getFullYear();
+                const itemFormattedDate = `${day} ${month} ${year}`;
+                return itemFormattedDate === formattedDate;
+              });
+              return matchingItem ? matchingItem.count : 0;
+            }),
+            backgroundColor: getRandomColor(),
+          };
+        });
+
+        let idleNonBillableCount = 0;
+        let idleBillableCount = 0;
+        let productionCount = 0;
+
+        datasets.forEach((dataset) => {
+          const task = dataset.label.toLowerCase();
+          const count = dataset.data.reduce((sum, value) => sum + value, 0);
+
+          if (task.includes("idle") && task.includes("non billable")) {
+            idleNonBillableCount += count;
+          } else if (task.includes("idle") && task.includes("billable")) {
+            idleBillableCount += count;
+          } else {
+            productionCount += count;
+          }
+        });
+
+        // Add idle billable count to production count
+        productionCount += idleBillableCount;
+
+        setIdleNonBillableCount(idleNonBillableCount);
+        setIdleBillableCount(idleBillableCount);
+        setProductionCount(productionCount);
+
+        setChartData({
+          labels: formattedDates,
+          datasets: datasets,
+        });
+
+        const tableData = uniqueTasks.map((task, index) => ({
+          id: index + 1,
+          task: task,
+          count: datasets[index].data.reduce((sum, value) => sum + value, 0),
+          // Include count property in the tableData
+        }));
+
+        setTableData(tableData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [startDate, endDate, selectedProject, selectedTeam]);
 
   const fetchDataBasedOnProject = async (newProject, newTeam) => {
     try {
@@ -942,17 +832,17 @@ const columnsTable = [
     }));
   };
 
-  // const columns = [
-  //   { field: "status1", headerName: "Status1", flex: 1 },
-  //   { field: "count", headerName: "Count", flex: 1 },
-  // ];
+  const columns = [
+    { field: "status1", headerName: "Status1", flex: 1 },
+    { field: "count", headerName: "Count", flex: 1 },
+  ];
 
-  // const rows = aggregateStatus1Counts(status1CountByProject).map(
-  //   (row, index) => ({
-  //     id: index, // Use the index as the id (you may need a better strategy depending on your data)
-  //     ...row,
-  //   })
-  // );
+  const rows = aggregateStatus1Counts(status1CountByProject).map(
+    (row, index) => ({
+      id: index, // Use the index as the id (you may need a better strategy depending on your data)
+      ...row,
+    })
+  );
   const [comparisonData, setComparisonData] = useState({
     totalEmployees: 0,
     presentEmployees: 0,
@@ -979,14 +869,14 @@ const columnsTable = [
   // const presentPercentage = ((idleBillableCount + idleNonBillableCount + productionCount) / totalEmployees) * 100;
   // const absentPercentage = ((totalEmployees - (idleBillableCount + idleNonBillableCount + productionCount)) / totalEmployees) * 100;
   const presentCount =
-  billableCount + nonBillableCount;
+     idleNonBillableCount + productionCount;
   const absentCount = totalEmployees - presentCount;
   // Prepare data for the Doughnut chart
   const doughnutChartData = {
     labels: ["Present", "Absent"],
     datasets: [
       {
-        // data: [presentPercentage, absentPercentage],zz
+        // data: [presentPercentage, absentPercentage],
         data: [presentCount, absentCount],
         backgroundColor: ["#979700", "#979700"],
         hoverBackgroundColor: ["#38812F", "#979700"],
@@ -1155,7 +1045,7 @@ const columnsTable = [
   // Calculate the average idle count per day
   const averageIdleCountPerDay = (
     idleNonBillableCount / differenceInDaysWithoutWeekends
-  ).toFixed(2);
+  ).toFixed(0);
 
   const calculatePercentage = (averageProductionCountPerDay) => {
     if (selectedProject !== null) {
@@ -1168,8 +1058,8 @@ const columnsTable = [
   };
 
   // Convert the string representations to numbers for summing
-const productionCountAdmin = parseInt(billableCount);
-const idleCount = parseInt(nonBillableCount);
+const productionCountAdmin = parseInt(averageProductionCountPerDay);
+const idleCount = parseInt(averageIdleCountPerDay);
 
 // Sum of production and idle counts
 const sumOfCounts = productionCountAdmin + idleCount;
@@ -1237,232 +1127,365 @@ const sumOfCounts = productionCountAdmin + idleCount;
   
   return (
     <DashboardLayout>
-    <DashboardNavbar />
-  
-    {/* Row 1: Filters */}
-    <Grid container spacing={2} alignItems="center">
-      <Grid item xs={12} sm={6} md={3}>
-        <TextField
-          label="Start Date"
-          type="date"
-          value={startDate.toISOString().split("T")[0]}
-          onChange={(event) => setStartDate(new Date(event.target.value))}
-          fullWidth
-          variant="outlined"
-          color="secondary"
-          sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <TextField
-          label="End Date"
-          type="date"
-          value={endDate.toISOString().split("T")[0]}
-          onChange={(event) => setEndDate(new Date(event.target.value))}
-          fullWidth
-          variant="outlined"
-          color="secondary"
-          sx={{ backgroundColor: "#fff", borderRadius: "8px" }}
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <Autocomplete
-          value={selectedTeam}
-          onChange={handleTeamChange}
-          options={teams}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Team"
-              fullWidth
-              variant="outlined"
-              color="secondary"
-            />
-          )}
-          sx={{ 
-            backgroundColor: "#fff", 
-            borderRadius: "8px",
-            "& .MuiOutlinedInput-root": { padding: 0.5 }
-          }}
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <Autocomplete
-          value={selectedProject}
-          onChange={handleProjectChange}
-          options={selectedTeam ? teamProjects : allProjectNames}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Project Name"
-              fullWidth
-              variant="outlined"
-              color="secondary"
-            />
-          )}
-          sx={{ 
-            backgroundColor: "#fff", 
-            borderRadius: "8px",
-            "& .MuiOutlinedInput-root": { padding: 0.6 }
-          }}
-        />
-      </Grid>
-    </Grid>
-  
-    {/* Row 2: Cards (Total Employees, Billable, Non-Billable, Attendance, Projects) */}
-    <Grid container spacing={2} mt={2}>
-        <Grid item xs={12} sm={6} md={2.4}>
-        <MDBox mb={1.5}>
-          <ComplexStatisticsCard
-            color="primary"
-            icon={<GroupIcon />}
-            title="Total Employees"
-            count={
-              selectedProject
-                ? batchValue ?? "Loading..."
-                : selectedTeam
-                ? batchCountByTeam ?? "Loading..."
-                : employeeCount ?? "Loading..."
-            }
-            percentage={{
-              color: "success",
-              amount: "",
-              label: `${sumOfCounts} Employees : Avg ${sumOfPercentages}%`,
+      <DashboardNavbar />
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={12}>
+          {/* <MDButton
+            variant="outlined"
+            color="success"
+            sx={{
+              width: "fit-content",
+              display: "flex",
+              alignItems: "center",
+              padding: "7px 7px", // Adjust top and bottom padding
+              marginLeft: "auto",
+              minHeight: "0px", // Adjust the height as needed
             }}
-          />
-        </MDBox>
+            onClick={exportChartDataToExcel}
+          >
+            Export Analytics
+          </MDButton> */}
+          {/* Filters Container */}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mt={1}
+            mb={2}
+            p={0}
+          >
+            {/* Start Date Filter */}
+            <Grid item xs={12} md={3}>
+              <TextField
+                label="Start Date"
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  width: "98%",
+                }}
+                type="date"
+                value={startDate.toISOString().split("T")[0]}
+                onChange={(event) => setStartDate(new Date(event.target.value))}
+                fullWidth
+                variant="outlined"
+                color="secondary"
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                label="End Date"
+                type="date"
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  marginLeft: "5px",
+                }}
+                value={endDate.toISOString().split("T")[0]}
+                onChange={(event) => setEndDate(new Date(event.target.value))}
+                fullWidth
+                variant="outlined"
+                color="secondary"
+              />
+            </Grid>
+            <Grid item xs={12} md={3} sx={{ padding: "8px", margin: "0 9px" }}>
+              <Autocomplete
+                value={selectedTeam}
+                onChange={handleTeamChange}
+                options={teams}
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  width: "103%",
+                  "& .MuiOutlinedInput-root": {
+                    padding: 0.5,
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Team"
+                    fullWidth
+                    variant="outlined"
+                    color="secondary"
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} md={3} sx={{ padding: "8px" }}>
+              <Autocomplete
+                value={selectedProject}
+                onChange={handleProjectChange}
+                options={selectedTeam ? teamProjects : allProjectNames}
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  "& .MuiOutlinedInput-root": {
+                    padding: 0.6,
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Project Name"
+                    fullWidth
+                    variant="outlined"
+                    color="secondary"
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} md={1.5}>
+              <MDButton
+                component="span"
+                variant="contained"
+                color="success"
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  fontSize: "0.7rem",
+                  borderRadius: "8px",
+                  textAlign: "center",
+                  minHeight: "10px",
+                  // minWidth: "120px",
+                  padding: "10px",
+                }}
+                onClick={exportChartDataToExcel}
+              >
+                <CloudDownloadIcon style={{ marginRight: "4px" }} />
+                Export Data
+              </MDButton>
+            </Grid>
+          </Box>
         </Grid>
-  
-        <Grid item xs={12} sm={6} md={2.4}>
+
+        {/* <Grid container spacing={3}> */}
+        <Grid item xs={12} md={6} lg={3}>
           <MDBox mb={1.5}>
             <ComplexStatisticsCard
-              icon={<MoreTimeIcon />}
-              title="Billable Employees"
-              count={billableCount}
+              color="primary"
+              icon={<GroupIcon />}
+              title="Total Employees"
+              count={
+                selectedProject !== null
+                  ? batchValue !== null
+                    ? batchValue
+                    : "Loading..."
+                  : selectedTeam !== null
+                  ? batchCountByTeam !== null
+                    ? batchCountByTeam
+                    : "Loading..."
+                  : employeeCount !== null
+                  ? employeeCount
+                  : "Loading..."
+              }
               percentage={{
                 color: "success",
                 amount: "",
-                label: `${billableCount} Tasks`,
+                label: `${sumOfCounts} Employees : Avg ${sumOfPercentages}%`,
+                
               }}
+              
             />
+{/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+  <div style={{ 
+    width: '100%', 
+    height: '10px', 
+    outline: '2px solid grey',
+    borderRadius: '5px', 
+    boxShadow: `0 0 0 2px grey`, // Add the boxShadow property for the outline
+  }}>
+    <div style={{ width: `${sumOfPercentages}%`, height: '100%', borderRadius: '5px' , backgroundColor: sumOfPercentages < 40 ? 'red' : sumOfPercentages < 70 ? 'yellow' : 'green', 
+    borderRadius: '5px', 
+    marginRight: '5px',
+    }} />
+  </div>
+  <span>{sumOfPercentages}%</span>
+</div> */}
+
           </MDBox>
         </Grid>
-  
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid item xs={12} md={6} lg={3}>
+          {/* <MDBox mb={1.5}>
+            <ComplexStatisticsCard
+              icon="more_time"
+              title="Production"
+              count={`${totalProductionCount}`}
+              percentage={{
+                color: "success",
+                amount: "",
+                label: `${averageProductionCountPerDay}% Average `,
+              }}
+            />
+          </MDBox> */}
+            <MDBox mb={1.5}>
+    <ComplexStatisticsCard
+      icon="more_time"
+      title="Production Employees"
+      count={`${averageProductionCountPerDay}`}
+      percentage={{
+        color: "success",
+        amount: "",
+        label: `${totalProductionCount} Tasks`,
+      }}
+    />
+    {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+      <div style={{ width: '100%', height: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px', marginRight: '5px' }}>
+        <div style={{ width: `${calculatePercentage(averageProductionCountPerDay)}%`, height: '100%', backgroundColor: 'green', borderRadius: '5px' }} />
+      </div>
+      <span>{calculatePercentage(averageProductionCountPerDay)}%</span>
+    </div> */}
+  </MDBox>
+        </Grid>
+
+<Grid item xs={12} md={6} lg={3}>
           <MDBox mb={1.5}>
             <ComplexStatisticsCard
               color="warning"
-              icon={<WorkOutlineIcon />} // Changed from WorkHistoryIcon
-              title="Non Billable Employees"
-              count={nonBillableCount}
+              icon="work_history"
+              title="Idle Employees"
+              count={`${averageIdleCountPerDay}`}
               percentage={{
                 color: "success",
                 amount: "",
-                label: `${nonBillableCount} Tasks`,
+                label: `  ${idleNonBillableCount } Tasks `,
               }}
             />
+                {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+      <div style={{ width: '100%', height: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px', marginRight: '5px' }}>
+        <div style={{ width: `${calculatePercentage(averageIdleCountPerDay)}%`, height: '100%', backgroundColor: 'green', borderRadius: '5px' }} />
+      </div>
+      <span>{calculatePercentageIdle(averageIdleCountPerDay)}%</span>
+    </div> */}
           </MDBox>
         </Grid>
-  
-        <Grid item xs={12} sm={6} md={2.4}>
-    <MDBox mb={1.5}>
-      <ComplexStatisticsCard
-        color="info"
-        icon={<EventAvailableIcon />}
-        title="Attendance Status"
-        count={attendanceData.presentCount}
-        percentage={{
-          color: "success",
-          amount: "",
-          label: <AttendanceLabel 
-                   presentCount={attendanceData.presentCount} 
-                   absentCount={attendanceData.absentCount} 
-                 />,
-        }}
-      />
-    </MDBox>
-  </Grid>
-  
-        <Grid item xs={12} sm={6} md={2.4}>
+        {/* <Grid item xs={12} md={6} lg={3}>
+        <MDBox mb={1.5}>
+          <ComplexStatisticsCard
+            color="success"
+            icon={<AccessTimeIcon />}
+            title="Working Time"
+            count={`${idleNonBillableCount}hr:${idleNonBillableCount}min`}
+            percentage={{
+              color: "success",
+              amount: "",
+              label: " over all  working Time",
+            }}
+          />
+        </MDBox>
+      </Grid> */}
+        <Grid item xs={12} md={6} lg={3}>
           <MDBox mb={1.5}>
             <ComplexStatisticsCard
               color="secondary"
               icon={<WorkIcon />}
               title="Projects"
-              count={allProjectNames.length}
+              count={
+                selectedProject
+                  ? 1
+                  : selectedTeam
+                  ? teamProjects.length
+                  : allProjectNames.length
+              }
               percentage={{
                 color: "success",
                 amount: "",
-                label: "Over all Projects",
+                label: selectedProject
+                  ? "Selected Project"
+                  : "Over all Projects",
               }}
             />
           </MDBox>
         </Grid>
-      </Grid>
-  
-  
-    {/* Row 3: Tables (Billable & Non-Billable Tasks) */}
-    <Grid container spacing={2} mt={2}>
-        <Grid item xs={12} md={6} >
-          <BillableTasksCard
-   
-            billableTableData={billableTableData}
-            columnsTable={columnsTable}
-            billableCount={billableCount}
-          />
+        {/* </Grid> */}
+
+        <Grid item xs={12} md={4}>
+          <MemoizedDoughnutChart pieChartDataAtt={pieChartDataAtt} />
         </Grid>
-        <Grid item xs={12} md={6} className="table-padding">
-          <NonBillableTasksCard
-            nonBillableTableData={nonBillableTableData}
-            columnsTable={columnsTable}
-            nonBillableCount={nonBillableCount}
-          />
+        <Grid item xs={12} md={4}>
+          <MemoizedBillingChart pieChartData={pieChartData} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <MemoizedProjectStatusChart pieChartData1={pieChartData1} />
+        </Grid>
+
+        {/* DataGrid table */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardHeader
+              title={<h3 style={{ fontSize: "17px" }}>Latest task report</h3>}
+            />
+            <CardContent>
+              <div
+                style={{
+                  height: 330,
+                  width: "100%",
+                  // marginTop: '20px',
+                  backgroundColor: "#fff",
+                }}
+              >
+                <DataGrid
+                  rows={tableData}
+                  columns={[
+                    { field: "id", headerName: "ID", width: 30 },
+                    { field: "task", headerName: "Task", width: 200, flex: 1 },
+                    {
+                      field: "count",
+                      headerName: "Employee Count",
+                      width: 150,
+                      flex: 1,
+                      backgroundColor:
+                        "#eff1f4" /* Set your desired background color */,
+                    },
+                    // Include a new column for the count
+                  ]}
+                  pageSize={4}
+                  rowsPerPageOptions={[4, 8, 16]}
+                  pagination
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardHeader
+              title={
+                <h3 style={{ fontSize: "17px" }}>Latest project report</h3>
+              }
+            />
+            <CardContent>
+              <div
+                style={{
+                  height: 330,
+                  width: "100%",
+                  // marginTop: "20px",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <DataGrid
+                  rows={formattedData}
+                  getRowId={(row) => row._id}
+                  columns={columnsTwo}
+                  rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={12}>
+          <Card>
+            <CardHeader
+              title={<h3 style={{ fontSize: "17px" }}>Task Report Status</h3>}
+            />
+            <CardContent>
+              <MemoizedBarChart chartData={chartData} />
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
-
-  
-    {/* Row 4: Charts (Project Status and Task Report) */}
-    <Grid container spacing={2} mt={2}>
-  {/* Table section */}
-  <Grid item xs={12} md={9}>
-    <Card sx={{ height: "100%" }}>
-      <CardHeader
-        title={<h3 style={{ fontSize: "17px" }}>Latest project report</h3>}
-      />
-      <CardContent>
-        <div
-          style={{
-            height: 330, // Set a fixed height
-            width: "100%",
-            backgroundColor: "#fff",
-          }}
-        >
-          <DataGrid
-            rows={formattedData}
-            getRowId={(row) => row._id}
-            columns={columnsTwo}
-            rowsPerPageOptions={[5, 10, 25, 50, 100]}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  </Grid>
-
-  {/* Chart section */}
-  <Grid item xs={12} md={3}>
-    <Card sx={{ height: "100%" }}>
-      <CardHeader
-        title={<h3 style={{ fontSize: "17px" }}>Project Status</h3>}
-      />
-      <CardContent sx={{ height: 330 }}>
-        <MemoizedProjectStatusChart pieChartData1={pieChartData1} />
-      </CardContent>
-    </Card>
-  </Grid>
-</Grid>
-
-  </DashboardLayout>
-  
+    </DashboardLayout>
   );
 };
 
