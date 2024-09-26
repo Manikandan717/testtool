@@ -7,6 +7,9 @@
     line-height: 2.125em;
     /* border: 1px solid black !important; */
 }
+.table-padding{
+    padding-bottom: 65px !important;
+  }
 .react-calendar__month-view__weekdays {
     text-align: center;
     text-transform: uppercase;
