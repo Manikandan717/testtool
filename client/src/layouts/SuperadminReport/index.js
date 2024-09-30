@@ -26,7 +26,7 @@ import Box from "@mui/material/Box";
 import { useSelector } from "react-redux";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Button from '@material-ui/core/Button';
 import "react-datepicker/dist/react-datepicker.css";
 import TextField from "@mui/material/TextField";
@@ -86,6 +86,8 @@ function AdminReport() {
   const [selectedProjectName, setSelectedProjectName] = useState(null);
   const [aggregatedData, setAggregatedData] = useState(null);
   const [projectName, setProjectName] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -195,34 +197,30 @@ function AdminReport() {
 
   let isComponentMounted = true;
 
-  useEffect(() => {
-    const abortController = new AbortController();
-  
-    const fetchData = async () => {
-      try {
-        const reportResponse = await axios.get(`${apiUrl}/analyst`, { signal: abortController.signal });
-        const userNameResponse = await axios.get(`${apiUrl}/users`, { signal: abortController.signal });
-  
-        setReport(reportResponse.data);
-        setName(userNameResponse.data);
-        setLoading(false);
-      } catch (error) {
-        if (!abortController.signal.aborted) {
-          console.error('Error fetching data:', error);
-          setLoading(false);
-        }
-      }
-    };
-  
-    fetchData();
-  
-    // Cleanup function to abort ongoing requests when the component is unmounted
-    return () => {
-      abortController.abort();
-    };
-  }, []); // Empty dependency array means this effect will run once on mount
-  
+  const fetchAnalysts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${apiUrl}/analyst?page=${page}&limit=100`);
+      const newData = response.data.analysts.map(analyst => ({
+        ...analyst,
+        id: analyst._id  // Add this line
+      }));
+      setReport(prevReport => [...prevReport, ...newData]);
+      setHasMore(page < response.data.totalPages);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setLoading(false);
+    }
+  }, [page]);
 
+  useEffect(() => {
+    fetchAnalysts();
+  }, [fetchAnalysts]);
+  
+  const handleLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
+  };
 
   // const userName = () => {
   //   return axios.get(`${apiUrl}/users`).then((res) => {
@@ -307,14 +305,16 @@ function AdminReport() {
       ),
     }
   );
-
   const row = useMemo(
     () =>
-      report.map((item, index) => ({
-        id: index + 1,
-        ...item,
+      report.map((item) => ({
+        id: item._id, // Use _id as the unique identifier
         date: moment(item.dateTask).format('DD-MM-YYYY'),
+        name: item.name,
+        team: item.team,
+        projectName: item.projectName,
         taskCount: item.sessionOne.length,
+        managerTask: item.managerTask,
         totalHours: calculateTotalHours(item.sessionOne),
       })),
     [report]
@@ -900,17 +900,18 @@ const csvReport = {
                         />
                       </div>
                     )}
-                    {activeTab === 1 && (
-                      <div style={{ height: 670, width: "100%" }}>
-                        <DataGrid
-                          rows={row}
-                          columns={columns}
-                          // pageSize={10}
-                          rowsPerPageOptions={[5, 10, 25, 50, 100]}
-                          checkboxSelection
-                          disableSelectionOnClick
-                          loading={loading}
-                          components={{
+     {activeTab === 1 && (
+    <div style={{ height: 670, width: "100%" }}>
+      <DataGrid
+        rows={row}
+        columns={columns}
+        pageSize={100}
+        rowCount={report.length}
+        loading={loading}
+        paginationMode="infinite"
+        onRowsScrollEnd={handleLoadMore}
+        getRowId={(row) => row.id}
+        components={{
                             Toolbar: () => (
                               <div style={{ display: "flex" }}>
                                 <div
@@ -947,6 +948,15 @@ const csvReport = {
                                 <GridToolbar />
 
                               </div>
+                            ),
+                            Footer: () => (
+                              <Box sx={{ padding: 2, display: 'flex', justifyContent: 'center' }}>
+                                {hasMore && (
+                                  <MDButton onClick={handleLoadMore} disabled={loading}>
+                                    Load More
+                                  </MDButton>
+                                )}
+                              </Box>
                             ),
                           }}
 

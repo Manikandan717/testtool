@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid,
   Card,
@@ -28,6 +28,7 @@ import { IconButton } from "@mui/material";
 import MDButton from "components/MDButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import { debounce } from 'lodash'; // Make sure to install lodash if not already installed
 
 const excelRowSchema = {
   emp_id: "",
@@ -68,6 +69,9 @@ function Employees() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAddingEmployee, setIsAddingEmployee] = useState(false);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
+  const [duplicateEmployee, setDuplicateEmployee] = useState(null);
   const [newEmployeeData, setNewEmployeeData] = useState({
     emp_id: "",
     emp_name: "",
@@ -381,14 +385,51 @@ function Employees() {
     }
   };
 
-  // ...
+  const checkExistingEmployee = async (emp_id, email_id) => {
+    try {
+      const response = await fetch(`${apiUrl}/checkExistingEmployee`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ emp_id, email_id }),
+      });
+      const result = await response.json();
+      return result.existingEmployee;
+    } catch (error) {
+      console.error('Error checking existing employee:', error);
+      return null;
+    }
+  };
 
-  const handleAddEmployee = async () => {
-    // Validate the data before sending the request
+  const handleDuplicateDialogClose = () => {
+    setIsDuplicateDialogOpen(false);
+    setDuplicateEmployee(null);
+  };
+  // Debounced add employee function
+  const debouncedAddEmployee = useCallback(
+    debounce(async () => {
+      try {
+        setIsAddingEmployee(true);
+        const existingEmployee = await checkExistingEmployee(newEmployeeData.emp_id, newEmployeeData.email_id);
+        if (existingEmployee) {
+          setDuplicateEmployee(existingEmployee);
+          setIsDuplicateDialogOpen(true);
+        } else {
+          await handleApiRequest(`${apiUrl}/addEmployee`, "POST", newEmployeeData);
+        }
+      } finally {
+        setIsAddingEmployee(false);
+      }
+    }, 300),
+    [newEmployeeData]
+  );
+
+  const handleAddEmployee = () => {
     if (!validateEmployeeData(newEmployeeData)) {
       return;
     }
-    await handleApiRequest(`${apiUrl}/addEmployee`, "POST", newEmployeeData);
+    debouncedAddEmployee();
   };
 
   const handleDeleteEmployee = async (id) => {
@@ -396,11 +437,16 @@ function Employees() {
   };
 
   const handleUpdateEmployee = async () => {
-    await handleApiRequest(
-      `${apiUrl}/updateEmployee/${selectedEmployeeId}`,
-      "PUT",
-      newEmployeeData
-    );
+    if (!validateEmployeeData(newEmployeeData)) {
+      return;
+    }
+    const existingEmployee = await checkExistingEmployee(newEmployeeData.emp_id, newEmployeeData.email_id);
+    if (existingEmployee && existingEmployee.id !== selectedEmployeeId) {
+      setDuplicateEmployee(existingEmployee);
+      setIsDuplicateDialogOpen(true);
+    } else {
+      await handleApiRequest(`${apiUrl}/updateEmployee/${selectedEmployeeId}`, "PUT", newEmployeeData);
+    }
   };
 
   const handleEditEmployee = (id) => {
@@ -517,6 +563,32 @@ function Employees() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
+      <Dialog
+        open={isDuplicateDialogOpen}
+        onClose={handleDuplicateDialogClose}
+      >
+        <DialogTitle style={{ background: "#f44336", color: "white" }}>
+          Duplicate Employee Found
+        </DialogTitle>
+        <DialogContent>
+          {duplicateEmployee && (
+            <Typography variant="body1">
+              An employee with the same ID or email already exists:
+              <br /><br />
+              Employee ID: {duplicateEmployee.emp_id}
+              <br />
+              Name: {duplicateEmployee.emp_name}
+              <br />
+              Email: {duplicateEmployee.email_id}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDuplicateDialogClose} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <div
@@ -1076,25 +1148,28 @@ function Employees() {
           </DialogContent>
           <DialogActions style={{ justifyContent: 'center' }}>
           <Button
-              onClick={
-                selectedEmployeeId ? handleUpdateEmployee : handleAddEmployee
-              }
-              color="info"
-              style={{
-                color: "#1a73e8",
-                display: "flex",
-                justifyContent: "center",
-                fontSize: "0.7rem",
-                borderRadius: "10px",
-                textAlign: "center",
-                minHeight: "10px",
-                minWidth: "80px",
-                border: "1px solid #1a73e8",
-                padding: "10px"
-              }}
-            >
-              {selectedEmployeeId ? "Update" : "Add"}
-            </Button>
+            onClick={selectedEmployeeId ? handleUpdateEmployee : handleAddEmployee}
+            color="info"
+            disabled={isAddingEmployee}
+            style={{
+              color: "#1a73e8",
+              display: "flex",
+              justifyContent: "center",
+              fontSize: "0.7rem",
+              borderRadius: "10px",
+              textAlign: "center",
+              minHeight: "10px",
+              minWidth: "80px",
+              border: "1px solid #1a73e8",
+              padding: "10px"
+            }}
+          >
+            {isAddingEmployee ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              selectedEmployeeId ? "Update" : "Add"
+            )}
+          </Button>
             <Button
               onClick={handleCloseForm}
               color="primary"

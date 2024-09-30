@@ -162,7 +162,10 @@ function App() {
         <Route element={<Protected isValid={(isLoggedIn&&( role === 'superadmin'))}/>}>
           <Route exact path="/report" element={<SuperadminReport/>} />
         </Route>
-        <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
+        {/* <Route element={<Protected isValid={(isLoggedIn&&role==='superadmin')}/>}>
+          <Route exact path="/employees" element={<AllEmployee/>} />
+        </Route> */}
+        <Route element={<Protected isValid={(isLoggedIn&&(role === 'admin' || role === 'superadmin'))}/>}>
           <Route exact path="/employees" element={<AllEmployee/>} />
         </Route>
         <Route element={<Protected isValid={(isLoggedIn&&role==='admin')}/>}>

@@ -130,6 +130,15 @@ const routes = [
   },
   {
     type: "collapse",
+    name: "Employees",
+    key: "employees",
+    icon: <Icon fontSize="small">peopleIcon</Icon>,
+    route: "/employees",
+    component: <AllEmployee />,
+    role: "admin",
+  },
+  {
+    type: "collapse",
     name: "Attendance",
     key: "user-attendance",
     icon: <Icon fontSize="small">table_view</Icon>,
