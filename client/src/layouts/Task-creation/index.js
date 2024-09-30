@@ -1186,7 +1186,7 @@ const TaskCreation = () => {
                   <IconButton
                     style={{ background: "#4caf50", borderRadius: "5px" }}
                     onClick={() => {
-                      handleSubmitMain();
+                      handleSubmitThree();
                       updateDataTwo();
                     }}
                   >

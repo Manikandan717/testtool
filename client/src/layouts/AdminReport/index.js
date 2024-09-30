@@ -233,14 +233,21 @@ function AdminReport() {
       .then((response) => {
         console.log("Task approved successfully:", response.data);
         if (response.data.approvalStatus !== "pending") {
-          setNotificationCount((prevCount) => prevCount - 1); // Decrease count only if status changed from pending
           setSnackbarMessage("Task approved successfully");
           setSnackbarOpen(true);
+          
+          // Update the local state
+          setReport((prevReport) =>
+            prevReport.map((item) =>
+              item._id === taskId ? { ...item, approvalStatus: "approved" } : item
+            )
+          );
         }
-        allReport(); // Refresh report data
       })
       .catch((error) => {
         console.error("Error approving task:", error);
+        setSnackbarMessage("Error approving task");
+        setSnackbarOpen(true);
       });
   };
 
@@ -570,8 +577,8 @@ function AdminReport() {
         const taskYear = dateTask.getFullYear();
         const isBeforeDate =
           taskYear < 2024 ||
-          (taskYear === 2024 &&
-            (taskMonth < 4 || (taskMonth === 4 && taskDay < 12)));
+          (taskYear === 2024 && (taskMonth < 4 || (taskMonth === 4 && taskDay < 12)));
+
         if (isBeforeDate) {
           return (
             <Typography style={{ color: "green", fontSize: 15 }}>

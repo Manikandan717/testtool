@@ -441,9 +441,9 @@ function Employees() {
       return;
     }
     const existingEmployee = await checkExistingEmployee(newEmployeeData.emp_id, newEmployeeData.email_id);
-    if (existingEmployee && existingEmployee.id !== selectedEmployeeId) {
-      setDuplicateEmployee(existingEmployee);
-      setIsDuplicateDialogOpen(true);
+    if (existingEmployee && existingEmployee.id == selectedEmployeeId) {
+      // setDuplicateEmployee(existingEmployee);
+      // setIsDuplicateDialogOpen(true);
     } else {
       await handleApiRequest(`${apiUrl}/updateEmployee/${selectedEmployeeId}`, "PUT", newEmployeeData);
     }
