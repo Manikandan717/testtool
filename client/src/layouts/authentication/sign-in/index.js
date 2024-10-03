@@ -301,13 +301,13 @@ const UnderMaintenance = () => {
       </svg>
       <h1 className="text-4xl font-bold mb-4 text-gray-800">Under Maintenance</h1>
       <p className="text-xl text-gray-600 mb-8">
-        We're currently performing some updates. Please check back soon!
+        We're currently performing some updates. Come back soon!
       </p>
-      <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4">
+      {/* <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4">
         <p className="text-yellow-700">
           Estimated downtime: 2 hours. We apologize for any inconvenience.
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };
