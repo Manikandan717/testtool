@@ -271,41 +271,86 @@
 
 
 
-// under maintenence code
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-const CenteredMaintenanceLogo = ({ size = 200, color = '#4A5568', backgroundColor = '#ffffff' }) => {
-  const [rotation, setRotation] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRotation((prevRotation) => (prevRotation + 10) % 360);
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, []);
-
+const MaintenancePage = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 text-center">
-      <div className={`w-${size} h-${size} mb-8`}>
-        <svg
-          viewBox="0 0 100 100"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full"
-        >
-          <g transform={`rotate(${rotation} 50 50)`}>
-            <circle cx="50" cy="50" r="45" fill={backgroundColor} stroke={color} strokeWidth="2" />
-            <rect x="35" y="35" width="30" height="30" fill={color} />
-            <circle cx="50" cy="50" r="5" fill={backgroundColor} />
-          </g>
-        </svg>
+    <div className="maintenance-container">
+      <div className="maintenance-content">
+        <div className="icon-container">
+          <div className="tool-icon"></div>
+        </div>
+        <h1>Under Maintenance</h1>
+        <p>We're currently performing some updates. Come back soon!</p>
+        <div className="progress-bar">
+          <div className="progress"></div>
+        </div>
       </div>
-      <h1 className="text-4xl font-bold mb-4 text-gray-800">Under Maintenance</h1>
-      <p className="text-xl text-gray-600 mb-8">
-        We're currently performing some updates. Come back soon!
-      </p>
+      <style jsx>{`
+        .maintenance-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          background-color: #f3f4f6;
+          font-family: Arial, sans-serif;
+        }
+        .maintenance-content {
+          text-align: center;
+          padding: 2rem;
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          max-width: 24rem;
+        }
+        .icon-container {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 1.5rem;
+        }
+        .tool-icon {
+          width: 64px;
+          height: 64px;
+          border: 3px solid #3b82f6;
+          border-top: 3px solid transparent;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        h1 {
+          font-size: 2rem;
+          font-weight: bold;
+          color: #1f2937;
+          margin-bottom: 1rem;
+        }
+        p {
+          font-size: 1.25rem;
+          color: #4b5563;
+          margin-bottom: 2rem;
+        }
+        .progress-bar {
+          width: 100%;
+          height: 0.5rem;
+          background-color: #e5e7eb;
+          border-radius: 9999px;
+          overflow: hidden;
+        }
+        .progress {
+          width: 60%;
+          height: 100%;
+          background-color: #3b82f6;
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .5; }
+        }
+      `}</style>
     </div>
   );
 };
 
-export default CenteredMaintenanceLogo;
+export default MaintenancePage;
