@@ -272,10 +272,9 @@
 
 
 // under maintenence code
-
 import React, { useState, useEffect } from 'react';
 
-const UnderMaintenance = () => {
+const CenteredMaintenanceLogo = ({ size = 200, color = '#4A5568', backgroundColor = '#ffffff' }) => {
   const [rotation, setRotation] = useState(0);
 
   useEffect(() => {
@@ -287,29 +286,26 @@ const UnderMaintenance = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <svg
-        className="w-32 h-32 mb-8"
-        viewBox="0 0 100 100"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g transform={`rotate(${rotation} 50 50)`}>
-          <circle cx="50" cy="50" r="45" fill="#f3f4f6" stroke="#4b5563" strokeWidth="2" />
-          <rect x="35" y="35" width="30" height="30" fill="#4b5563" />
-          <circle cx="50" cy="50" r="5" fill="#f3f4f6" />
-        </g>
-      </svg>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 text-center">
+      <div className={`w-${size} h-${size} mb-8`}>
+        <svg
+          viewBox="0 0 100 100"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-full"
+        >
+          <g transform={`rotate(${rotation} 50 50)`}>
+            <circle cx="50" cy="50" r="45" fill={backgroundColor} stroke={color} strokeWidth="2" />
+            <rect x="35" y="35" width="30" height="30" fill={color} />
+            <circle cx="50" cy="50" r="5" fill={backgroundColor} />
+          </g>
+        </svg>
+      </div>
       <h1 className="text-4xl font-bold mb-4 text-gray-800">Under Maintenance</h1>
       <p className="text-xl text-gray-600 mb-8">
         We're currently performing some updates. Come back soon!
       </p>
-      {/* <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4">
-        <p className="text-yellow-700">
-          Estimated downtime: 2 hours. We apologize for any inconvenience.
-        </p>
-      </div> */}
     </div>
   );
 };
 
-export default UnderMaintenance;
+export default CenteredMaintenanceLogo;
